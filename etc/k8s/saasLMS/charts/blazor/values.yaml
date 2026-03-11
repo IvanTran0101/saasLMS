@@ -1,0 +1,18 @@
+config:
+  selfUrl: # https://blazor.saaslms.dev
+  gatewayUrl: # https://gateway-web.saaslms.dev
+  authServer:
+      authority: # https://saaslms-st-authserver
+      responseType: "code"
+  AbpLicenseCode: #
+
+ingress:
+  host: # blazor.saaslms.dev
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-app-blazor
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}

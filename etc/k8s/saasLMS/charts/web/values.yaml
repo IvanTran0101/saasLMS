@@ -1,0 +1,25 @@
+config:
+  selfUrl: # https://web.saaslms.dev
+  gatewayUrl: # http://saaslms-st-gateway-web
+  authServer:
+    authority: # https://authserver.saaslms.dev
+    requireHttpsMetadata: # "false"
+    isOnK8s: # "true"
+    metaAddress: # http://saaslms-st-authserver
+  dotnetEnv: # 
+  redisHost: #
+  rabbitmqHost: #
+  elasticsearchUrl: #
+  stringEncryptionDefaultPassPhrase: gsKnGZ041HLL4IM8
+  AbpLicenseCode: #
+
+ingress:
+  host: # web.saaslms.dev
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-app-web
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}

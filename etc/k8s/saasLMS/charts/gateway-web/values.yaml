@@ -1,0 +1,36 @@
+config:
+  selfUrl: # https://gateway-web.saaslms.dev
+  corsOrigins: # https://saaslms-st-angular
+  globalConfigurationBaseUrl: # http://saaslms-st-gateway-web
+  authServer:
+    authority: # http://saaslms-st-authserver
+    requireHttpsMetadata: # "false"
+    metadataAddress: # https://authserver.saaslms.dev/.well-known/openid-configuration
+    swaggerClientId: # WebGateway_Swagger
+  dotnetEnv: # 
+  redisHost: #
+  rabbitmqHost: #
+  elasticsearchUrl: #
+  AbpLicenseCode: #
+  
+reRoutes:
+  accountService:
+    url: http://saaslms-st-authserver
+  saasService:
+    url: http://saas-st-administration
+  administrationService:
+    url: http://saaslms-st-administration
+  identityService:
+    url: http://saaslms-st-identity
+  productService:
+    url: http://saaslms-st-product
+ingress:
+  host: # gateway-web.saaslms.dev
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-gateway-web
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}

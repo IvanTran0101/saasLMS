@@ -1,0 +1,25 @@
+config:
+  selfUrl: # https://blazor-server.saaslms.dev
+  gatewayUrl: # http://saaslms-st-gateway-web
+  authServer:
+    authority: # http://saaslms-st-authserver
+    requireHttpsMetadata: # "false"
+    isOnK8s: # "true"
+    metaAddress: # http://saaslms-st-authserver
+  dotnetEnv: # 
+  redisHost: #
+  rabbitmqHost: #
+  elasticsearchUrl: #
+  stringEncryptionDefaultPassPhrase: gsKnGZ041HLL4IM8
+  AbpLicenseCode: #
+
+ingress:
+  host: # blazor-server.saaslms.dev
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-app-blazor-server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}   

@@ -1,0 +1,31 @@
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+WORKDIR /src
+
+COPY "saasLMS.sln" "saasLMS.sln"
+
+# Applications
+COPY "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj" "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj"
+COPY "apps/public-web/src/saasLMS.PublicWeb/saasLMS.PublicWeb.csproj" "apps/public-web/src/saasLMS.PublicWeb/saasLMS.PublicWeb.csproj"
+COPY "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj" "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj"
+# Shared Projects
+COPY "shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj" "shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj"
+COPY "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj" "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj"
+COPY "shared/saasLMS.Shared.Hosting.Gateways/saasLMS.Shared.Hosting.Gateways.csproj" "shared/saasLMS.Shared.Hosting.Gateways/saasLMS.Shared.Hosting.Gateways.csproj"
+COPY "shared/saasLMS.Shared.Hosting.Microservices/saasLMS.Shared.Hosting.Microservices.csproj" "shared/saasLMS.Shared.Hosting.Microservices/saasLMS.Shared.Hosting.Microservices.csproj"
+COPY "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.csproj" "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.csproj"
+COPY "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj" "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj"
+COPY "shared/saasLMS.Shared.Localization/saasLMS.Shared.Localization.csproj" "shared/saasLMS.Shared.Localization/saasLMS.Shared.Localization.csproj"
+
+# Microservices
+COPY "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj" "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj" "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj"
+COPY "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj"
+COPY "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj" "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj"
+# Gateways
+COPY "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj" "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj"
+COPY "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj" "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj"
+
+COPY "NuGet.Config" "NuGet.Config"
+
+RUN dotnet restore "saasLMS.sln"

@@ -1,0 +1,58 @@
+{
+  "applications": {
+    "Docker-Dependencies": {
+      "type": "cli",
+      "workingDirectory": "../docker",
+      "startCommand": "./up.ps1",
+      "stopCommand": "./down.ps1"
+    },
+    "saasLMS.AuthServer": {
+      "type": "dotnet-project",
+      "path": "../../apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj"
+    },
+    "saasLMS.Blazor": {
+      "type": "dotnet-project",
+      "path": "../../apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj"
+    },
+    "saasLMS.Blazor.Server": {
+      "type": "dotnet-project",
+      "path": "../../apps/blazor/src/saasLMS.Blazor.Server/saasLMS.Blazor.Server.csproj"
+    },
+    "saasLMS.Blazor.WebApp": {
+      "type": "dotnet-project",
+      "path": "../../apps/blazor/src/saasLMS.Blazor.WebApp/saasLMS.Blazor.WebApp.csproj"
+    },
+    "saasLMS.PublicWeb": {
+      "type": "dotnet-project",
+      "path": "../../apps/public-web/src/saasLMS.PublicWeb/saasLMS.PublicWeb.csproj"
+    },
+    "saasLMS.Web": {
+      "type": "dotnet-project",
+      "path": "../../apps/web/src/saasLMS.Web/saasLMS.Web.csproj"
+    },
+    "saasLMS.AdministrationService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj"
+    },
+    "saasLMS.IdentityService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj"
+    },
+    "saasLMS.ProductService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj"
+    },
+    "saasLMS.SaasService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj"
+    },
+    "saasLMS.WebGateway": {
+      "type": "dotnet-project",
+      "path": "../../gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj"
+    },
+    "saasLMS.PublicWebGateway": {
+      "type": "dotnet-project",
+      "path": "../../gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj"
+    }
+  }
+}

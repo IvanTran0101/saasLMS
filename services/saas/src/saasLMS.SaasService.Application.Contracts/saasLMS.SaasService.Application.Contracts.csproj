@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>saasLMS.SaasService</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Volo.Saas.Host.Application.Contracts" Version="10.1.1" />
+        <PackageReference Include="Volo.Saas.Tenant.Application.Contracts" Version="10.1.1" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\saasLMS.SaasService.Domain.Shared\saasLMS.SaasService.Domain.Shared.csproj" />
+    </ItemGroup>
+
+</Project>

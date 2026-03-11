@@ -1,0 +1,169 @@
+{
+  "folders": {
+    "src": {},
+    "test": {}
+  },
+  "packages": {
+    "saasLMS.ProductService.Domain.Shared": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.Domain.Shared/saasLMS.ProductService.Domain.Shared.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.domain.shared": {}
+      }      
+    },
+    "saasLMS.ProductService.Domain": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.Domain/saasLMS.ProductService.Domain.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.domain": {}
+      },
+      "contents": {
+        "aggregates": {
+          "saasLMS.ProductService.Products.Product": {
+            "keyType": "Guid",
+            "summary": "Represents a product.",
+            "collectionProperties": {},
+            "navigationProperties": {}
+          } 
+        },
+        "repositoryInterfaces": {
+          "saasLMS.ProductService.Products.IProductRepository": {
+            "entity": {
+              "type": "saasLMS.ProductService.Products.Product",
+              "package": "saasLMS.ProductService.Domain"
+            }
+          }
+        }
+      }
+    },
+    "saasLMS.ProductService.Application.Contracts": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.Application.Contracts/saasLMS.ProductService.Application.Contracts.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.application.contracts": {}
+      }
+    },
+    "saasLMS.ProductService.Application": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.Application/saasLMS.ProductService.Application.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.application": {}
+      },
+      "contents": {
+        "applicationServices": {
+          "saasLMS.ProductService.ProductAppService": {}
+        }
+      }
+    },
+    "saasLMS.ProductService.EntityFrameworkCore": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.EntityFrameworkCore/saasLMS.ProductService.EntityFrameworkCore.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.ef": {}
+      },
+      "contents": {
+        "efDbContexts": {
+          "saasLMS.ProductService.EntityFrameworkCore.ProductServiceDbContext": {
+            "entities": {
+              "saasLMS.ProductService.Products.Product": {
+                "package": "saasLMS.ProductService.Domain",
+                "dbSetPropertyOnDbContext": "Products",
+                "databaseTable": "Products" 
+              }
+            }
+          }
+        }
+      }
+    },
+    "saasLMS.ProductService.HttpApi": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.HttpApi/saasLMS.ProductService.HttpApi.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.http-api": {}
+      },
+      "contents": {
+        "controllers": {
+          "saasLMS.ProductService.Products.ProductController": {},
+          "saasLMS.ProductService.Products.ProductPublicController": {}
+        }
+      }
+    },
+    "saasLMS.ProductService.HttpApi.Client": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.HttpApi.Client/saasLMS.ProductService.HttpApi.Client.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.http-api-client": {}
+      }
+    },
+    "saasLMS.ProductService.Web": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.Web/saasLMS.ProductService.Web.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.ui.mvc": {}
+      },
+      "contents": {
+        "mvcPages": {
+          "saasLMS.ProductService.Web.Pages.Products.Index.cshtml": {},
+          "saasLMS.ProductService.Web.Pages.Products.CreateModal.cshtml": {},
+          "saasLMS.ProductService.Web.Pages.Products.EditModal.cshtml": {}
+        }
+      }
+    },
+    "saasLMS.ProductService.Blazor": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.Blazor/saasLMS.ProductService.Blazor.csproj",
+      "folder": "src",
+      "includes": {
+        "lib.ui.blazor": {}
+      }
+    },
+    "saasLMS.ProductService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj",
+      "folder": "src",
+      "includes": {
+        "host.http-api": {}
+      }
+    },
+    "saasLMS.ProductService.TestBase": {
+      "type": "dotnet-project",
+      "path": "test/saasLMS.ProductService.TestBase/saasLMS.ProductService.TestBase.csproj",
+      "folder": "test",
+      "includes": {
+        "lib.test": {}
+      }
+    },
+    "saasLMS.ProductService.Domain.Tests": {
+      "type": "dotnet-project",
+      "path": "test/saasLMS.ProductService.Domain.Tests/saasLMS.ProductService.Domain.Tests.csproj",
+      "folder": "test",
+      "includes": {
+        "lib.test": {}
+      }
+    },
+    "saasLMS.ProductService.EntityFrameworkCore.Tests": {
+      "type": "dotnet-project",
+      "path": "test/saasLMS.ProductService.EntityFrameworkCore.Tests/saasLMS.ProductService.EntityFrameworkCore.Tests.csproj",
+      "folder": "test",
+      "includes": {
+        "lib.test": {}
+      }
+    },
+    "saasLMS.ProductService.Application.Tests": {
+      "type": "dotnet-project",
+      "path": "test/saasLMS.ProductService.Application.Tests/saasLMS.ProductService.Application.Tests.csproj",
+      "folder": "test",
+      "includes": {
+        "lib.test": {}
+      }
+    }
+  }
+}

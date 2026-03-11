@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.SaasService.Application.Contracts/saasLMS.SaasService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.SaasService.Application/saasLMS.SaasService.Application.csproj" />
+    <Project Path="src/saasLMS.SaasService.Domain.Shared/saasLMS.SaasService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.SaasService.Domain/saasLMS.SaasService.Domain.csproj" />
+    <Project Path="src/saasLMS.SaasService.EntityFrameworkCore/saasLMS.SaasService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.SaasService.HttpApi.Client/saasLMS.SaasService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.SaasService.HttpApi/saasLMS.SaasService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.SaasService.Web/saasLMS.SaasService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.SaasService.Application.Tests/saasLMS.SaasService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.SaasService.Domain.Tests/saasLMS.SaasService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.SaasService.EntityFrameworkCore.Tests/saasLMS.SaasService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.SaasService.TestBase/saasLMS.SaasService.TestBase.csproj" />
+  </Folder>
+</Solution>

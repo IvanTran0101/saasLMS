@@ -1,0 +1,67 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "saasLMS.ProductService.Domain.Shared": {
+      "path": "src/saasLMS.ProductService.Domain.Shared/saasLMS.ProductService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Domain": {
+      "path": "src/saasLMS.ProductService.Domain/saasLMS.ProductService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Application.Contracts": {
+      "path": "src/saasLMS.ProductService.Application.Contracts/saasLMS.ProductService.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Application": {
+      "path": "src/saasLMS.ProductService.Application/saasLMS.ProductService.Application.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.EntityFrameworkCore": {
+      "path": "src/saasLMS.ProductService.EntityFrameworkCore/saasLMS.ProductService.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.HttpApi": {
+      "path": "src/saasLMS.ProductService.HttpApi/saasLMS.ProductService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.HttpApi.Client": {
+      "path": "src/saasLMS.ProductService.HttpApi.Client/saasLMS.ProductService.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.HttpApi.Host": {
+      "path": "src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Blazor": {
+      "path": "src/saasLMS.ProductService.Blazor/saasLMS.ProductService.Blazor.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Web": {
+      "path": "src/saasLMS.ProductService.Web/saasLMS.ProductService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Application.Tests": {
+      "path": "test/saasLMS.ProductService.Application.Tests/saasLMS.ProductService.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.ProductService.Domain.Tests": {
+      "path": "test/saasLMS.ProductService.Domain.Tests/saasLMS.ProductService.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.ProductService.EntityFrameworkCore.Tests": {
+      "path": "test/saasLMS.ProductService.EntityFrameworkCore.Tests/saasLMS.ProductService.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.ProductService.TestBase": {
+      "path": "test/saasLMS.ProductService.TestBase/saasLMS.ProductService.TestBase.abppkg",
+      "folder": "test"
+    }
+  },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+}

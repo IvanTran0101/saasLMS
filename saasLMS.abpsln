@@ -1,0 +1,60 @@
+{
+  "folders": {
+    "items": {
+      "apps": {},
+      "gateways": {},
+      "services": {}
+    }
+  },
+  "modules": {
+    "saasLMS": {
+      "path": "saasLMS.abpmdl"
+    },
+    "saasLMS.AuthServer": {
+      "path": "apps/auth-server/saasLMS.AuthServer.abpmdl",
+      "folder": "apps"
+    },
+    "saasLMS.Blazor": {
+      "path": "apps/blazor/saasLMS.Blazor.abpmdl",
+      "folder": "apps"
+    },
+    "saasLMS.PublicWeb": {
+      "path": "apps/public-web/saasLMS.PublicWeb.abpmdl",
+      "folder": "apps"
+    },
+    "saasLMS.Web": {
+      "path": "apps/web/saasLMS.Web.abpmdl",
+      "folder": "apps"
+    },
+    "saasLMS.WebGateway": {
+      "path": "gateways/web/saasLMS.WebGateway.abpmdl",
+      "folder": "gateways"
+    },
+    "saasLMS.PublicWebGateway": {
+      "path": "gateways/web-public/saasLMS.PublicWebGateway.abpmdl",
+      "folder": "gateways"
+    },
+    "saasLMS.AdministrationService": {
+      "path": "services/administration/saasLMS.AdministrationService.abpmdl",
+      "folder": "services"
+    },
+    "saasLMS.IdentityService": {
+      "path": "services/identity/saasLMS.IdentityService.abpmdl",
+      "folder": "services"
+    },
+    "saasLMS.ProductService": {
+      "path": "services/product/saasLMS.ProductService.abpmdl",
+      "folder": "services"
+    },
+    "saasLMS.SaasService": {
+      "path": "services/saas/saasLMS.SaasService.abpmdl",
+      "folder": "services"
+    }
+  },
+  "runProfiles": {
+    "Default": {
+      "path": "etc/run-profiles/Default.abprun.json"
+    }
+  },
+  "id": "0616d9f8-06d7-4cf6-9e2a-5d3e5a4c1f1d"
+}

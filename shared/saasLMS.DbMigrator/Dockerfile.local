@@ -1,0 +1,4 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+COPY bin/Release/net10.0/publish/ app/
+WORKDIR /app
+ENTRYPOINT ["dotnet", "saasLMS.DbMigrator.dll"]

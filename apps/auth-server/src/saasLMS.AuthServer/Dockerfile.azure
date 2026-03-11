@@ -1,0 +1,17 @@
+ARG BASE_IMAGE=base
+
+FROM ${BASE_IMAGE} AS base
+WORKDIR /app/volo/abp/templates/ms/apps/auth-server/src/saasLMS.AuthServer
+RUN dotnet publish -c Release -o bin/Release/publish
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+RUN dotnet dev-certs https -v -ep openiddict.pfx -p 78708b56-3dc7-46a0-9693-67e8ad61e109
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS publish
+WORKDIR /app
+EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
+COPY --from=base /app/volo/abp/templates/ms/apps/auth-server/src/saasLMS.AuthServer/bin/Release/publish .
+COPY --from=build /src/openiddict.pfx .
+ENTRYPOINT ["dotnet", "saasLMS.AuthServer.dll"]

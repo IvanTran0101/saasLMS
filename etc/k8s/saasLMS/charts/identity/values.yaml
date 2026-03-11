@@ -1,0 +1,47 @@
+config:
+  selfUrl: # https://identity.saaslms.dev
+  corsOrigins: # https://saaslms-st-gateway-web,https://saaslms-st-gateway-public-web
+  connectionStrings:
+    identityService: #
+    administrationService: #
+    saasService: #
+  authServer:
+    authority: # http://saaslms-st-authserver
+    requireHttpsMetadata: # "false"
+    metadataAddress: # https://authserver.saaslms.dev/.well-known/openid-configuration
+    swaggerClientId: WebGateway_Swagger
+  dotnetEnv: Staging
+  redisHost: #
+  rabbitmqHost: #
+  elasticsearchUrl: #
+  stringEncryptionDefaultPassPhrase: gsKnGZ041HLL4IM8
+  AbpLicenseCode: #
+
+# Seeded applications and resources 
+openIdDict:
+  applications:
+    authServerRootUrl: #
+    angularRootUrl: #
+    webRootUrl: #
+    blazorRootUrl: #
+    blazorServerRootUrl: #
+    publicWebRootUrl: #
+    webGatewayRootUrl: #
+    publicWebGatewayRootUrl: #
+  resources:  
+    accountServiceRootUrl: #
+    administrationServiceRootUrl: #
+    identityServiceRootUrl: #
+    saasServiceRootUrl: #
+    productServiceRootUrl: #
+
+ingress:
+  host: identity.saaslms.dev
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-service-identity
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>saasLMS.AdministrationService</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Volo.Abp.Emailing" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.PermissionManagement.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.FeatureManagement.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.SettingManagement.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.AuditLogging.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.LanguageManagement.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.TextTemplateManagement.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.Gdpr.Domain" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.PermissionManagement.Domain.OpenIddict" Version="10.1.1" />
+        <PackageReference Include="Volo.Abp.PermissionManagement.Domain.Identity" Version="10.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\saasLMS.AdministrationService.Domain.Shared\saasLMS.AdministrationService.Domain.Shared.csproj" />
+    </ItemGroup>
+
+</Project>

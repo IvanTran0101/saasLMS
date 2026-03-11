@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>saasLMS.ProductService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\saasLMS.ProductService.Domain\saasLMS.ProductService.Domain.csproj" />
+    <ProjectReference Include="..\saasLMS.ProductService.TestBase\saasLMS.ProductService.TestBase.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,66 @@
+name: saasLMS
+services:
+- name: auth-server
+  project: apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj
+  bindings:
+    - protocol: https
+      port: 44322
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0
+- name: administration-service
+  project: services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj
+  bindings:
+    - protocol: https
+      port: 44367
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0
+- name: identity-service
+  project: services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj
+  bindings:
+    - protocol: https
+      port: 44388
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0
+- name: saas-service
+  project: services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj
+  bindings:
+    - protocol: https
+      port: 44381
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0
+- name: product-service
+  project: services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj
+  bindings:
+    - protocol: https
+      port: 44361
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0
+- name: web-gateway
+  project: gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj
+  bindings:
+    - protocol: https
+      port: 44325
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0  
+- name: web-public-gateway
+  project: gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj
+  bindings:
+    - protocol: https
+      port: 44353
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0
+- name: blazor
+  project: apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj
+  bindings:
+    - protocol: https
+      port: 44307
+  env:
+    - Kestrel__Certificates__Default__Path=../../../../etc/dev-cert/localhost.pfx
+    - Kestrel__Certificates__Default__Password=760acf5f-fbf4-4752-ad65-fe1685d8eda0

@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.WebGateway/saasLMS.WebGateway.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+</Solution>

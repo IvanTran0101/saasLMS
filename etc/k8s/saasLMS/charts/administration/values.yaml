@@ -1,0 +1,37 @@
+config:
+  selfUrl: # https://administration.saaslms.dev
+  corsOrigins: #
+  connectionStrings:
+    administrationService: #
+    saasService: #
+  authServer:
+    authority: # http://saaslms-st-authserver
+    requireHttpsMetadata: "false"
+    metadataAddress: # http://admin.saaslms.dev/.well-known/openid-configuration
+    swaggerClientId: WebGateway_Swagger
+  remoteServices:
+    abpIdentityBaseUrl: #
+    useCurrentToken: "false"
+  dotnetEnv: #
+  redisHost: #
+  rabbitmqHost: #
+  elasticsearchUrl: #
+  stringEncryptionDefaultPassPhrase: gsKnGZ041HLL4IM8
+  AbpLicenseCode: #
+
+synchedCommunication:
+  authority: # https://admin.saaslms.dev
+  requireHttps: #
+  validateIssuerName: #
+  validateEndpoints: #
+
+ingress:
+  host: # saaslms-st-administration
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-service-administration
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}

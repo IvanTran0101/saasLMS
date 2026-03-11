@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="saasLMS.Blazor.Client/saasLMS.Blazor.Client.csproj" />
+  <Project Path="saasLMS.Blazor.Server/saasLMS.Blazor.Server.csproj" />
+  <Project Path="saasLMS.Blazor.WebApp.Client/saasLMS.Blazor.WebApp.Client.csproj" />
+  <Project Path="saasLMS.Blazor.WebApp/saasLMS.Blazor.WebApp.csproj" />
+  <Project Path="saasLMS.Blazor/saasLMS.Blazor.csproj" />
+</Solution>

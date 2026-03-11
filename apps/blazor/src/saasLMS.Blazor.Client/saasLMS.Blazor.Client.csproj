@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <Import Project="..\..\..\..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+    <RootNamespace>saasLMS.Blazor.Client</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.8.8" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.8.8" />
+    <PackageReference Include="Blazorise.Components" Version="1.8.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.AspNetCore.Components.WebAssembly.LeptonXTheme" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.Autofac.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.AspNetCore.Components.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Identity.Pro.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.OpenIddict.Pro.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Saas.Host.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Saas.Tenant.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Payment.Admin.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Account.Pro.Admin.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Account.Pro.Public.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.TextTemplateManagement.Blazor.WebAssembly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.AuditLogging.Blazor.WebAssembly" Version="10.1.1" />
+	<PackageReference Include="Volo.Abp.LanguageManagement.Blazor.WebAssembly" Version="10.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\shared\saasLMS.Shared.Localization\saasLMS.Shared.Localization.csproj" />
+    <ProjectReference Include="..\..\..\..\services\product\src\saasLMS.ProductService.Blazor\saasLMS.ProductService.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\..\services\product\src\saasLMS.ProductService.HttpApi.Client\saasLMS.ProductService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\administration\src\saasLMS.AdministrationService.HttpApi.Client\saasLMS.AdministrationService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\identity\src\saasLMS.IdentityService.HttpApi.Client\saasLMS.IdentityService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\saas\src\saasLMS.SaasService.HttpApi.Client\saasLMS.SaasService.HttpApi.Client.csproj" />
+  </ItemGroup>
+  
+</Project>

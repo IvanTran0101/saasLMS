@@ -1,0 +1,21 @@
+config:
+  selfUrl: # https://angular.saaslms.dev
+  gatewayUrl: # https://gateway-web.saaslms.dev
+  authServer:
+      authority: # https://authserver.saaslms.dev
+      requireHttpsMetadata: # false
+      responseType: "code"
+      strictDiscoveryDocumentValidation: false
+      skipIssuerCheck: true
+  AbpLicenseCode: #
+
+ingress:
+  host: # angular.saaslms.dev
+  tlsSecret: saaslms-tls
+
+image:
+  repository: mycompanyname/saaslms-app-angular
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env: {}

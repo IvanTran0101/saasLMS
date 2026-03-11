@@ -1,0 +1,59 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "saasLMS.SaasService.HttpApi": {
+      "path": "src/saasLMS.SaasService.HttpApi/saasLMS.SaasService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.Application.Contracts": {
+      "path": "src/saasLMS.SaasService.Application.Contracts/saasLMS.SaasService.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.Application": {
+      "path": "src/saasLMS.SaasService.Application/saasLMS.SaasService.Application.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.Domain.Shared": {
+      "path": "src/saasLMS.SaasService.Domain.Shared/saasLMS.SaasService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.Domain": {
+      "path": "src/saasLMS.SaasService.Domain/saasLMS.SaasService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.EntityFrameworkCore": {
+      "path": "src/saasLMS.SaasService.EntityFrameworkCore/saasLMS.SaasService.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.HttpApi.Client": {
+      "path": "src/saasLMS.SaasService.HttpApi.Client/saasLMS.SaasService.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.HttpApi.Host": {
+      "path": "src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.TestBase": {
+      "path": "test/saasLMS.SaasService.TestBase/saasLMS.SaasService.TestBase.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.SaasService.Domain.Tests": {
+      "path": "test/saasLMS.SaasService.Domain.Tests/saasLMS.SaasService.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.SaasService.EntityFrameworkCore.Tests": {
+      "path": "test/saasLMS.SaasService.EntityFrameworkCore.Tests/saasLMS.SaasService.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.MicroserviceName.Application.Tests": {
+      "path": "test/saasLMS.SaasService.Application.Tests/saasLMS.SaasService.Application.Tests.abppkg",
+      "folder": "test"
+    }
+  },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+}

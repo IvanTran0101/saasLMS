@@ -1,0 +1,10 @@
+{
+  "culture": "tr",
+  "texts": {
+    "AppName": "saasLMS",
+    "Menu:Home": "Ana Sayfa",
+    "Login": "Giriş",
+    "Menu:Dashboard": "Genel görünüm",
+    "Welcome": "Hoşgeldiniz"
+  }
+}

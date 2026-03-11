@@ -1,0 +1,32 @@
+﻿{
+  "selectedKubernetesProfile": null,
+  "solutionRunner": {
+    "selectedProfile": "Default",
+    "targetFrameworks": [],
+    "applicationsStartingWithoutBuild": [],
+    "applicationsWithoutAutoRefreshBrowserOnRestart": [],
+    "applicationBatchStartStates": [
+      {
+        "profile": "Default",
+        "applicationOrFolder": "Docker-Dependencies",
+        "value": 0
+      },
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.AdministrationService.HttpApi.Host",
+        "value": 0
+      },
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.AuthServer",
+        "value": 0
+      },
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.Blazor",
+        "value": 0
+      }
+    ],
+    "folderBatchStartStates": []
+  }
+}

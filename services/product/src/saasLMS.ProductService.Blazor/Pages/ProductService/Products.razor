@@ -1,0 +1,149 @@
+@page "/products"
+@attribute [Authorize(ProductServicePermissions.Products.Default)]
+@using Microsoft.AspNetCore.Authorization
+@using saasLMS.ProductService.Localization
+@using Volo.Abp.AspNetCore.Components.Messages
+@using Volo.Abp.BlazoriseUI.Components.ObjectExtending
+@using saasLMS.ProductService.Permissions
+@using saasLMS.ProductService.Products
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@inherits AbpCrudPageBase<IProductAppService, ProductDto, Guid, GetProductsInput, ProductCreateDto, ProductUpdateDto>
+@inject IProductAppService ProductAppService
+@inject IUiMessageService UiMessageService
+@inject AbpBlazorMessageLocalizerHelper<ProductServiceResource> LH
+
+@* ************************* PAGE HEADER ************************* *@
+<PageHeader Title="@L["Products"]" BreadcrumbItems="@BreadcrumbItems" Toolbar="@Toolbar">
+
+</PageHeader>
+
+@* ************************* SEARCH ************************* *@
+<Card>
+    <CardBody>
+        <Form>
+            <Fields Horizontal="true">
+                <Field ColumnSize="ColumnSize.Is11" class="mb-0">
+                    <TextEdit Placeholder="@L["Search"]" @bind-Text="@GetListInput.FilterText" />
+                </Field>
+                <Field ColumnSize="ColumnSize.Is1" class="mb-0">
+                    <SubmitButton Block="true"
+                                  Clicked="@SearchEntitiesAsync">
+                        <Icon Name="IconName.Search" />
+                    </SubmitButton>
+                </Field>
+            </Fields>
+        </Form>
+    </CardBody>
+</Card>
+
+@* ************************* DATA GRID ************************* *@
+<AbpExtensibleDataGrid TItem="ProductDto"
+                       Data="Entities"
+                       ReadData="OnDataGridReadAsync"
+                       TotalItems="TotalCount"
+                       ShowPager="true"
+                       PageSize="PageSize"
+                       CurrentPage="@CurrentPage"
+                       Columns="@ProductTableColumns"
+                       Responsive="true">
+</AbpExtensibleDataGrid>
+ 
+@* ************************* CREATE MODAL ************************* *@
+@if (HasCreatePermission)
+{
+    <Modal @ref="CreateModal" Closing="@ClosingCreateModal">
+        <ModalContent Centered="true">
+            <Form>
+                <ModalHeader>
+                    <ModalTitle>@L["NewProduct"]</ModalTitle>
+                    <CloseButton Clicked="CloseCreateModalAsync" />
+                </ModalHeader>
+                <ModalBody>
+                    <Validations @ref="CreateValidationsRef"
+                                Mode="ValidationMode.Auto"
+                                Model="@NewEntity"
+                                ValidateOnLoad="false">
+
+                        <Validation>
+                            <Field>
+                                <FieldLabel>@L["Name"]</FieldLabel>
+                                <TextEdit @bind-Text="@NewEntity.Name" MaxLength="ProductConsts.NameMaxLength">
+                                    <Feedback>
+                                        <ValidationError />
+                                    </Feedback>
+                                </TextEdit>
+                            </Field>
+                        </Validation>
+
+                        <Validation>
+                            <Field>
+                                <FieldLabel>@L["Price"]</FieldLabel>
+                                <NumericPicker TValue="float" @bind-Value="@NewEntity.Price" >
+                                    <Feedback>
+                                        <ValidationError />
+                                    </Feedback>
+                                 </NumericPicker>
+                            </Field>
+                         </Validation>
+                       
+                        <ExtensionProperties TEntityType="ProductCreateDto" TResourceType="ProductServiceResource" Entity="@NewEntity" LH="@LH" ModalType="ExtensionPropertyModalType.CreateModal" />
+                    </Validations>
+                </ModalBody>
+                <ModalFooter>
+                    <Button Color="Color.Secondary" Clicked="CloseCreateModalAsync">@L["Cancel"]</Button>
+                    <SubmitButton Clicked="@CreateEntityAsync" />
+                </ModalFooter>
+            </Form>
+        </ModalContent>
+    </Modal>
+}
+
+@* ************************* EDIT MODAL ************************* *@
+@if (HasUpdatePermission)
+{
+    <Modal @ref="EditModal" Closing="@ClosingEditModal">
+        <ModalContent Centered="true">
+            <Form>
+                <ModalHeader>
+                    <ModalTitle>@L["Update"]</ModalTitle>
+                    <CloseButton Clicked="CloseEditModalAsync" />
+                </ModalHeader>
+                <ModalBody>
+                    <Validations @ref="EditValidationsRef"
+                                Mode="ValidationMode.Auto"
+                                Model="@EditingEntity"
+                                ValidateOnLoad="false">
+
+                        <Validation>
+                            <Field>
+                                <FieldLabel>@L["Name"]</FieldLabel>
+                                <TextEdit @bind-Text="@EditingEntity.Name" MaxLength="ProductConsts.NameMaxLength">
+                                    <Feedback>
+                                        <ValidationError />
+                                    </Feedback>
+                                </TextEdit>
+                            </Field>
+                        </Validation>
+
+                        <Validation>
+                            <Field>
+                                <FieldLabel>@L["Price"]</FieldLabel>
+                                <NumericPicker TValue="float" @bind-Value="@EditingEntity.Price" >
+                                    <Feedback>
+                                        <ValidationError />
+                                    </Feedback>
+                                 </NumericPicker>
+                            </Field>
+                         </Validation>
+                        
+                        <ExtensionProperties TEntityType="ProductUpdateDto" TResourceType="ProductServiceResource" Entity="@EditingEntity" LH="@LH" ModalType="ExtensionPropertyModalType.EditModal"/>
+                    </Validations>
+                </ModalBody>
+                <ModalFooter>
+                    <Button Color="Color.Secondary" Clicked="CloseEditModalAsync">@L["Cancel"]</Button>
+                    <SubmitButton Clicked="@UpdateEntityAsync" />
+                </ModalFooter>
+            </Form>
+        </ModalContent>
+    </Modal>
+}

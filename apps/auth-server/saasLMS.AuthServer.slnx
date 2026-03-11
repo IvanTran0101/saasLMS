@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.AuthServer/saasLMS.AuthServer.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+</Solution>

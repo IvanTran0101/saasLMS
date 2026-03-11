@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.IdentityService.Application.Contracts/saasLMS.IdentityService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.IdentityService.Application/saasLMS.IdentityService.Application.csproj" />
+    <Project Path="src/saasLMS.IdentityService.Domain.Shared/saasLMS.IdentityService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.IdentityService.Domain/saasLMS.IdentityService.Domain.csproj" />
+    <Project Path="src/saasLMS.IdentityService.EntityFrameworkCore/saasLMS.IdentityService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.IdentityService.HttpApi.Client/saasLMS.IdentityService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.IdentityService.HttpApi/saasLMS.IdentityService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.IdentityService.Web/saasLMS.IdentityService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.IdentityService.Application.Tests/saasLMS.IdentityService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.IdentityService.Domain.Tests/saasLMS.IdentityService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.IdentityService.EntityFrameworkCore.Tests/saasLMS.IdentityService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.IdentityService.TestBase/saasLMS.IdentityService.TestBase.csproj" />
+  </Folder>
+</Solution>

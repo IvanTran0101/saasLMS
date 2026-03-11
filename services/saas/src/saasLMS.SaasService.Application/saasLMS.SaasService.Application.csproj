@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Volo.Abp.Mapperly" Version="10.1.1" />
+        <PackageReference Include="Volo.Saas.Host.Application" Version="10.1.1" />
+        <PackageReference Include="Volo.Saas.Tenant.Application" Version="10.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\saasLMS.SaasService.Domain\saasLMS.SaasService.Domain.csproj" />
+        <ProjectReference Include="..\saasLMS.SaasService.Application.Contracts\saasLMS.SaasService.Application.Contracts.csproj" />
+    </ItemGroup>
+
+</Project>

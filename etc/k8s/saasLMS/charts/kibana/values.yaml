@@ -1,0 +1,6 @@
+config:
+  elasticsearchUrl: http://saaslms-st-elasticsearch:9200
+
+ingress:
+  host: kibana-saaslms.dev
+  tlsSecret: saaslms-tls

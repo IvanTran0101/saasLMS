@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.Blazor.Client/saasLMS.Blazor.Client.csproj" />
+    <Project Path="src/saasLMS.Blazor/saasLMS.Blazor.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+</Solution>
