@@ -6,20 +6,20 @@
     }
   },
   "packages": {
-    "saasLMS.IdentityService.HttpApi": {
-      "path": "src/saasLMS.IdentityService.HttpApi/saasLMS.IdentityService.HttpApi.abppkg",
+    "saasLMS.IdentityService.Application.Contracts": {
+      "path": "src/saasLMS.IdentityService.Application.Contracts/saasLMS.IdentityService.Application.Contracts.abppkg",
       "folder": "src"
     },
     "saasLMS.IdentityService.Application": {
       "path": "src/saasLMS.IdentityService.Application/saasLMS.IdentityService.Application.abppkg",
       "folder": "src"
     },
-    "saasLMS.IdentityService.Domain": {
-      "path": "src/saasLMS.IdentityService.Domain/saasLMS.IdentityService.Domain.abppkg",
-      "folder": "src"
-    },
     "saasLMS.IdentityService.Domain.Shared": {
       "path": "src/saasLMS.IdentityService.Domain.Shared/saasLMS.IdentityService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.IdentityService.Domain": {
+      "path": "src/saasLMS.IdentityService.Domain/saasLMS.IdentityService.Domain.abppkg",
       "folder": "src"
     },
     "saasLMS.IdentityService.EntityFrameworkCore": {
@@ -30,16 +30,20 @@
       "path": "src/saasLMS.IdentityService.HttpApi.Client/saasLMS.IdentityService.HttpApi.Client.abppkg",
       "folder": "src"
     },
-    "saasLMS.IdentityService.Application.Contracts": {
-      "path": "src/saasLMS.IdentityService.Application.Contracts/saasLMS.IdentityService.Application.Contracts.abppkg",
-      "folder": "src"
-    },
     "saasLMS.IdentityService.HttpApi.Host": {
       "path": "src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.abppkg",
       "folder": "src"
     },
-    "saasLMS.IdentityService.TestBase": {
-      "path": "test/saasLMS.IdentityService.TestBase/saasLMS.IdentityService.TestBase.abppkg",
+    "saasLMS.IdentityService.HttpApi": {
+      "path": "src/saasLMS.IdentityService.HttpApi/saasLMS.IdentityService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.IdentityService.Web": {
+      "path": "src/saasLMS.IdentityService.Web/saasLMS.IdentityService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.IdentityService.Application.Tests": {
+      "path": "test/saasLMS.IdentityService.Application.Tests/saasLMS.IdentityService.Application.Tests.abppkg",
       "folder": "test"
     },
     "saasLMS.IdentityService.Domain.Tests": {
@@ -50,8 +54,8 @@
       "path": "test/saasLMS.IdentityService.EntityFrameworkCore.Tests/saasLMS.IdentityService.EntityFrameworkCore.Tests.abppkg",
       "folder": "test"
     },
-    "saasLMS.IdentityService.Application.Tests": {
-      "path": "test/saasLMS.IdentityService.Application.Tests/saasLMS.IdentityService.Application.Tests.abppkg",
+    "saasLMS.IdentityService.TestBase": {
+      "path": "test/saasLMS.IdentityService.TestBase/saasLMS.IdentityService.TestBase.abppkg",
       "folder": "test"
     }
   },

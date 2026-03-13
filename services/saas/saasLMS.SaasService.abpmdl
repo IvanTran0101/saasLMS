@@ -6,9 +6,9 @@
     }
   },
   "packages": {
-    "saasLMS.SaasService.HttpApi": {
-      "path": "src/saasLMS.SaasService.HttpApi/saasLMS.SaasService.HttpApi.abppkg",
-      "folder": "src"
+    "saasLMS.MicroserviceName.Application.Tests": {
+      "path": "test/saasLMS.SaasService.Application.Tests/saasLMS.SaasService.Application.Tests.abppkg",
+      "folder": "test"
     },
     "saasLMS.SaasService.Application.Contracts": {
       "path": "src/saasLMS.SaasService.Application.Contracts/saasLMS.SaasService.Application.Contracts.abppkg",
@@ -38,8 +38,16 @@
       "path": "src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.abppkg",
       "folder": "src"
     },
-    "saasLMS.SaasService.TestBase": {
-      "path": "test/saasLMS.SaasService.TestBase/saasLMS.SaasService.TestBase.abppkg",
+    "saasLMS.SaasService.HttpApi": {
+      "path": "src/saasLMS.SaasService.HttpApi/saasLMS.SaasService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.Web": {
+      "path": "src/saasLMS.SaasService.Web/saasLMS.SaasService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.SaasService.Application.Tests": {
+      "path": "test/saasLMS.SaasService.Application.Tests/saasLMS.SaasService.Application.Tests.abppkg",
       "folder": "test"
     },
     "saasLMS.SaasService.Domain.Tests": {
@@ -50,8 +58,8 @@
       "path": "test/saasLMS.SaasService.EntityFrameworkCore.Tests/saasLMS.SaasService.EntityFrameworkCore.Tests.abppkg",
       "folder": "test"
     },
-    "saasLMS.MicroserviceName.Application.Tests": {
-      "path": "test/saasLMS.SaasService.Application.Tests/saasLMS.SaasService.Application.Tests.abppkg",
+    "saasLMS.SaasService.TestBase": {
+      "path": "test/saasLMS.SaasService.TestBase/saasLMS.SaasService.TestBase.abppkg",
       "folder": "test"
     }
   },

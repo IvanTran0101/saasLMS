@@ -1,5 +1,6 @@
 using saasLMS.Blazor.Client;
 using Volo.Abp;
+using Volo.Abp.Account.Pro.Public.Blazor.Shared.Pages.Account.Idle;
 using Volo.Abp.AspNetCore.Components.WebAssembly.LeptonXTheme.Bundling;
 using Volo.Abp.AspNetCore.Components.WebAssembly.WebApp;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
@@ -8,6 +9,7 @@ using Volo.Abp.Modularity;
 using Volo.Abp.AuditLogging.Blazor.WebAssembly.Bundling;
 using Volo.Saas.Host.Blazor.WebAssembly.Bundling;
 using Volo.Abp.Account.Pro.Public.Blazor.WebAssembly.Bundling;
+using Volo.Abp.Ui.LayoutHooks;
 
 namespace saasLMS.Blazor;
 
@@ -32,6 +34,13 @@ public class saasLMSBlazorModule : AbpModule
         // Add services to the container.
         context.Services.AddRazorComponents()
             .AddInteractiveWebAssemblyComponents();
+        Configure<AbpLayoutHookOptions>(hookOptions =>
+        {
+            hookOptions.Add(
+                LayoutHooks.Body.Last,
+                typeof(AccountIdleComponent)
+            );
+        });
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -53,13 +62,15 @@ public class saasLMSBlazorModule : AbpModule
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
+        app.MapAbpStaticAssets();
         app.UseAntiforgery();
 
         app.UseConfiguredEndpoints(builder =>
         {
             builder.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()
-                .AddAdditionalAssemblies(WebAppAdditionalAssembliesHelper.GetAssemblies<saasLMSBlazorClientModule>());
+                .AddAdditionalAssemblies(
+                    WebAppAdditionalAssembliesHelper.GetAssemblies<saasLMSBlazorClientModule>());
         });
     }
 }

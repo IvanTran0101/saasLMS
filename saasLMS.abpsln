@@ -49,6 +49,9 @@
     "saasLMS.SaasService": {
       "path": "services/saas/saasLMS.SaasService.abpmdl",
       "folder": "services"
+    },
+    "src": {
+      "path": "apps/blazor/src/src.abpmdl"
     }
   },
   "runProfiles": {
