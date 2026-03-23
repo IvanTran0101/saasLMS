@@ -13,6 +13,9 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# macOS
+.DS_Store
+
 # Mono auto generated files
 mono_crash.*
 
@@ -379,3 +382,10 @@ MigrationBackup/
 # IdentityServer temp files
 tempkey.rsa
 tempkey.jwk
+
+# Local environment and per-machine config overrides
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.local.json
