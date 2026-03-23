@@ -10,9 +10,15 @@
   </Folder>
   <Folder Name="/services/">
     <Project Path="services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj" />
+    <Project Path="services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj" />
+    <Project Path="services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj" />
     <Project Path="services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj" />
     <Project Path="services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj" />
     <Project Path="services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" />
+    <Project Path="services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj" />
+    <Project Path="services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj" />
+    <Project Path="services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj" />
+
   </Folder>
   <Folder Name="/shared/">
     <Project Path="shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj" />

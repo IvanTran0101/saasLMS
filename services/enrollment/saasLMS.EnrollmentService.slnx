@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.Application/saasLMS.EnrollmentService.Application.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.Blazor/saasLMS.EnrollmentService.Blazor.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.Domain.Shared/saasLMS.EnrollmentService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.Domain/saasLMS.EnrollmentService.Domain.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.EntityFrameworkCore/saasLMS.EnrollmentService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.HttpApi.Client/saasLMS.EnrollmentService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.HttpApi/saasLMS.EnrollmentService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.EnrollmentService.Web/saasLMS.EnrollmentService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.EnrollmentService.Application.Tests/saasLMS.EnrollmentService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.EnrollmentService.Domain.Tests/saasLMS.EnrollmentService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.EnrollmentService.EntityFrameworkCore.Tests/saasLMS.EnrollmentService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.EnrollmentService.TestBase/saasLMS.EnrollmentService.TestBase.csproj" />
+  </Folder>
+</Solution>

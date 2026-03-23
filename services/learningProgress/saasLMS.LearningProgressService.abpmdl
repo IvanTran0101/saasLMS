@@ -1,0 +1,67 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "saasLMS.LearningProgressService.Domain.Shared": {
+      "path": "src/saasLMS.LearningProgressService.Domain.Shared/saasLMS.LearningProgressService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.Application.Contracts": {
+      "path": "src/saasLMS.LearningProgressService.Application.Contracts/saasLMS.LearningProgressService.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.Domain": {
+      "path": "src/saasLMS.LearningProgressService.Domain/saasLMS.LearningProgressService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.Application": {
+      "path": "src/saasLMS.LearningProgressService.Application/saasLMS.LearningProgressService.Application.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.EntityFrameworkCore": {
+      "path": "src/saasLMS.LearningProgressService.EntityFrameworkCore/saasLMS.LearningProgressService.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.HttpApi": {
+      "path": "src/saasLMS.LearningProgressService.HttpApi/saasLMS.LearningProgressService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.HttpApi.Client": {
+      "path": "src/saasLMS.LearningProgressService.HttpApi.Client/saasLMS.LearningProgressService.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.HttpApi.Host": {
+      "path": "src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.Blazor": {
+      "path": "src/saasLMS.LearningProgressService.Blazor/saasLMS.LearningProgressService.Blazor.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.Web": {
+      "path": "src/saasLMS.LearningProgressService.Web/saasLMS.LearningProgressService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.LearningProgressService.Domain.Tests": {
+      "path": "test/saasLMS.LearningProgressService.Domain.Tests/saasLMS.LearningProgressService.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.LearningProgressService.EntityFrameworkCore.Tests": {
+      "path": "test/saasLMS.LearningProgressService.EntityFrameworkCore.Tests/saasLMS.LearningProgressService.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.LearningProgressService.TestBase": {
+      "path": "test/saasLMS.LearningProgressService.TestBase/saasLMS.LearningProgressService.TestBase.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.LearningProgressService.Application.Tests": {
+      "path": "test/saasLMS.LearningProgressService.Application.Tests/saasLMS.LearningProgressService.Application.Tests.abppkg",
+      "folder": "test"
+    }
+  },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+}

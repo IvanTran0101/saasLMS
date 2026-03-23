@@ -1,0 +1,14 @@
+{
+  "id": "ed37dcca-d0a0-4e16-ad5a-452e6972423e",
+  "template": "empty",
+  "modules": {
+    "saasLMS.AdministrationService": {
+      "path": "saasLMS.AdministrationService.abpmdl"
+    }
+  },
+  "runProfiles": {
+    "Default": {
+      "path": "etc/abp-studio/run-profiles/Default.abprun.json"
+    }
+  }
+}

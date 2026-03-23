@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>saasLMS.CourseCatalogService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="10.1.1" />
+    <ProjectReference Include="..\saasLMS.CourseCatalogService.Application.Contracts\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,67 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "saasLMS.CourseCatalogService.Domain.Shared": {
+      "path": "src/saasLMS.CourseCatalogService.Domain.Shared/saasLMS.CourseCatalogService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.Application.Contracts": {
+      "path": "src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.Domain": {
+      "path": "src/saasLMS.CourseCatalogService.Domain/saasLMS.CourseCatalogService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.Application": {
+      "path": "src/saasLMS.CourseCatalogService.Application/saasLMS.CourseCatalogService.Application.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.EntityFrameworkCore": {
+      "path": "src/saasLMS.CourseCatalogService.EntityFrameworkCore/saasLMS.CourseCatalogService.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.HttpApi": {
+      "path": "src/saasLMS.CourseCatalogService.HttpApi/saasLMS.CourseCatalogService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.HttpApi.Client": {
+      "path": "src/saasLMS.CourseCatalogService.HttpApi.Client/saasLMS.CourseCatalogService.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.HttpApi.Host": {
+      "path": "src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.Blazor": {
+      "path": "src/saasLMS.CourseCatalogService.Blazor/saasLMS.CourseCatalogService.Blazor.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.Web": {
+      "path": "src/saasLMS.CourseCatalogService.Web/saasLMS.CourseCatalogService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.CourseCatalogService.Domain.Tests": {
+      "path": "test/saasLMS.CourseCatalogService.Domain.Tests/saasLMS.CourseCatalogService.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.CourseCatalogService.EntityFrameworkCore.Tests": {
+      "path": "test/saasLMS.CourseCatalogService.EntityFrameworkCore.Tests/saasLMS.CourseCatalogService.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.CourseCatalogService.TestBase": {
+      "path": "test/saasLMS.CourseCatalogService.TestBase/saasLMS.CourseCatalogService.TestBase.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.CourseCatalogService.Application.Tests": {
+      "path": "test/saasLMS.CourseCatalogService.Application.Tests/saasLMS.CourseCatalogService.Application.Tests.abppkg",
+      "folder": "test"
+    }
+  },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+}

@@ -1,4 +1,3 @@
 {
-  "role": "host.http-api",
-  "projectId": "46df717c-f770-4adf-b7ad-9ede0ffc5c8f"
+  "role": "host.http-api"
 }

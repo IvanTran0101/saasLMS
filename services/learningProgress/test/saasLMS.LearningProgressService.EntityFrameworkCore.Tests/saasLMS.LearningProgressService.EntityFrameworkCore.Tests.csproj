@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>saasLMS.LearningProgressService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" Version="10.1.1" />
+    <ProjectReference Include="..\saasLMS.LearningProgressService.Application.Tests\saasLMS.LearningProgressService.Application.Tests.csproj" />
+    <ProjectReference Include="..\..\src\saasLMS.LearningProgressService.EntityFrameworkCore\saasLMS.LearningProgressService.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+
+</Project>

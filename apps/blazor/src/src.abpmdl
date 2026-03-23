@@ -1,0 +1,19 @@
+{
+  "packages": {
+    "saasLMS.Blazor.Client": {
+      "path": "saasLMS.Blazor.Client/saasLMS.Blazor.Client.abppkg"
+    },
+    "saasLMS.Blazor.Server": {
+      "path": "saasLMS.Blazor.Server/saasLMS.Blazor.Server.abppkg"
+    },
+    "saasLMS.Blazor.WebApp.Client": {
+      "path": "saasLMS.Blazor.WebApp.Client/saasLMS.Blazor.WebApp.Client.abppkg"
+    },
+    "saasLMS.Blazor.WebApp": {
+      "path": "saasLMS.Blazor.WebApp/saasLMS.Blazor.WebApp.abppkg"
+    },
+    "saasLMS.Blazor": {
+      "path": "saasLMS.Blazor/saasLMS.Blazor.abppkg"
+    }
+  }
+}

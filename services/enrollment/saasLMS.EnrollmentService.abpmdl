@@ -1,0 +1,67 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "saasLMS.EnrollmentService.Domain.Shared": {
+      "path": "src/saasLMS.EnrollmentService.Domain.Shared/saasLMS.EnrollmentService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.Application.Contracts": {
+      "path": "src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.Domain": {
+      "path": "src/saasLMS.EnrollmentService.Domain/saasLMS.EnrollmentService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.Application": {
+      "path": "src/saasLMS.EnrollmentService.Application/saasLMS.EnrollmentService.Application.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.EntityFrameworkCore": {
+      "path": "src/saasLMS.EnrollmentService.EntityFrameworkCore/saasLMS.EnrollmentService.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.HttpApi": {
+      "path": "src/saasLMS.EnrollmentService.HttpApi/saasLMS.EnrollmentService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.HttpApi.Client": {
+      "path": "src/saasLMS.EnrollmentService.HttpApi.Client/saasLMS.EnrollmentService.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.HttpApi.Host": {
+      "path": "src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.Blazor": {
+      "path": "src/saasLMS.EnrollmentService.Blazor/saasLMS.EnrollmentService.Blazor.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.Web": {
+      "path": "src/saasLMS.EnrollmentService.Web/saasLMS.EnrollmentService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.EnrollmentService.Domain.Tests": {
+      "path": "test/saasLMS.EnrollmentService.Domain.Tests/saasLMS.EnrollmentService.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.EnrollmentService.EntityFrameworkCore.Tests": {
+      "path": "test/saasLMS.EnrollmentService.EntityFrameworkCore.Tests/saasLMS.EnrollmentService.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.EnrollmentService.TestBase": {
+      "path": "test/saasLMS.EnrollmentService.TestBase/saasLMS.EnrollmentService.TestBase.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.EnrollmentService.Application.Tests": {
+      "path": "test/saasLMS.EnrollmentService.Application.Tests/saasLMS.EnrollmentService.Application.Tests.abppkg",
+      "folder": "test"
+    }
+  },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+}

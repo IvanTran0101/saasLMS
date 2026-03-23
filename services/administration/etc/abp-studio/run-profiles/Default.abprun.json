@@ -1,0 +1,16 @@
+{
+  "folders": {
+    "items": {
+      "saasLMS.AdministrationService": {}
+    }
+  },
+  "applications": {
+    "saasLMS.AdministrationService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../../src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj",
+      "launchUrl": "https://localhost:44367",
+      "folder": "saasLMS.AdministrationService",
+      "runnable": true
+    }
+  }
+}

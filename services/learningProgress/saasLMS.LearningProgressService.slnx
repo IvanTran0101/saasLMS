@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.LearningProgressService.Application.Contracts/saasLMS.LearningProgressService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.Application/saasLMS.LearningProgressService.Application.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.Blazor/saasLMS.LearningProgressService.Blazor.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.Domain.Shared/saasLMS.LearningProgressService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.Domain/saasLMS.LearningProgressService.Domain.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.EntityFrameworkCore/saasLMS.LearningProgressService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.HttpApi.Client/saasLMS.LearningProgressService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.HttpApi/saasLMS.LearningProgressService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.LearningProgressService.Web/saasLMS.LearningProgressService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.LearningProgressService.Application.Tests/saasLMS.LearningProgressService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.LearningProgressService.Domain.Tests/saasLMS.LearningProgressService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.LearningProgressService.EntityFrameworkCore.Tests/saasLMS.LearningProgressService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.LearningProgressService.TestBase/saasLMS.LearningProgressService.TestBase.csproj" />
+  </Folder>
+</Solution>
