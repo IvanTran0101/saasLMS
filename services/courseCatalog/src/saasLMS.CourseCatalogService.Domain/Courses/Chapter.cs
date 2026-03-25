@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using saasLMS.CourseCatalogService.Etos.Lessons;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
 
@@ -40,6 +41,7 @@ public class Chapter : Entity<Guid>
         Title = Check.NotNullOrWhiteSpace(title, nameof(title));
         OrderNo = orderNo;
         _lessons = new List<Lesson>();
+        
     }
     public void Rename(string title)
     {
@@ -63,6 +65,7 @@ public class Chapter : Entity<Guid>
             throw new ArgumentException("Lesson id cannot be empty.", nameof(lessonId));
         }
         var lesson = new Lesson(lessonId, TenantId, Id, title, _lessons.Count + 1);
+       
         _lessons.Add(lesson);
         return lesson;
     }

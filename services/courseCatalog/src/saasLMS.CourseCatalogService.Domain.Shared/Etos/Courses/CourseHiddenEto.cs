@@ -9,4 +9,5 @@ public class CourseHiddenEto : CourseCatalogEtoBase
     public string Title { get; set; }
     public string? Description { get; set; }
     public CourseStatus Status { get; set; }
+    public Guid  InstructorId { get; set; }
 }
