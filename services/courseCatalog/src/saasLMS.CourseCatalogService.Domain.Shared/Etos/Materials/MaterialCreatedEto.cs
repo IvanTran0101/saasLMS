@@ -17,6 +17,7 @@ public class MaterialCreatedEto : CourseCatalogEtoBase
     public string? MimeType { get; set; }
     public long? FileSize { get; set; }
     public string? ExternalUrl { get; set; }
+    public string? TextContent { get; set; }
     public TextFormat? TextFormat { get; set; }
     
 }

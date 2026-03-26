@@ -112,6 +112,25 @@ public class CourseManager : DomainService
         });
     }
 
+    public async Task ReopenCourseAsync(
+        Course course,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(course, nameof(course));
+        course.Reopen();
+        await _distributedEventBus.PublishAsync(new CourseUpdatedEto()
+        {
+            EventId = Guid.NewGuid(),
+            OccurredAt = DateTime.UtcNow,
+            TenantId = course.TenantId,
+            CourseId = course.Id,
+            Title = course.Title,
+            InstructorId = course.InstructorId,
+            Description = course.Description,
+            Status = course.Status
+        });
+    }
+
     public async Task UpdateDetailsAsync(
         Course course,
         string title,
@@ -396,6 +415,7 @@ public class CourseManager : DomainService
             MimeType = material.MimeType,
             FileSize = material.FileSize,
             ExternalUrl = material.ExternalUrl,
+            TextContent = material.TextContent,
             TextFormat = material.TextFormat
         });
 
@@ -440,6 +460,7 @@ public class CourseManager : DomainService
         var mimeType = material.MimeType;
         var fileSize = material.FileSize;
         var externalUrl = material.ExternalUrl;
+        var textContent = material.TextContent;
         var textFormat = material.TextFormat;
 
         lesson.RemoveMaterial(materialId);
@@ -461,6 +482,7 @@ public class CourseManager : DomainService
             MimeType = mimeType,
             FileSize = fileSize,
             ExternalUrl = externalUrl,
+            TextContent =  textContent,
             TextFormat = textFormat
         });
     }
@@ -509,6 +531,7 @@ public class CourseManager : DomainService
             MimeType = material.MimeType,
             FileSize = material.FileSize,
             ExternalUrl = material.ExternalUrl,
+            TextContent = material.TextContent,
             TextFormat = material.TextFormat
         });
     }
@@ -557,6 +580,7 @@ public class CourseManager : DomainService
             MimeType = material.MimeType,
             FileSize = material.FileSize,
             ExternalUrl = material.ExternalUrl,
+            TextContent = material.TextContent,
             TextFormat = material.TextFormat
         });
     }
@@ -586,4 +610,142 @@ public class CourseManager : DomainService
             TextFormat = material.TextFormat
         });
     }
+
+    public async Task UpdateFileMaterialAsync(
+        Chapter chapter,
+        Lesson lesson,
+        Material material,
+        string storageKey,
+        string? fileName,
+        string? mimeType,
+        long? fileSize,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(chapter, nameof(chapter));
+        Check.NotNull(lesson, nameof(lesson));
+        Check.NotNull(material, nameof(material));
+
+        if (lesson.ChapterId != chapter.Id)
+        {
+            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
+        }
+
+        if (material.LessonId != lesson.Id)
+        {
+            throw new BusinessException("CourseCatalog:MaterialDoesNotBelongToLesson");
+        }
+
+        material.SetFileContent(storageKey, fileName, mimeType, fileSize);
+
+        await _distributedEventBus.PublishAsync(new MaterialUpdatedEto()
+        {
+            EventId = GuidGenerator.Create(),
+            OccurredAt = DateTime.UtcNow,
+            TenantId = material.TenantId,
+            CourseId = chapter.CourseId,
+            ChapterId = chapter.Id,
+            LessonId = lesson.Id,
+            MaterialId = material.Id,
+            Title = material.Title,
+            Type = material.Type,
+            Status = material.Status,
+            SortOrder = material.SortOrder,
+            FileName = material.FileName,
+            MimeType = material.MimeType,
+            FileSize = material.FileSize,
+            ExternalUrl = material.ExternalUrl,
+            TextContent = material.TextContent,
+            TextFormat = material.TextFormat
+        });
+    }
+    public async Task UpdateTextMaterialAsync(
+        Chapter chapter,
+        Lesson lesson,
+        Material material,
+        string textContent,
+        TextFormat textFormat,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(chapter, nameof(chapter));
+        Check.NotNull(lesson, nameof(lesson));
+        Check.NotNull(material, nameof(material));
+
+        if (lesson.ChapterId != chapter.Id)
+        {
+            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
+        }
+
+        if (material.LessonId != lesson.Id)
+        {
+            throw new BusinessException("CourseCatalog:MaterialDoesNotBelongToLesson");
+        }
+
+        material.SetTextContent(textContent, textFormat);
+
+        await _distributedEventBus.PublishAsync(new MaterialUpdatedEto()
+        {
+            EventId = GuidGenerator.Create(),
+            OccurredAt = DateTime.UtcNow,
+            TenantId = material.TenantId,
+            CourseId = chapter.CourseId,
+            ChapterId = chapter.Id,
+            LessonId = lesson.Id,
+            MaterialId = material.Id,
+            Title = material.Title,
+            Type = material.Type,
+            Status = material.Status,
+            SortOrder = material.SortOrder,
+            FileName = material.FileName,
+            MimeType = material.MimeType,
+            FileSize = material.FileSize,
+            ExternalUrl = material.ExternalUrl,
+            TextContent = material.TextContent,
+            TextFormat = material.TextFormat
+        });
+    }
+    public async Task UpdateVideoLinkMaterialAsync(
+        Chapter chapter,
+        Lesson lesson,
+        Material material,
+        string externalUrl,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(chapter, nameof(chapter));
+        Check.NotNull(lesson, nameof(lesson));
+        Check.NotNull(material, nameof(material));
+
+        if (lesson.ChapterId != chapter.Id)
+        {
+            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
+        }
+
+        if (material.LessonId != lesson.Id)
+        {
+            throw new BusinessException("CourseCatalog:MaterialDoesNotBelongToLesson");
+        }
+
+        material.SetVideoLinkContent(externalUrl);
+
+        await _distributedEventBus.PublishAsync(new MaterialUpdatedEto()
+        {
+            EventId = GuidGenerator.Create(),
+            OccurredAt = DateTime.UtcNow,
+            TenantId = material.TenantId,
+            CourseId = chapter.CourseId,
+            ChapterId = chapter.Id,
+            LessonId = lesson.Id,
+            MaterialId = material.Id,
+            Title = material.Title,
+            Type = material.Type,
+            Status = material.Status,
+            SortOrder = material.SortOrder,
+            FileName = material.FileName,
+            MimeType = material.MimeType,
+            FileSize = material.FileSize,
+            ExternalUrl = material.ExternalUrl,
+            TextContent = material.TextContent,
+            TextFormat = material.TextFormat
+        });
+    }
+    
 }
