@@ -1,4 +1,5 @@
-﻿using saasLMS.CourseCatalogService.Localization;
+﻿using saasLMS.CourseCatalogService.Courses;
+using saasLMS.CourseCatalogService.Localization;
 using Volo.Abp.Application.Services;
 
 namespace saasLMS.CourseCatalogService;

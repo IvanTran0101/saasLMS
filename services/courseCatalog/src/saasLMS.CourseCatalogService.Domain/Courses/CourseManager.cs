@@ -221,12 +221,21 @@ public class CourseManager : DomainService
         });
     }
     public async Task RenameChapterAsync(
-        Chapter chapter,
+        Course course,
+        Guid chapterId,
         string title,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-
+        Check.NotNull(course, nameof(course));
+        if (chapterId == Guid.Empty)
+        {
+            throw new BusinessException("CourseCatalog:EmptyChapterId");
+        }
+        var chapter = course.Chapters.FirstOrDefault(x => x.Id == chapterId);
+        if (chapter == null)
+        {
+            throw new BusinessException("CourseCatalog:ChapterNotFound");
+        }
         chapter.Rename(title);
 
         await _distributedEventBus.PublishAsync(new ChapterUpdatedEto()
@@ -336,8 +345,8 @@ public class CourseManager : DomainService
     }
 
     public async Task UpdateLessonAsync(
-        Lesson lesson,
         Chapter chapter,
+        Lesson lesson,
         string title,
         LessonContentState contentState,
         CancellationToken cancellationToken = default)
