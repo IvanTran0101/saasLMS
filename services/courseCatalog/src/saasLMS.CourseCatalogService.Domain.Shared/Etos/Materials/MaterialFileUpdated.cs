@@ -3,7 +3,7 @@ using saasLMS.CourseCatalogService.Courses;
 
 namespace saasLMS.CourseCatalogService.Etos.Materials;
 
-public class MaterialUpdatedEto : CourseCatalogEtoBase
+public class MaterialFileUpdated : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }
     public Guid ChapterId { get; set; }
@@ -16,7 +16,5 @@ public class MaterialUpdatedEto : CourseCatalogEtoBase
     public string? FileName { get; set; }
     public string? MimeType { get; set; }
     public long? FileSize { get; set; }
-    public string? ExternalUrl { get; set; }
-    public string? TextContent { get; set; }
-    public TextFormat? TextFormat { get; set; }
+   
 }

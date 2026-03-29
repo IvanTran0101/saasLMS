@@ -60,16 +60,7 @@ public class Course : FullAuditedAggregateRoot<Guid>
         }
         var chapter = new Chapter(chapterId, TenantId, Id, title, _chapters.Count + 1);
         _chapters.Add(chapter);
-        AddDistributedEvent(new ChapterCreatedEto()
-        {
-            EventId = Guid.NewGuid(),
-            OccurredAt = DateTime.UtcNow,
-            TenantId = TenantId,
-            ChapterId = chapter.Id,
-            CourseId = Id,
-            OrderNo = chapter.OrderNo,
-            Title = chapter.Title
-        });
+        
         return chapter;
         
         
@@ -104,18 +95,7 @@ public class Course : FullAuditedAggregateRoot<Guid>
             throw new BusinessException("CourseCatalog:CannotPublishWithoutLesson");
         }
         Status = CourseStatus.Published;
-
-        AddDistributedEvent(new CoursePublishedEto()
-        {
-            EventId = Guid.NewGuid(),
-            OccurredAt = DateTime.UtcNow,
-            TenantId = TenantId,
-            CourseId = Id,
-            Title = Title,
-            Description = Description,
-            InstructorId = InstructorId,
-            Status = Status
-        });
+        
     }
 
     public void Hide()
@@ -125,17 +105,21 @@ public class Course : FullAuditedAggregateRoot<Guid>
             return;
         }
         Status = CourseStatus.Hidden;
-        AddDistributedEvent(new CourseHiddenEto()
+        
+    }
+
+    public void Reopen()
+    {
+        if (Status == CourseStatus.Published)
         {
-            EventId = Guid.NewGuid(),
-            OccurredAt = DateTime.UtcNow,
-            TenantId = TenantId,
-            CourseId = Id,
-            Title = Title,
-            InstructorId = InstructorId,
-            Description = Description,
-            Status = Status
-        });
+            throw new BusinessException("CourseCatalog:CannotReopenPublishedCourse");
+        }
+
+        if (Status == CourseStatus.Draft)
+        {
+            throw new BusinessException("CourseCatalog:CannotReopenDraft");
+        }
+        Status = CourseStatus.Published;
     }
     private void NormalizeChaptersOrder()
     {
@@ -148,16 +132,6 @@ public class Course : FullAuditedAggregateRoot<Guid>
     {
         Title = Check.NotNullOrWhiteSpace(title, nameof(title));
         Description = description;
-        AddDistributedEvent(new CourseUpdatedEto
-        {
-            EventId = Guid.NewGuid(),
-            OccurredAt = DateTime.UtcNow,
-            TenantId = TenantId,
-            CourseId = Id,
-            Title = Title,
-            Description = Description,
-            InstructorId = InstructorId,
-            Status = Status
-        });
+        
     }
 }
