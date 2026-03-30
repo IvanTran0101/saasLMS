@@ -7,7 +7,7 @@ using Volo.Abp.Application.Services;
 
 namespace saasLMS.EnrollmentService.Enrollments;
 
-public interface IEnrollmentAppService
+public interface IEnrollmentAppService : IApplicationService
 {
     Task<EnrollmentDto> EnrollAsync(EnrollCourseInput input);
     Task<EnrollmentDto> CancelAsync(CancelEnrollmentInput input);
