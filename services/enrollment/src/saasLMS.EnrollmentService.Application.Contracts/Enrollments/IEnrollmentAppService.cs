@@ -14,6 +14,7 @@ public interface IEnrollmentAppService : IApplicationService
  
     Task<EnrollmentDto> GetByIdAsync(Guid id);
     Task<EnrollmentDto?> FindByCourseAsync(Guid courseId);
-    Task<List<EnrollmentListItemDto>> GetMyEnrollmentsAsync();
+    Task<List<EnrollmentListItemDto>> GetMyEnrollmentsAsync(GetMyEnrollmentsInput input);
     Task<List<EnrollmentListItemDto>> GetEnrollmentsByCourseAsync(Guid courseId);
+    Task<ActiveEnrollmentDto> CheckActiveEnrollmentAsync(Guid courseId, Guid studentId);
 }

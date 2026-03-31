@@ -13,34 +13,36 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
 {
     private readonly IEnrollmentRepository _enrollmentRepository;
     private readonly EnrollmentManager _enrollmentManager;
+    private readonly ICourseCatalogGateway _courseCatalogGateway;
  
     public EnrollmentAppService(
         IEnrollmentRepository enrollmentRepository,
-        EnrollmentManager enrollmentManager)
+        EnrollmentManager enrollmentManager,
+        ICourseCatalogGateway courseCatalogGateway)
     {
         _enrollmentRepository = enrollmentRepository;
         _enrollmentManager = enrollmentManager;
+        _courseCatalogGateway = courseCatalogGateway;
     }
     
     public async Task<EnrollmentDto> EnrollAsync(EnrollCourseInput input)
     {
         Check.NotNull(input, nameof(input));
  
-        var tenantId = CurrentTenant.Id;
-        if (!tenantId.HasValue)
-        {
-            throw new BusinessException("EnrollmentService:TenantNotFound");
-        }
+        var tenantId = CurrentTenant.Id
+                       ?? throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
+
  
         if (input.CourseId == Guid.Empty)
         {
-            throw new BusinessException("EnrollmentService:EmptyCourseId");
+            throw new BusinessException(EnrollmentServiceErrorCodes.EmptyCourseId);
         }
- 
+        
+        await ValidateCourseEligibilityAsync(input.CourseId, tenantId);
         var studentId = CurrentUser.GetId();
  
         var enrollment = await _enrollmentManager.CreateAsync(
-            tenantId.Value,
+            tenantId,
             input.CourseId,
             studentId,
             Clock.Now);
@@ -57,12 +59,12 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
         var tenantId = CurrentTenant.Id;
         if (!tenantId.HasValue)
         {
-            throw new BusinessException("EnrollmentService:TenantNotFound");
+            throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
         }
  
         if (input.CourseId == Guid.Empty)
         {
-            throw new BusinessException("EnrollmentService:EmptyCourseId");
+            throw new BusinessException(EnrollmentServiceErrorCodes.EmptyCourseId);
         }
  
         var studentId = CurrentUser.GetId();
@@ -72,14 +74,10 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
             input.CourseId,
             studentId);
  
-        if (enrollment == null)
+        if (enrollment == null || enrollment.Status == EnrollmentStatus.Cancelled)
         {
-            throw new BusinessException("EnrollmentService:NotEnrolled");
-        }
- 
-        if (enrollment.Status == EnrollmentStatus.Cancelled)
-        {
-            throw new BusinessException("EnrollmentService:NotEnrolled");
+            throw new BusinessException(EnrollmentServiceErrorCodes.NotEnrolled)
+                .WithData("CourseId", input.CourseId);
         }
  
         await _enrollmentManager.CancelAsync(enrollment, Clock.Now);
@@ -92,16 +90,22 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
     {
         if (id == Guid.Empty)
         {
-            throw new BusinessException("EnrollmentService:EnrollmentNotFound");
+            throw new BusinessException(EnrollmentServiceErrorCodes.EnrollmentNotFound);
         }
  
         var tenantId = CurrentTenant.Id;
         if (!tenantId.HasValue)
         {
-            throw new BusinessException("EnrollmentService:TenantNotFound");
+            throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
         }
  
         var enrollment = await _enrollmentRepository.GetAsync(id);
+        
+        if (enrollment.TenantId != tenantId)
+        {
+            throw new BusinessException(EnrollmentServiceErrorCodes.CrossTenantAccessDenied)
+                .WithData("EnrollmentId", id);
+        }
  
         return ObjectMapper.Map<Enrollment, EnrollmentDto>(enrollment);
     }
@@ -110,13 +114,13 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
     {
         if (courseId == Guid.Empty)
         {
-            throw new BusinessException("EnrollmentService:EmptyCourseId");
+            throw new BusinessException(EnrollmentServiceErrorCodes.EmptyCourseId);
         }
  
         var tenantId = CurrentTenant.Id;
         if (!tenantId.HasValue)
         {
-            throw new BusinessException("EnrollmentService:TenantNotFound");
+            throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
         }
  
         var studentId = CurrentUser.GetId();
@@ -131,19 +135,22 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
             : ObjectMapper.Map<Enrollment, EnrollmentDto>(enrollment);
     }
     
-    public async Task<List<EnrollmentListItemDto>> GetMyEnrollmentsAsync()
+    public async Task<List<EnrollmentListItemDto>> GetMyEnrollmentsAsync(GetMyEnrollmentsInput input)
     {
+        Check.NotNull(input, nameof(input));
+        
         var tenantId = CurrentTenant.Id;
         if (!tenantId.HasValue)
         {
-            throw new BusinessException("EnrollmentService:TenantNotFound");
+            throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
         }
  
         var studentId = CurrentUser.GetId();
  
         var enrollments = await _enrollmentRepository.GetListByStudentAsync(
             tenantId.Value,
-            studentId);
+            studentId,
+            status: input.Status);
  
         return ObjectMapper.Map<List<Enrollment>, List<EnrollmentListItemDto>>(enrollments);
     }
@@ -152,13 +159,13 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
     {
         if (courseId == Guid.Empty)
         {
-            throw new BusinessException("EnrollmentService:EmptyCourseId");
+            throw new BusinessException(EnrollmentServiceErrorCodes.EmptyCourseId);
         }
  
         var tenantId = CurrentTenant.Id;
         if (!tenantId.HasValue)
         {
-            throw new BusinessException("EnrollmentService:TenantNotFound");
+            throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
         }
  
         var enrollments = await _enrollmentRepository.GetListByCourseAsync(
@@ -166,5 +173,57 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
             courseId);
  
         return ObjectMapper.Map<List<Enrollment>, List<EnrollmentListItemDto>>(enrollments);
+    }
+    
+    public async Task<ActiveEnrollmentDto> CheckActiveEnrollmentAsync(Guid courseId, Guid studentId)
+    {
+        if (courseId == Guid.Empty || studentId == Guid.Empty)
+        {
+            return new ActiveEnrollmentDto { IsActive = false };
+        }
+ 
+        var tenantId = CurrentTenant.Id
+                       ?? throw new BusinessException(EnrollmentServiceErrorCodes.TenantNotFound);
+ 
+        var enrollment = await _enrollmentRepository.FindByCourseAndStudentAsync(
+            tenantId,
+            courseId,
+            studentId);
+ 
+        var isActive = enrollment?.Status == EnrollmentStatus.Active;
+ 
+        return new ActiveEnrollmentDto
+        {
+            IsActive     = isActive,
+            EnrollmentId = isActive ? enrollment!.Id         : null,
+            EnrolledAt   = isActive ? enrollment!.EnrolledAt : null
+        };
+    }
+    
+    //Private Helper
+    private async Task ValidateCourseEligibilityAsync(Guid courseId, Guid tenantId)
+    {
+        var eligibility = await _courseCatalogGateway.GetEnrollmentEligibilityAsync(courseId);
+ 
+        if (eligibility is null)
+        {
+            throw new BusinessException(EnrollmentServiceErrorCodes.CourseNotFound)
+                .WithData("CourseId", courseId);
+        }
+ 
+        if (eligibility.TenantId != tenantId)
+        {
+            throw new BusinessException(EnrollmentServiceErrorCodes.CrossTenantAccessDenied)
+                .WithData("CourseId", courseId)
+                .WithData("TenantId", tenantId);
+        }
+ 
+        if (eligibility.Status != "Published" || eligibility.IsHidden)
+        {
+            throw new BusinessException(EnrollmentServiceErrorCodes.CourseNotEligibleForEnrollment)
+                .WithData("CourseId", courseId)
+                .WithData("Status", eligibility.Status)
+                .WithData("IsHidden", eligibility.IsHidden);
+        }
     }
 }
