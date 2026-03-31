@@ -17,10 +17,16 @@ public interface ILessonProgressRepository : IRepository<LessonProgress, Guid>
         Guid tenantId,
         Guid courseId,
         Guid studentId,
+        LessonProgressStatus? status = null,
         CancellationToken cancellationToken = default);
     Task<bool> ExistsByLessonAndStudentAsync(
         Guid tenantId,
         Guid lessonId,
+        Guid studentId,
+        CancellationToken cancellationToken = default);
+    Task<LessonProgress?> GetLastViewedLessonAsync(
+        Guid tenantId,
+        Guid courseId,
         Guid studentId,
         CancellationToken cancellationToken = default);
 }

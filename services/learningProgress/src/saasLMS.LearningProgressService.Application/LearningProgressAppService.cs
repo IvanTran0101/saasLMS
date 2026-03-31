@@ -126,9 +126,23 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         var courseProgress = await _courseProgressRepository.FindByCourseAndStudentAsync(
             tenantId, courseId, studentId);
  
+        // Sinh viên chưa học bài nào → CourseProgress chưa tồn tại 
+        // Trả về default thay vì throw để UI không bị lỗi ở màn hình đầu tiên
         if (courseProgress == null)
         {
-            throw new BusinessException("LearningProgressService:CourseProgressNotFound");
+            return new CourseProgressDto
+            {
+                CourseId           = courseId,
+                StudentId          = studentId,
+                Status             = CourseProgressStatus.NotStarted,
+                CompletedLessonsCount = 0,
+                TotalLessonsCount  = 0,
+                ProgressPercent    = 0,
+                StartedAt          = null,
+                CompletedAt        = null,
+                LastAccessedAt     = null,
+                LastAccessedLessonId = null
+            };
         }
  
         return ObjectMapper.Map<CourseProgress, CourseProgressDto>(courseProgress);
@@ -139,35 +153,28 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         var (tenantId, studentId) = ResolveAndValidateStudentContext();
         ValidateCourseId(courseId);
  
-        var lessonProgresses = await _lessonProgressRepository.GetListByCourseAndStudentAsync(
-            tenantId, courseId, studentId);
+        var inProgressLesson = await _lessonProgressRepository.GetListByCourseAndStudentAsync(
+            tenantId, courseId, studentId, status: LessonProgressStatus.InProgress);
  
-        var inProgressLesson = lessonProgresses
-            .FirstOrDefault(lp => lp.Status == LessonProgressStatus.InProgress);
+        var target = inProgressLesson.FirstOrDefault();
  
-        if (inProgressLesson != null)
+        if (target != null)
         {
-            var dto = ObjectMapper.Map<LessonProgress, ResumeResultDto>(inProgressLesson);
-            dto.CourseId = courseId;
-            return dto;
+            return ObjectMapper.Map<LessonProgress, ResumeResultDto>(target);
         }
  
-        var lastViewedLesson = lessonProgresses
-            .Where(lp => lp.LastViewedAt.HasValue)
-            .OrderByDescending(lp => lp.LastViewedAt)
-            .FirstOrDefault();
+        var lastViewedLesson = await _lessonProgressRepository.GetLastViewedLessonAsync(
+            tenantId, courseId, studentId);
  
         if (lastViewedLesson != null)
         {
-            var dto = ObjectMapper.Map<LessonProgress, ResumeResultDto>(lastViewedLesson);
-            dto.CourseId = courseId;
-            return dto;
+            return ObjectMapper.Map<LessonProgress, ResumeResultDto>(lastViewedLesson);
         }
  
         return new ResumeResultDto
         {
-            CourseId = courseId,
-            LessonId = null,
+            CourseId     = courseId,
+            LessonId     = null,
             LessonStatus = null,
             LastViewedAt = null
         };
