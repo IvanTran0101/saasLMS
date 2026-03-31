@@ -60,7 +60,7 @@ public class LessonProgress : FullAuditedAggregateRoot<Guid>
     {
         FirstViewedAt ??= completedAt;
         LastViewedAt = completedAt;
-        CompletedAt = completedAt;
+        CompletedAt ??= completedAt;
         Status = LessonProgressStatus.Completed;
     }
 
