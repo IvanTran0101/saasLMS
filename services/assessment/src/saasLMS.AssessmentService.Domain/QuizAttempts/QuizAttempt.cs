@@ -1,4 +1,6 @@
 using System;
+using saasLMS.AssessmentService.QuizAttempts.Events;
+using saasLMS.AssessmentService.QuizAttempts.Models;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 
@@ -12,14 +14,15 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
     public int AttemptNumber { get; protected set; }
     public DateTime StartedAt { get; protected set; }
     public DateTime? CompletedAt { get; protected set; }
-    public decimal? Score { get; protected set; }
+    public decimal Score { get; protected set; }
+    public string? SubmittedAnswersJson { get; protected set; }
     public QuizAttemptStatus Status { get; protected set; }
 
     protected QuizAttempt()
     {
         
     }
-
+    
     public QuizAttempt(Guid id, Guid tenantId, Guid quizId, Guid studentId, int attemptNumber, DateTime startedAt) : base(id)
     {
         if (tenantId == Guid.Empty)
@@ -37,9 +40,10 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
             throw new ArgumentException("The student id cannot be empty.", nameof(studentId));
         }
 
-        if (attemptNumber <= 0)
+        if (attemptNumber != 1)
         {
-            throw new ArgumentException("The attempt number must be greater than 0.", nameof(attemptNumber));        }
+            throw new ArgumentException("The attempt number must be exactly 1 for one-time attempt policy.", nameof(attemptNumber));
+        }
         TenantId = tenantId;
         QuizId = quizId;
         StudentId = studentId;
@@ -48,13 +52,35 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
         Status = QuizAttemptStatus.InProgress;
     }
 
-    public void Complete(decimal score, DateTime completedAt)
+    public static QuizAttempt Create(
+        Guid id,
+        Guid tenantId,
+        Guid quizId,
+        Guid studentId,
+        int attemptNumber,
+        DateTime startedAt)
     {
-        if (score < 0)
-        {
-            throw new ArgumentException("The score cannot be negative.", nameof(score));
-        }
+        var quizAttempt = new QuizAttempt(
+            id,
+            tenantId,
+            quizId,
+            studentId,
+            attemptNumber,
+            startedAt);
+        
+        quizAttempt.AddLocalEvent(new QuizAttemptStartedDomainEvent(
+            quizAttempt.Id,
+            quizAttempt.TenantId,
+            quizAttempt.QuizId,
+            quizAttempt.StudentId,
+            quizAttempt.StartedAt));
+        
+        return quizAttempt;
+        
+    }
 
+    public void Complete(string submittedAnswersJson, decimal score, DateTime completedAt)
+    {
         if (Status == QuizAttemptStatus.Completed)
         {
             throw new BusinessException("The quiz attempt is already completed.");
@@ -63,13 +89,30 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
         if (Status == QuizAttemptStatus.Expired)
         {
             throw new BusinessException("Expired quiz attempt cannot be completed.");        }
-        Score = score;
+        if (completedAt < StartedAt)
+        {
+            throw new ArgumentException("The completedAt cannot be earlier than StartedAt.", nameof(completedAt));
+        }
+        SetSubmittedAnswers(submittedAnswersJson);
+        SetScore(score);
         CompletedAt = completedAt;
         Status = QuizAttemptStatus.Completed;
+        
+        AddLocalEvent(new QuizAttemptCompletedDomainEvent(
+            Id,
+            TenantId,
+            QuizId,
+            StudentId,
+            Score,
+            completedAt));
     }
 
     public void Expire(DateTime expiredAt)
     {
+        if (expiredAt < StartedAt)
+        {
+            throw new ArgumentException("The expiredAt cannot be earlier than StartedAt.", nameof(expiredAt));
+        }
         if (Status == QuizAttemptStatus.Expired)
         {
             throw new BusinessException("The quiz attempt is already expired.");
@@ -79,5 +122,31 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
             throw new BusinessException("Completed quiz attempt cannot be expired.");        }
         CompletedAt = expiredAt;
         Status = QuizAttemptStatus.Expired;
+        
+        AddLocalEvent(new QuizAttemptExpiredDomainEvent(
+            Id,
+            TenantId,
+            QuizId,
+            StudentId,
+            expiredAt));
+    }
+
+    private void SetSubmittedAnswers(string submittedAnswersJson)
+    {
+        if (string.IsNullOrWhiteSpace(submittedAnswersJson))
+        {
+            throw new ArgumentException("The submittedAnswersJson cannot be empty.", nameof(submittedAnswersJson));
+        }
+        QuizSubmittedAnswerJsonValidator.ValidateAndParse(submittedAnswersJson);
+        SubmittedAnswersJson = submittedAnswersJson;
+    }
+
+    private void SetScore(decimal score)
+    {
+        if (score < 0)
+        {
+            throw new ArgumentException("The score cannot be negative.", nameof(score));
+        }
+        Score = score;
     }
 }

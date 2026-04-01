@@ -10,7 +10,7 @@ public interface IQuizAttemptRepository : IRepository<QuizAttempt, Guid>
 {
     Task<List<QuizAttempt>> GetListByQuizAsync(Guid tenantId,
         Guid quizId,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken  = default);
     Task<List<QuizAttempt>> GetListByStudentAsync(Guid tenantId,
         Guid studentId,
         CancellationToken cancellationToken = default);
@@ -18,7 +18,17 @@ public interface IQuizAttemptRepository : IRepository<QuizAttempt, Guid>
         Guid quizId,
         Guid studentId,
         CancellationToken cancellationToken = default);
-    Task<QuizAttempt?> FindLastedByQuizAndStudentAsync(Guid tenantId,
+    Task<QuizAttempt?> FindLatestByQuizAndStudentAsync(Guid tenantId,
+        Guid quizId,
+        Guid studentId,
+        CancellationToken cancellationToken = default);
+    Task<bool> ExistsByQuizAndStudentAsync(
+        Guid tenantId,
+        Guid quizId,
+        Guid studentId,
+        CancellationToken cancellationToken = default);
+    Task<QuizAttempt?> FindByQuizAndStudentAsync(
+        Guid tenantId,
         Guid quizId,
         Guid studentId,
         CancellationToken cancellationToken = default);

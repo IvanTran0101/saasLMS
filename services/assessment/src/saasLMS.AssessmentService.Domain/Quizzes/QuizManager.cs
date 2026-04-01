@@ -21,22 +21,31 @@ public class QuizManager : DomainService
         Guid courseId,
         Guid lessonId,
         string title,
-        string description,
         int? timeLimitMinutes,
         decimal maxScore,
         AttemptPolicy attemptPolicy,
         string questionJson,
         CancellationToken cancellationToken = default)
     {
-        var quiz = new Quiz(
+        if (attemptPolicy != AttemptPolicy.OneTime)
+        {
+            throw new BusinessException("Only one time policy can be supported.");
+        }
+        
+        var quiz = Quiz.Create(
             GuidGenerator.Create(),
             tenantId,
             courseId,
-            lessonId, title, timeLimitMinutes, maxScore, attemptPolicy, questionJson);
+            lessonId,
+            title,
+            timeLimitMinutes,
+            maxScore,
+            attemptPolicy,
+            questionJson);
         return Task.FromResult(quiz);
     }
 
-    public Task PublicAsync(
+    public Task PublishAsync(
         Quiz quiz,
         DateTime publishedAt,
         CancellationToken cancellationToken = default)
@@ -54,6 +63,30 @@ public class QuizManager : DomainService
         quiz.Close(closedAt);
         return Task.CompletedTask;
     }
-    
+    public Task UpdateInfoAsync(
+        Quiz quiz,
+        string title,
+        int? timeLimitMinutes,
+        decimal maxScore,
+        AttemptPolicy attemptPolicy,
+        string questionJson,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(quiz, nameof(quiz));
+
+        if (attemptPolicy != AttemptPolicy.OneTime)
+        {
+            throw new BusinessException("Only one time policy can be supported.");
+        }
+
+        quiz.UpdateInfo(
+            title,
+            timeLimitMinutes,
+            maxScore,
+            attemptPolicy,
+            questionJson);
+
+        return Task.CompletedTask;
+    }
     
 }
