@@ -1,4 +1,5 @@
 using System;
+using saasLMS.EnrollmentService.Enrollments.Events;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 
@@ -39,6 +40,8 @@ public class Enrollment : FullAuditedAggregateRoot<Guid>
         StudentId = studentId;
         EnrolledAt = enrolledAt;
         Status = EnrollmentStatus.Active;
+        
+        AddLocalEvent(new StudentEnrolledDomainEvent(this));
     }
     public void Complete(DateTime completedAt)
     {
@@ -54,6 +57,8 @@ public class Enrollment : FullAuditedAggregateRoot<Guid>
         Status = EnrollmentStatus.Completed;
         CompletedAt = completedAt;
         CancelledAt = null;
+        
+        AddLocalEvent(new StudentEnrollmentCompletedDomainEvent(this));
     }
 
     public void Cancel(DateTime cancelledAt)
@@ -70,7 +75,7 @@ public class Enrollment : FullAuditedAggregateRoot<Guid>
         Status = EnrollmentStatus.Cancelled;
         CancelledAt = cancelledAt;
         CompletedAt = null;
+        
+        AddLocalEvent(new StudentUnenrolledDomainEvent(this));
     }
-    
-    
 }

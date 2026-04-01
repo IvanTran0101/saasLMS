@@ -8,7 +8,7 @@ public interface ICourseCatalogGateway
 {
     /// Lấy thông tin eligibility của course.
     /// Trả null nếu course không tồn tại.
-    Task<CourseEligibilityResult?> GetEnrollmentEligibilityAsync(
+    Task<CourseEligibilityResult?> GetEnrollmentEligibility(
         Guid courseId,
         CancellationToken cancellationToken = default);
 }

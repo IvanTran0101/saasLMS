@@ -203,7 +203,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
     //Private Helper
     private async Task ValidateCourseEligibilityAsync(Guid courseId, Guid tenantId)
     {
-        var eligibility = await _courseCatalogGateway.GetEnrollmentEligibilityAsync(courseId);
+        var eligibility = await _courseCatalogGateway.GetEnrollmentEligibility(courseId);
  
         if (eligibility is null)
         {
