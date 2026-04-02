@@ -141,84 +141,77 @@ public class CourseManager : DomainService
         {
             throw new BusinessException("CourseCatalog:EmptyChapterId");
         }
-        var chapter = course.Chapters.FirstOrDefault(x => x.Id == chapterId);
-        if (chapter == null)
-        {
-            throw new BusinessException("CourseCatalog:ChapterNotFound");
-        }
-        chapter.Rename(title);
+        course.RenameChapter(chapterId, title);
     }
     
     //Lesson 
     public async Task<Lesson> CreateLessonAsync(
-        Chapter chapter,
+        Course course, 
+        Guid chapterId,
         string title,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        var lesson = chapter.AddLesson(GuidGenerator.Create(), title);
+        Check.NotNull(course, nameof(course));
+        if (chapterId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyChapterId");
+        var lesson = course.AddLesson(chapterId, GuidGenerator.Create(), title);
         
         return lesson;
     }
 
     public async Task RemoveLessonAsync(
-        Chapter chapter,
+        Course course, 
+        Guid chapterId,
         Guid lessonId,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-
+        Check.NotNull(course, nameof(course));
+        if (chapterId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyChapterId");
         if (lessonId == Guid.Empty)
-        {
             throw new BusinessException("CourseCatalog:EmptyLessonId");
-        }
 
-        var lesson = chapter.Lessons.FirstOrDefault(x => x.Id == lessonId);
-        if (lesson == null)
-        {
-            throw new BusinessException("CourseCatalog:LessonNotFound");
-        }
-
-        chapter.RemoveLesson(lessonId);
+        course.RemoveLesson(chapterId, lessonId);
     }
 
     public async Task RenameLessonAsync(
-        Chapter chapter,
-        Lesson lesson,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId,
         string title,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
+        Check.NotNull(course, nameof(course));
+        if (chapterId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyChapterId");
+        if (lessonId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyLessonId");
 
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
-        lesson.Rename(title);
+        course.RenameLesson(chapterId, lessonId, title);
     }
 
     public async Task UpdateLessonAsync(
-        Chapter chapter,
-        Lesson lesson,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId,
         string title,
         LessonContentState contentState,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-        lesson.UpdateDetails(title, contentState);
+        Check.NotNull(course, nameof(course));
+        if (chapterId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyChapterId");
+        if (lessonId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyLessonId");
+
+        course.UpdateLesson(chapterId, lessonId, title, contentState);
     }
     
     //Material
     public async Task<Material> CreateMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId,
         string title,
         MaterialType materialType,
         string? storageKey = null,
@@ -230,195 +223,131 @@ public class CourseManager : DomainService
         TextFormat? textFormat = null,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
+        Check.NotNull(course, nameof(course));
+        if (chapterId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyChapterId");
+        if (lessonId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyLessonId");
 
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
-        Material material = materialType switch
+        return materialType switch
         {
             MaterialType.File =>
-                lesson.AddFileMaterial(GuidGenerator.Create(), title, storageKey!, fileName, mimeType, fileSize),
+                course.AddFileMaterial(chapterId, lessonId, GuidGenerator.Create(),
+                    title, storageKey!, fileName, mimeType, fileSize),
             MaterialType.VideoLink =>
-                lesson.AddVideoLinkMaterial(GuidGenerator.Create(), title, videoUrl!),
+                course.AddVideoLinkMaterial(chapterId, lessonId, GuidGenerator.Create(),
+                    title, videoUrl!),
             MaterialType.Text =>
-                lesson.AddTextMaterial(GuidGenerator.Create(), title, textContent!, textFormat ??
-                    throw new BusinessException("CourseCatalog:TextFormatRequiredForTextMaterial")),
+                course.AddTextMaterial(chapterId, lessonId, GuidGenerator.Create(),
+                    title, textContent!,
+                    textFormat ?? throw new BusinessException("CourseCatalog:TextFormatRequiredForTextMaterial")),
             _ => throw new BusinessException("CourseCatalog:UnsupportedMaterialType")
         };
-
-        return material;
     }
 
     public async Task RemoveMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
         Guid materialId,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
+        Check.NotNull(course, nameof(course));
         if (materialId == Guid.Empty)
-        {
             throw new BusinessException("CourseCatalog:EmptyMaterialId");
-        }
 
-        var material = lesson.Materials.FirstOrDefault(m => m.Id == materialId);
-        if (material == null)
-        {
-            throw new BusinessException("CourseCatalog:MaterialNotFound");
-        }
-
-        lesson.RemoveMaterial(materialId);
+        course.RemoveMaterial(chapterId, lessonId, materialId);
     }
 
     public async Task HideMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
         Guid materialId,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
+        Check.NotNull(course, nameof(course));
         if (materialId == Guid.Empty)
-        {
             throw new BusinessException("CourseCatalog:EmptyMaterialId");
-        }
 
-        var material = lesson.Materials.FirstOrDefault(m => m.Id == materialId);
-        if (material == null)
-        {
-            throw new BusinessException("CourseCatalog:MaterialNotFound");
-        }
-
-        lesson.HideMaterial(materialId);
+        course.HideMaterial(chapterId, lessonId, materialId);
     }
 
     public async Task ActivateMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
         Guid materialId,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
+        Check.NotNull(course, nameof(course));
         if (materialId == Guid.Empty)
-        {
             throw new BusinessException("CourseCatalog:EmptyMaterialId");
-        }
 
-        var material = lesson.Materials.FirstOrDefault(m => m.Id == materialId);
-        if (material == null)
-        {
-            throw new BusinessException("CourseCatalog:MaterialNotFound");
-        }
-
-        lesson.ActivateMaterial(materialId);
+        course.ActivateMaterial(chapterId, lessonId, materialId);
     }
 
     public async Task RenameMaterialAsync(
-        Material material,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
+        Guid materialId,
         string title,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(material, nameof(material));
-        material.Rename(title);
+        Check.NotNull(course, nameof(course));
+        if (materialId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyMaterialId");
+
+        course.RenameMaterial(chapterId, lessonId, materialId, title);
     }
 
     public async Task UpdateFileMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
-        Material material,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
+        Guid materialId,
         string storageKey,
         string? fileName,
         string? mimeType,
         long? fileSize,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-        Check.NotNull(material, nameof(material));
+        Check.NotNull(course, nameof(course));
+        if (materialId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyMaterialId");
 
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
-        if (material.LessonId != lesson.Id)
-        {
-            throw new BusinessException("CourseCatalog:MaterialDoesNotBelongToLesson");
-        }
-
-        material.SetFileContent(storageKey, fileName, mimeType, fileSize);
+        course.UpdateFileMaterial(chapterId, lessonId, materialId, storageKey, fileName, mimeType, fileSize);
     }
     
     public async Task UpdateTextMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
-        Material material,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
+        Guid materialId,
         string textContent,
         TextFormat textFormat,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-        Check.NotNull(material, nameof(material));
+        Check.NotNull(course, nameof(course));
+        if (materialId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyMaterialId");
 
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
-        if (material.LessonId != lesson.Id)
-        {
-            throw new BusinessException("CourseCatalog:MaterialDoesNotBelongToLesson");
-        }
-
-        material.SetTextContent(textContent, textFormat);
+        course.UpdateTextMaterial(chapterId, lessonId, materialId, textContent, textFormat);
     }
     
     public async Task UpdateVideoLinkMaterialAsync(
-        Chapter chapter,
-        Lesson lesson,
-        Material material,
+        Course course, 
+        Guid chapterId, 
+        Guid lessonId, 
+        Guid materialId,
         string externalUrl,
         CancellationToken cancellationToken = default)
     {
-        Check.NotNull(chapter, nameof(chapter));
-        Check.NotNull(lesson, nameof(lesson));
-        Check.NotNull(material, nameof(material));
+        Check.NotNull(course, nameof(course));
+        if (materialId == Guid.Empty)
+            throw new BusinessException("CourseCatalog:EmptyMaterialId");
 
-        if (lesson.ChapterId != chapter.Id)
-        {
-            throw new BusinessException("CourseCatalog:LessonDoesNotBelongToChapter");
-        }
-
-        if (material.LessonId != lesson.Id)
-        {
-            throw new BusinessException("CourseCatalog:MaterialDoesNotBelongToLesson");
-        }
-
-        material.SetVideoLinkContent(externalUrl);
+        course.UpdateVideoLinkMaterial(chapterId, lessonId, materialId, externalUrl);
     }
 }

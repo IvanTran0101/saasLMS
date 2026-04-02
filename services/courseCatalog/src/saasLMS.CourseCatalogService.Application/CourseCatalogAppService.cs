@@ -326,7 +326,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:ChapterNotFound");
         }
-        var lesson = await _courseManager.CreateLessonAsync(chapter, input.Title);
+        var lesson = await _courseManager.CreateLessonAsync(course, input.ChapterId, input.Title);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapLessonDetail(lesson, input.CourseId, input.ChapterId);
     }
@@ -369,7 +369,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
-        await _courseManager.RenameLessonAsync(chapter, lesson, input.NewTitle);
+        await _courseManager.RenameLessonAsync(course, input.ChapterId, input.LessonId, input.NewTitle);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapLessonDetail(lesson, input.CourseId, input.ChapterId);
     }
@@ -413,7 +413,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
 
-        await _courseManager.UpdateLessonAsync(chapter, lesson, input.Title, input.ContentState);
+        await _courseManager.UpdateLessonAsync(course, input.ChapterId, input.LessonId, input.Title, input.ContentState);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapLessonDetail(lesson, input.CourseId, input.ChapterId);
     }
@@ -456,7 +456,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
 
-        await _courseManager.RemoveLessonAsync(chapter, input.LessonId);
+        await _courseManager.RemoveLessonAsync(course, input.ChapterId, input.LessonId);
         await _courseRepository.UpdateAsync(course, autoSave: true);
     }
 
@@ -570,7 +570,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
-        var material = await _courseManager.CreateMaterialAsync(chapter, lesson, input.Title, MaterialType.File, input.StorageKey,
+        var material = await _courseManager.CreateMaterialAsync(course, input.ChapterId, input.LessonId, input.Title, MaterialType.File, input.StorageKey,
             input.FileName, input.MimeType, input.FileSize);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapMaterialDetail(material, input.CourseId, input.ChapterId);
@@ -615,7 +615,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
-        var material = await _courseManager.CreateMaterialAsync(chapter, lesson, input.Title, MaterialType.VideoLink,null, null, null, null, input.ExternalUrl);
+        var material = await _courseManager.CreateMaterialAsync(course, input.ChapterId, input.LessonId, input.Title, MaterialType.VideoLink,null, null, null, null, input.ExternalUrl);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapMaterialDetail(material, input.CourseId, input.ChapterId);
     }
@@ -660,7 +660,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
-        var material = await _courseManager.CreateMaterialAsync(chapter, lesson, input.Title, MaterialType.Text,null, null, null, null, null,input.Content, input.Format);
+        var material = await _courseManager.CreateMaterialAsync(course, input.ChapterId, input.LessonId, input.Title, MaterialType.Text,null, null, null, null, null,input.Content, input.Format);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapMaterialDetail(material, input.CourseId, input.ChapterId);
     }
@@ -710,7 +710,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:MaterialNotFound");
         }
-        await _courseManager.RenameMaterialAsync(material, input.NewTitle);
+        await _courseManager.RenameMaterialAsync(course, input.ChapterId, input.LessonId, input.MaterialId, input.NewTitle);
         await _courseRepository.UpdateAsync(course, autoSave: true);
         return MapMaterialDetail(material, input.CourseId, input.ChapterId);
     }
@@ -771,9 +771,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         }
 
         await _courseManager.UpdateFileMaterialAsync(
-            chapter,
-            lesson,
-            material,
+            course, input.ChapterId, input.LessonId, input.MaterialId,
             input.StorageKey,
             input.FileName,
             input.MimeType,
@@ -840,9 +838,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         }
 
         await _courseManager.UpdateVideoLinkMaterialAsync(
-            chapter,
-            lesson,
-            material,
+            course, input.ChapterId, input.LessonId, input.MaterialId,
             input.ExternalUrl);
         
         await _courseRepository.UpdateAsync(course, autoSave: true);
@@ -906,9 +902,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         }
 
         await _courseManager.UpdateTextMaterialAsync(
-            chapter,
-            lesson,
-            material, 
+            course, input.ChapterId, input.LessonId, input.MaterialId,
             input.Content,
             input.Format);
 
@@ -961,7 +955,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
         
-        await _courseManager.HideMaterialAsync(chapter, lesson, input.MaterialId);
+        await _courseManager.HideMaterialAsync(course, input.ChapterId, input.LessonId, input.MaterialId);
         await _courseRepository.UpdateAsync(course, autoSave: true);
     }
 
@@ -1009,7 +1003,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
         
-        await _courseManager.ActivateMaterialAsync(chapter, lesson, input.MaterialId);
+        await _courseManager.ActivateMaterialAsync(course, input.ChapterId, input.LessonId, input.MaterialId);
         await _courseRepository.UpdateAsync(course, autoSave: true);
     }
 
@@ -1056,7 +1050,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:LessonNotFound");
         }
-        await _courseManager.RemoveMaterialAsync(chapter, lesson, input.MaterialId);
+        await _courseManager.RemoveMaterialAsync(course, input.ChapterId, input.LessonId, input.MaterialId);
         await _courseRepository.UpdateAsync(course, autoSave: true);
     }
 
