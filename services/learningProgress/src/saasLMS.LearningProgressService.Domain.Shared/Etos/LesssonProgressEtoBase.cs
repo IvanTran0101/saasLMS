@@ -8,7 +8,7 @@ public abstract class LessonProgressEtoBase
 
     public DateTime OccurredAt { get; init; }
 
-    public Guid? TenantId { get; init; }
+    public Guid TenantId { get; init; }
 
     public Guid StudentId { get; init; }
 

@@ -14,9 +14,4 @@
     <ProjectReference Include="..\saasLMS.NotificationService.Domain.Shared\saasLMS.NotificationService.Domain.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Notifications\Dtos\Inputs\" />
-    <Folder Include="Notifications\Dtos\Outputs\" />
-  </ItemGroup>
-
 </Project>

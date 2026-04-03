@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace saasLMS.EnrollmentService.Etos;
+namespace saasLMS.NotificationService.Etos.Enrollments;
 
-public abstract class EnrollmentEtoBase
+public class EnrollmentEtoBase
 {
     public Guid EventId { get; set; }
     public DateTime OccurredAt { get; set; }

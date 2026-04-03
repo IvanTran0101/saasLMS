@@ -6,7 +6,7 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Distributed;
 
-namespace saasLMS.LearningProgressService.LessonProgresses.EventHandlers;
+namespace saasLMS.LearningProgressService.LearningProgresses.EventHandlers;
 
 public class LessonProgressEventHandler
     : ILocalEventHandler<LessonViewedDomainEvent>,

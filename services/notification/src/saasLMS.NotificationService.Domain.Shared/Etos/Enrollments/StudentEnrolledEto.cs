@@ -1,10 +1,10 @@
 ﻿using System;
 using Volo.Abp.EventBus;
 
-namespace saasLMS.EnrollmentService.Etos.Enrollments;
+namespace saasLMS.NotificationService.Etos.Enrollments;
 
 [EventName("saaslms.enrollment.student_enrolled.v1")]
-public sealed class StudentEnrolledEto : EnrollmentEtoBase
+public class StudentEnrolledEto : EnrollmentEtoBase
 {
     public Guid EnrollmentId { get; set; }
 
