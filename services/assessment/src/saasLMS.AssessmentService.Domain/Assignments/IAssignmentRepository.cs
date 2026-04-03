@@ -14,4 +14,12 @@ public interface IAssignmentRepository : IRepository<Assignment, Guid>
     Task<List<Assignment>> GetListByLessonAsync(Guid tenantId,
         Guid lessonId,
         CancellationToken cancellationToken = default);
+    Task<List<Assignment>> GetPublishedListByLessonAsync(
+        Guid tenantId,
+        Guid lessonId,
+        CancellationToken cancellationToken = default);
+    Task<Assignment?> FindPublishedByLessonAsync(
+        Guid tenantId,
+        Guid lessonId,
+        CancellationToken cancellationToken = default);
 }

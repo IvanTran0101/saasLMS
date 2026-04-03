@@ -149,4 +149,35 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
         }
         Score = score;
     }
+
+    public void CompleteByTimeout(DateTime completedAt)
+    {
+        if (Status == QuizAttemptStatus.Completed)
+        {
+            throw new BusinessException("The quiz attempt is already completed.");
+        }
+
+        if (Status == QuizAttemptStatus.Expired)
+        {
+            throw new BusinessException("Expired quiz attempt cannot be completed.");
+        }
+
+        if (completedAt < StartedAt)
+        {
+            throw new ArgumentException("The completedAt cannot be earlier than StartedAt.", nameof(completedAt));
+        }
+
+        SubmittedAnswersJson = null;
+        Score = 0;
+        CompletedAt = completedAt;
+        Status = QuizAttemptStatus.Completed;
+        
+        AddLocalEvent(new QuizAttemptCompletedDomainEvent(
+            Id,
+            TenantId,
+            QuizId,
+            StudentId,
+            Score,
+            completedAt));
+    }
 }

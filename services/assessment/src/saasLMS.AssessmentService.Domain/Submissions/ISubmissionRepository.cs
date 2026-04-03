@@ -8,7 +8,7 @@ namespace saasLMS.AssessmentService.Submissions;
 
 public interface ISubmissionRepository : IRepository<Submission, Guid>
 {
-    Task<Submission> FindByAssignmentAndStudentAsync(Guid tenantId,
+    Task<Submission?> FindByAssignmentAndStudentAsync(Guid tenantId,
         Guid assignmentId,
         Guid studentId,
         CancellationToken cancellationToken = default);

@@ -22,10 +22,10 @@ public class AssignmentManager : DomainService
         string title,
         string? description,
         DateTime? deadline,
-        decimal maxsScore,
+        decimal maxScore,
         CancellationToken cancellationToken = default)
     {
-        var assignment = new Assignment(
+        var assignment = Assignment.Create(
             GuidGenerator.Create(),
             tenantId,
             courseId,
@@ -33,11 +33,24 @@ public class AssignmentManager : DomainService
             title,
             description,
             deadline,
-            maxsScore);
+            maxScore);
         return Task.FromResult(assignment);
     }
 
-    public Task PublicAsync(
+    public Task UpdateInfoAsync(
+        Assignment assignment,
+        string title,
+        string? description,
+        DateTime? deadline,
+        decimal maxScore,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(assignment, nameof(assignment));
+        assignment.UpdateInfo(title, description, deadline, maxScore);
+        return Task.CompletedTask;
+    }
+
+    public Task PublishAsync(
         Assignment assignment,
         DateTime publishedAt,
         CancellationToken cancellationToken = default)
@@ -47,7 +60,7 @@ public class AssignmentManager : DomainService
         return Task.CompletedTask;
     }
 
-    public Task ClosedAsync(
+    public Task CloseAsync(
         Assignment assignment,
         DateTime closedAt,
         CancellationToken cancellationToken = default

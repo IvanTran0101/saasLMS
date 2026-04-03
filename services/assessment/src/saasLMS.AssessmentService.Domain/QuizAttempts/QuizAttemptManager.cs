@@ -28,7 +28,15 @@ public class QuizAttemptManager : DomainService
         DateTime startedAt,
         CancellationToken cancellationToken = default)
     {
+        
+        
         Check.NotNull(quiz, nameof(quiz));
+        if (quiz.TenantId != tenantId)
+        {
+            throw new BusinessException("AssessmentService:QuizTenantMismatch")
+                .WithData("QuizId", quiz.Id)
+                .WithData("TenantId", tenantId);
+        }
         if (quiz.Status != QuizStatus.Published)
         {
             throw new BusinessException("AssessmentService:QuizNotAvailable")
@@ -167,13 +175,45 @@ public class QuizAttemptManager : DomainService
     }
     
     
+    
 
-    public Task ExpireAsync(QuizAttempt quizAttempt,
-        DateTime expiredAt,
-        CancellationToken cancellationToken = default)
+    public Task HandleTimeoutAsync(
+        Quiz quiz,
+        QuizAttempt quizAttempt,
+        DateTime timeoutAt,
+        CancellationToken cancellationToken = default
+    )
     {
+        Check.NotNull(quiz, nameof(quiz));
         Check.NotNull(quizAttempt, nameof(quizAttempt));
-        quizAttempt.Expire(expiredAt);
+        if  (quiz.TenantId != quizAttempt.TenantId)
+        {
+            throw new BusinessException("AssessmentService:QuizAttemptDoesNotBelongToQuiz")
+                .WithData("QuizId", quiz.Id)
+                .WithData("QuizAttemptId", quizAttempt.Id);
+        }
+
+        if (quiz.Id != quizAttempt.QuizId)
+        {
+            throw new BusinessException("AssessmentService:QuizIdMismatch")
+                .WithData("QuizId", quiz.Id)
+                .WithData("QuizAttemptId", quizAttempt.Id);
+        }
+
+        if (!quiz.TimeLimitMinutes.HasValue)
+        {
+            throw new BusinessException("AssessmentService:QuizHasNoTimeLimit")
+                .WithData("QuizId", quiz.Id);
+        }
+        var deadline = quizAttempt.StartedAt.AddMinutes(quiz.TimeLimitMinutes.Value);
+        if (timeoutAt < deadline)
+        {
+            throw new BusinessException("AssessmentService:QuizAttemptCannotTimeoutBeforeDeadline")
+                .WithData("QuizId", quiz.Id)
+                .WithData("QuizAttemptId", quizAttempt.Id)
+                .WithData("Deadline", deadline);
+        }
+        quizAttempt.CompleteByTimeout(timeoutAt);
         return Task.CompletedTask;
     }
 }
