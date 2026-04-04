@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using saasLMS.AssessmentService.Submissions.Etos;
 using saasLMS.NotificationService.Notifications.Dtos.Inputs;
 using Volo.Abp.DependencyInjection;
 
@@ -21,7 +22,7 @@ public class AssessmentEtoHandler : ITransientDependency
             TenantId        = eventData.TenantId,
             RecipientUserId = eventData.StudentId,
             Title           = "Bài tập của bạn đã được chấm điểm",
-            Message         = $"Bạn đạt {eventData.Score}/{eventData.MaxScore} điểm.",
+            Message         = $"Bạn đạt {eventData.Score} điểm.",
             Type            = NotificationType.Assignment,
             ReferenceType   = nameof(SubmissionGradedEto),
             ReferenceId     = eventData.SubmissionId.ToString()

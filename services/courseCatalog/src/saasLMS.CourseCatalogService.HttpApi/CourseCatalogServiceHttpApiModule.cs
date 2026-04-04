@@ -4,10 +4,12 @@ using saasLMS.CourseCatalogService.Localization;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
+using Volo.Abp.AspNetCore.Mvc.Conventions;
 
 namespace saasLMS.CourseCatalogService;
 
 [DependsOn(
+    typeof(CourseCatalogServiceApplicationModule),
     typeof(CourseCatalogServiceApplicationContractsModule),
     typeof(AbpAspNetCoreMvcModule))]
 public class CourseCatalogServiceHttpApiModule : AbpModule
@@ -22,6 +24,11 @@ public class CourseCatalogServiceHttpApiModule : AbpModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        Configure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options.ConventionalControllers.Create(typeof(CourseCatalogServiceApplicationModule).Assembly);
+        });
+
         Configure<AbpLocalizationOptions>(options =>
         {
             options.Resources

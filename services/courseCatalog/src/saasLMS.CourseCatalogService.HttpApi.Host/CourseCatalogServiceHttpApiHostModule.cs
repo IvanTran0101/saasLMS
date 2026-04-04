@@ -110,6 +110,9 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
             await scope.ServiceProvider
                 .GetRequiredService<CourseCatalogServiceDatabaseMigrationChecker>()
                 .CheckAndApplyDatabaseMigrationsAsync();
+            await scope.ServiceProvider
+                .GetRequiredService<CourseCatalogServicePermissionSeeder>()
+                .SeedAsync();
         }
     }
 }

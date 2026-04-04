@@ -10,8 +10,13 @@ public class EnrollmentServicePermissionDefinitionProvider : PermissionDefinitio
     {
         var myGroup = context.AddGroup(EnrollmentServicePermissions.GroupName, L("Permission:EnrollmentService"));
 
-        //Define your own permissions here. Example:
-        //myGroup.AddPermission(BookStorePermissions.MyPermission1, L("Permission:MyPermission1"));
+        var enrollments = myGroup.AddPermission(EnrollmentServicePermissions.Enrollments.Default, L("Permission:Enrollments"));
+        enrollments.AddChild(EnrollmentServicePermissions.Enrollments.Create, L("Permission:Create"));
+        enrollments.AddChild(EnrollmentServicePermissions.Enrollments.Cancel, L("Permission:Cancel"));
+        enrollments.AddChild(EnrollmentServicePermissions.Enrollments.View, L("Permission:View"));
+        enrollments.AddChild(EnrollmentServicePermissions.Enrollments.ViewMy, L("Permission:ViewMy"));
+        enrollments.AddChild(EnrollmentServicePermissions.Enrollments.ViewByCourse, L("Permission:ViewByCourse"));
+        enrollments.AddChild(EnrollmentServicePermissions.Enrollments.CheckActive, L("Permission:CheckActive"));
     }
 
     private static LocalizableString L(string name)
