@@ -10,8 +10,17 @@ public class LearningProgressServicePermissionDefinitionProvider : PermissionDef
     {
         var myGroup = context.AddGroup(LearningProgressServicePermissions.GroupName, L("Permission:LearningProgressService"));
 
-        //Define your own permissions here. Example:
-        //myGroup.AddPermission(BookStorePermissions.MyPermission1, L("Permission:MyPermission1"));
+        var lessonProgresses = myGroup.AddPermission(
+            LearningProgressServicePermissions.LessonProgresses.Default,
+            L("Permission:LessonProgresses"));
+
+        lessonProgresses.AddChild(
+            LearningProgressServicePermissions.LessonProgresses.Record,
+            L("Permission:Record"));
+
+        lessonProgresses.AddChild(
+            LearningProgressServicePermissions.LessonProgresses.ViewOwn,
+            L("Permission:ViewOwn"));
     }
 
     private static LocalizableString L(string name)

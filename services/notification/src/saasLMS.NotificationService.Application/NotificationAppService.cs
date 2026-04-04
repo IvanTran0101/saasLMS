@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using saasLMS.NotificationService.Notifications;
 using saasLMS.NotificationService.Notifications.Dtos.Inputs;
 using saasLMS.NotificationService.Notifications.Dtos.Outputs;
+using saasLMS.NotificationService.Permissions;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
@@ -23,6 +25,7 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
         _notificationManager = notificationManager;
     }
 
+    [Authorize(NotificationServicePermissions.Notifications.ViewOwn)]
     public async Task<NotificationSummaryDto> GetMyNotificationsAsync()
     {
         var tenantId = CurrentTenant.Id
@@ -40,6 +43,7 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
         };
     }
 
+    [Authorize(NotificationServicePermissions.Notifications.ViewOwn)]
     public async Task<int> GetUnreadCountAsync()
     {
         var tenantId = CurrentTenant.Id
@@ -50,6 +54,7 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
         return await _notificationRepository.GetUnreadCountAsync(tenantId, userId);
     }
 
+    [Authorize(NotificationServicePermissions.Notifications.Manage)]
     public async Task MarkAsReadAsync(Guid notificationId)
     {
         var tenantId = CurrentTenant.Id
@@ -68,6 +73,7 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
         await _notificationRepository.UpdateAsync(notification, autoSave: true);
     }
 
+    [Authorize(NotificationServicePermissions.Notifications.Manage)]
     public async Task MarkAllAsReadAsync()
     {
         var tenantId = CurrentTenant.Id

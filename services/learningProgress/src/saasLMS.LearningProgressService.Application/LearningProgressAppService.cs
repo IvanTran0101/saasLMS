@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using saasLMS.LearningProgressService.CourseProgresses;
 using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs;
 using saasLMS.LearningProgressService.LessonProgresses;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs;
+using saasLMS.LearningProgressService.Permissions;
 using Volo.Abp;
 using Volo.Abp.Users;
 
@@ -34,6 +36,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         _enrollmentGateway = enrollmentGateway;
     }
     
+    [Authorize(LearningProgressServicePermissions.LessonProgresses.Record)]
     public async Task<LessonProgressDto> StartLessonAsync(StartLessonInput input)
     {
         Check.NotNull(input, nameof(input));
@@ -58,6 +61,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         return ObjectMapper.Map<LessonProgress, LessonProgressDto>(lessonProgress);
     }
     
+    [Authorize(LearningProgressServicePermissions.LessonProgresses.Record)]
     public async Task<LessonProgressDto> ViewLessonAsync(ViewLessonInput input)
     {
         Check.NotNull(input, nameof(input));
@@ -79,6 +83,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         return ObjectMapper.Map<LessonProgress, LessonProgressDto>(lessonProgress);
     }
     
+    [Authorize(LearningProgressServicePermissions.LessonProgresses.Record)]
     public async Task<LessonProgressDto> CompleteLessonAsync(CompleteLessonInput input)
     {
         Check.NotNull(input, nameof(input));
@@ -105,6 +110,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         return ObjectMapper.Map<LessonProgress, LessonProgressDto>(lessonProgress);
     }
     
+    [Authorize(LearningProgressServicePermissions.LessonProgresses.ViewOwn)]
     public async Task<List<LessonProgressDto>> GetMyProgressAsync(Guid courseId)
     {
         var (tenantId, studentId) = ResolveAndValidateStudentContext();
@@ -118,6 +124,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
             .ToList();
     }
     
+    [Authorize(LearningProgressServicePermissions.LessonProgresses.ViewOwn)]
     public async Task<CourseProgressDto> GetMyCourseProgressAsync(Guid courseId)
     {
         var (tenantId, studentId) = ResolveAndValidateStudentContext();
@@ -148,6 +155,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         return ObjectMapper.Map<CourseProgress, CourseProgressDto>(courseProgress);
     }
     
+    [Authorize(LearningProgressServicePermissions.LessonProgresses.ViewOwn)]
     public async Task<ResumeResultDto> GetResumePositionAsync(Guid courseId)
     {
         var (tenantId, studentId) = ResolveAndValidateStudentContext();

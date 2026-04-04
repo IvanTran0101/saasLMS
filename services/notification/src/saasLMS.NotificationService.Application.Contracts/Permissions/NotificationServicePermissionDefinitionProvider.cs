@@ -10,8 +10,17 @@ public class NotificationServicePermissionDefinitionProvider : PermissionDefinit
     {
         var myGroup = context.AddGroup(NotificationServicePermissions.GroupName, L("Permission:NotificationService"));
 
-        //Define your own permissions here. Example:
-        //myGroup.AddPermission(BookStorePermissions.MyPermission1, L("Permission:MyPermission1"));
+        var notifications = myGroup.AddPermission(
+            NotificationServicePermissions.Notifications.Default,
+            L("Permission:Notifications"));
+
+        notifications.AddChild(
+            NotificationServicePermissions.Notifications.ViewOwn,
+            L("Permission:ViewOwn"));
+
+        notifications.AddChild(
+            NotificationServicePermissions.Notifications.Manage,
+            L("Permission:Manage"));
     }
 
     private static LocalizableString L(string name)
