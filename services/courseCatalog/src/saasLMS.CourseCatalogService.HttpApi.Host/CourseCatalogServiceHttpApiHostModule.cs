@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +12,10 @@ using saasLMS.CourseCatalogService.EntityFrameworkCore;
 using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
+using saasLMS.CourseCatalogService.BlobContainers;
 using Volo.Abp;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Aws;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -24,7 +27,8 @@ namespace saasLMS.CourseCatalogService;
     typeof(CourseCatalogServiceHttpApiModule),
     typeof(CourseCatalogServiceEntityFrameworkCoreModule)
     )]
-public class CourseCatalogServiceHttpApiHostModule : AbpModule
+[DependsOn(typeof(AbpBlobStoringAwsModule))]
+    public class CourseCatalogServiceHttpApiHostModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
@@ -68,6 +72,22 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
         });
 
         context.Services.TransformAbpClaims();
+        
+        //Check lại Config 
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.Configure<CourseMaterialContainer>(container =>
+            {
+                container.UseAws(aws =>
+                {
+                    aws.AccessKeyId     = configuration["BlobStoring:Aws:AccessKeyId"];
+                    aws.SecretAccessKey = configuration["BlobStoring:Aws:SecretAccessKey"];
+                    aws.Region          = configuration["BlobStoring:Aws:Region"];
+                    aws.ContainerName   = configuration["BlobStoring:Aws:BucketName"];
+                    aws.CreateContainerIfNotExists = false;
+                });
+            });
+        });
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

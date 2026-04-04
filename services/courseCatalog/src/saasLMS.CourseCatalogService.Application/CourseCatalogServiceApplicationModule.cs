@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Application;
 using Volo.Abp.Mapperly;
 using Volo.Abp.Modularity;
+using Volo.Abp.BlobStoring.Aws;
 
 namespace saasLMS.CourseCatalogService;
 
@@ -11,7 +12,8 @@ namespace saasLMS.CourseCatalogService;
     typeof(AbpDddApplicationModule),
     typeof(AbpMapperlyModule)
     )]
-public class CourseCatalogServiceApplicationModule : AbpModule
+[DependsOn(typeof(AbpBlobStoringAwsModule))]
+    public class CourseCatalogServiceApplicationModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {

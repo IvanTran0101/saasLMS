@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using saasLMS.CourseCatalogService.BlobContainers;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Courses;
@@ -12,16 +13,20 @@ using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
 using Volo.Abp;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
 
 namespace saasLMS.CourseCatalogService;
 
 public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCatalogAppService
 {
+    private readonly IBlobContainer<CourseMaterialContainer> _blobContainer;
     private readonly ICourseRepository _courseRepository;
     private readonly CourseManager _courseManager;
 
-    public CourseCatalogAppService(ICourseRepository courseRepository, CourseManager courseManager)
+    public CourseCatalogAppService(IBlobContainer<CourseMaterialContainer> blobContainer, ICourseRepository courseRepository, CourseManager courseManager)
     {
+        _blobContainer = blobContainer;
         _courseRepository = courseRepository;
         _courseManager = courseManager;
     }
@@ -1166,5 +1171,64 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         dto.CourseId = courseId;
         dto.ChapterId = chapterId;
         return dto;
+    }
+    
+    public async Task<UploadFileMaterialDto> UploadFileMaterialAsync(
+        UploadFileMaterialInput input)
+    {
+        Check.NotNull(input,      nameof(input));
+        Check.NotNull(input.File, nameof(input.File));
+
+        var tenantId = CurrentTenant.Id
+                       ?? throw new BusinessException("CourseCatalog:TenantNotFound");
+
+        if (!string.IsNullOrWhiteSpace(input.OldStorageKey))
+        {
+            await _blobContainer.DeleteAsync(input.OldStorageKey);
+        }
+
+        var fileName   = input.File.FileName   ?? GuidGenerator.Create().ToString();
+        var mimeType   = input.File.ContentType ?? "application/octet-stream";
+        var fileSize   = input.File.ContentLength ?? 0;
+        var storageKey = $"{tenantId}/{GuidGenerator.Create()}_{fileName}";
+
+        await using var stream = input.File.GetStream();
+        await _blobContainer.SaveAsync(storageKey, stream, overrideExisting: false);
+
+        return new UploadFileMaterialDto
+        {
+            StorageKey = storageKey,
+            FileName   = fileName,
+            MimeType   = mimeType,
+            FileSize   = fileSize
+        };
+    }
+    
+    public async Task<IRemoteStreamContent> DownloadFileMaterialAsync(
+        Guid courseId, Guid chapterId, Guid lessonId, Guid materialId)
+    {
+        var tenantId = CurrentTenant.Id
+                       ?? throw new BusinessException("CourseCatalog:TenantNotFound");
+
+        var course = await _courseRepository.FindWithDetailsAsync(courseId, tenantId)
+                     ?? throw new BusinessException("CourseCatalog:CourseNotFound");
+
+        var chapter = course.Chapters.FirstOrDefault(c => c.Id == chapterId)
+                      ?? throw new BusinessException("CourseCatalog:ChapterNotFound");
+
+        var lesson = chapter.Lessons.FirstOrDefault(l => l.Id == lessonId)
+                     ?? throw new BusinessException("CourseCatalog:LessonNotFound");
+
+        var material = lesson.Materials.FirstOrDefault(m => m.Id == materialId)
+                       ?? throw new BusinessException("CourseCatalog:MaterialNotFound");
+
+        if (material.Type != MaterialType.File || string.IsNullOrEmpty(material.StorageKey))
+        {
+            throw new BusinessException("CourseCatalog:MaterialIsNotAFile");
+        }
+
+        var stream = await _blobContainer.GetAsync(material.StorageKey);
+
+        return new RemoteStreamContent(stream, material.FileName, material.MimeType);
     }
 }

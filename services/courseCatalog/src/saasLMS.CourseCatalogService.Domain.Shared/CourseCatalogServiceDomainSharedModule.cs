@@ -1,4 +1,4 @@
-﻿using saasLMS.CourseCatalogService.Localization;
+using saasLMS.CourseCatalogService.Localization;
 using Volo.Abp.Commercial.SuiteTemplates;
 using Volo.Abp.Localization;
 using Volo.Abp.Localization.ExceptionHandling;
@@ -6,6 +6,8 @@ using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
 using Volo.Abp.Validation.Localization;
 using Volo.Abp.VirtualFileSystem;
+using Volo.Abp.BlobStoring.Aws;
+using Volo.Abp.BlobStoring;
 
 namespace saasLMS.CourseCatalogService;
 
@@ -13,7 +15,9 @@ namespace saasLMS.CourseCatalogService;
     typeof(VoloAbpCommercialSuiteTemplatesModule),
     typeof(AbpValidationModule)
 )]
-public class CourseCatalogServiceDomainSharedModule : AbpModule
+[DependsOn(typeof(AbpBlobStoringAwsModule))]
+    [DependsOn(typeof(AbpBlobStoringModule))]
+    public class CourseCatalogServiceDomainSharedModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {

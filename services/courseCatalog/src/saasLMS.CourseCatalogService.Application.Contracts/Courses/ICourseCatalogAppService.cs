@@ -10,6 +10,7 @@ using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 
 namespace saasLMS.CourseCatalogService.Courses;
 
@@ -55,8 +56,8 @@ public interface ICourseCatalogAppService : IApplicationService
     Task HideMaterialAsync(HideMaterialInput input);
     Task ActivateMaterialAsync(ActivateMaterialInput input);
     Task RemoveMaterialAsync(RemoveMaterialInput input);
-    
     Task<List<MaterialDto>> GetMaterialsByLessonAsync(Guid courseId, Guid chapterId, Guid lessonId);
     Task<MaterialDto> GetMaterialAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
-    
+    Task<UploadFileMaterialDto> UploadFileMaterialAsync(UploadFileMaterialInput input);
+    Task<IRemoteStreamContent> DownloadFileMaterialAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
 }
