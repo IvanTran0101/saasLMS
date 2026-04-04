@@ -1,8 +1,10 @@
 using System;
 using saasLMS.CourseCatalogService.Courses;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Materials;
 
+[EventName("lms.coursecatalog.materialrenamed.v1")]
 public class MaterialRenamedEto : CourseCatalogEtoBase
 {
    

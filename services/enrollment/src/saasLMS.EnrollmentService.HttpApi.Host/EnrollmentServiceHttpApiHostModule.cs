@@ -110,6 +110,9 @@ public class EnrollmentServiceHttpApiHostModule : AbpModule
             await scope.ServiceProvider
                 .GetRequiredService<EnrollmentServiceDatabaseMigrationChecker>()
                 .CheckAndApplyDatabaseMigrationsAsync();
+            await scope.ServiceProvider
+                .GetRequiredService<EnrollmentServicePermissionSeeder>()
+                .SeedAsync();
         }
     }
 }

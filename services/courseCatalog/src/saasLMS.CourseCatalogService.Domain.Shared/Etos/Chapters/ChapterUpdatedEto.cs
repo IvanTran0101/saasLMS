@@ -1,7 +1,9 @@
 using System;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Chapters;
 
+[EventName("lms.coursecatalog.chapterupdated.v1")]
 public class ChapterUpdatedEto : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }

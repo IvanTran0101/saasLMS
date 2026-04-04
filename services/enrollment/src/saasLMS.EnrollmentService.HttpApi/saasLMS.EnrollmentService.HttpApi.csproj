@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="10.1.1" />
+    <ProjectReference Include="..\saasLMS.EnrollmentService.Application\saasLMS.EnrollmentService.Application.csproj" />
     <ProjectReference Include="..\saasLMS.EnrollmentService.Application.Contracts\saasLMS.EnrollmentService.Application.Contracts.csproj" />
   </ItemGroup>
 

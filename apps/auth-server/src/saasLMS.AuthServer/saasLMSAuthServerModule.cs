@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
@@ -251,6 +252,13 @@ public class saasLMSAuthServerModule : AbpModule
         {
             endpoints.MapMetrics();
         });
+    }
+
+    public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        using var scope = context.ServiceProvider.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<AuthServerOpenIddictDataSeeder>();
+        await seeder.SeedAsync();
     }
 
     private void ConfigureBundles()

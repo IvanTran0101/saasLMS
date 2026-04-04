@@ -1,8 +1,10 @@
 using System;
 using saasLMS.CourseCatalogService.Courses;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Courses;
 
+[EventName("lms.coursecatalog.coursecreated.v1")]
 public class CourseCreatedEto : CourseCatalogEtoBase
 {
    

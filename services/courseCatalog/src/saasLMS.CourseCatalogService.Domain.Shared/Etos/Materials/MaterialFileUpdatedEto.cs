@@ -1,8 +1,10 @@
 using System;
 using saasLMS.CourseCatalogService.Courses;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Materials;
 
+[EventName("lms.coursecatalog.materialfileupdated.v1")]
 public class MaterialFileUpdatedEto : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }

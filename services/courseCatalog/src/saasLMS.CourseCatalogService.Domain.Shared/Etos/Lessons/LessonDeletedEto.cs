@@ -1,8 +1,10 @@
 using System;
 using saasLMS.CourseCatalogService.Courses;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Lessons;
 
+[EventName("lms.coursecatalog.lessondeleted.v1")]
 public class LessonDeletedEto : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }

@@ -1,7 +1,9 @@
 using System;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Chapters;
 
+[EventName("lms.coursecatalog.chapterdeleted.v1")]
 public class ChapterDeletedEto : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }

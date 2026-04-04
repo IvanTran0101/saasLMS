@@ -1,8 +1,10 @@
 using System;
 using saasLMS.CourseCatalogService.Courses;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Lessons;
 
+[EventName("lms.coursecatalog.lessonhidden.v1")]
 public class LessonHiddenEto : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }
