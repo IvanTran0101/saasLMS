@@ -9,7 +9,7 @@ public class MaterialFileUpdatedEto : CourseCatalogEtoBase
     public Guid ChapterId { get; set; }
     public Guid LessonId { get; set; }
     public Guid MaterialId { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public MaterialType Type { get; set; }
     public MaterialStatus Status { get; set; }
     public int SortOrder { get; set; }

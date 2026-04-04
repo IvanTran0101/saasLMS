@@ -6,7 +6,7 @@ namespace saasLMS.CourseCatalogService.Etos.Courses;
 public class CourseHiddenEto : CourseCatalogEtoBase
 {
     public Guid CourseId { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public CourseStatus Status { get; set; }
     public Guid  InstructorId { get; set; }
