@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>saasLMS.AssessmentService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.Ddd.Application" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Mapperly" Version="10.1.1" />
+    <ProjectReference Include="..\saasLMS.AssessmentService.Application.Contracts\saasLMS.AssessmentService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\saasLMS.AssessmentService.Domain\saasLMS.AssessmentService.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assignments\EventHandlers\" />
+    <Folder Include="QuizzAttemps\EventHandlers\" />
+  </ItemGroup>
+
+</Project>

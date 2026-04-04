@@ -5,6 +5,10 @@
     }
   },
   "packages": {
+    "saasLMS.Blazor.Client": {
+      "path": "src/saasLMS.Blazor.Client/saasLMS.Blazor.Client.abppkg",
+      "folder": "src"
+    },
     "saasLMS.Blazor": {
       "path": "src/saasLMS.Blazor/saasLMS.Blazor.abppkg",
       "folder": "src"

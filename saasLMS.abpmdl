@@ -67,6 +67,26 @@
     }
   },
   "packages": {
+    "saasLMS.AuthServer": {
+      "path": "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.abppkg",
+      "folder": "apps/auth-server/src"
+    },
+    "saasLMS.Blazor.Client": {
+      "path": "apps/blazor/src/saasLMS.Blazor.Client/saasLMS.Blazor.Client.abppkg",
+      "folder": "apps/blazor/src"
+    },
+    "saasLMS.Blazor": {
+      "path": "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.abppkg",
+      "folder": "apps/blazor/src"
+    },
+    "saasLMS.PublicWebGateway": {
+      "path": "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.abppkg",
+      "folder": "gateways/web-public/src"
+    },
+    "saasLMS.WebGateway": {
+      "path": "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.abppkg",
+      "folder": "gateways/web/src"
+    },
     "saasLMS.AdministrationService.HttpApi.Host": {
       "path": "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.abppkg",
       "folder": "services/administration/src"
@@ -83,22 +103,6 @@
       "path": "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.abppkg",
       "folder": "services/saas/src"
     },
-    "saasLMS.WebGateway": {
-      "path": "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.abppkg",
-      "folder": "gateways/web/src"
-    },
-    "saasLMS.PublicWebGateway": {
-      "path": "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.abppkg",
-      "folder": "gateways/web-public/src"
-    },
-    "saasLMS.AuthServer": {
-      "path": "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.abppkg",
-      "folder": "apps/auth-server/src"
-    },
-    "saasLMS.Blazor": {
-      "path": "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.abppkg",
-      "folder": "apps/blazor/src"
-    },
     "saasLMS.DbMigrator": {
       "path": "shared/saasLMS.DbMigrator/saasLMS.DbMigrator.abppkg",
       "folder": "shared"
@@ -107,20 +111,20 @@
       "path": "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.abppkg",
       "folder": "shared"
     },
-    "saasLMS.Shared.Hosting.Microservices": {
-      "path": "shared/saasLMS.Shared.Hosting.Microservices/saasLMS.Shared.Hosting.Microservices.abppkg",
-      "folder": "shared"
-    },
-    "saasLMS.Shared.Localization": {
-      "path": "shared/saasLMS.Shared.Localization/saasLMS.Shared.Localization.abppkg",
-      "folder": "shared"
-    },
     "saasLMS.Shared.Hosting.Gateways": {
       "path": "shared/saasLMS.Shared.Hosting.Gateways/saasLMS.Shared.Hosting.Gateways.abppkg",
       "folder": "shared"
     },
+    "saasLMS.Shared.Hosting.Microservices": {
+      "path": "shared/saasLMS.Shared.Hosting.Microservices/saasLMS.Shared.Hosting.Microservices.abppkg",
+      "folder": "shared"
+    },
     "saasLMS.Shared.Hosting": {
       "path": "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.abppkg",
+      "folder": "shared"
+    },
+    "saasLMS.Shared.Localization": {
+      "path": "shared/saasLMS.Shared.Localization/saasLMS.Shared.Localization.abppkg",
       "folder": "shared"
     }
   },

@@ -13,6 +13,9 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# macOS
+.DS_Store
+
 # Mono auto generated files
 mono_crash.*
 
@@ -379,3 +382,33 @@ MigrationBackup/
 # IdentityServer temp files
 tempkey.rsa
 tempkey.jwk
+
+# Local environment and per-machine config overrides
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.local.json
+
+# Strong recursive ignores for .NET build artifacts
+**/bin/
+**/obj/
+**/[Bb]in/
+**/[Oo]bj/
+
+# Test and coverage artifacts
+**/TestResults/
+coverage/
+coverage-*/
+*.coverage
+*.coveragexml
+
+# Rider / JetBrains
+.idea/**
+!.idea/.name
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+
+# Optional local tooling caches
+*.pid
+*.seed

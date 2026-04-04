@@ -1,0 +1,16 @@
+using System;
+
+namespace saasLMS.AssessmentService.QuizAttempts;
+
+public class QuizAttemptDto
+{
+    public Guid Id { get; set; }
+    public Guid QuizId { get; set; }
+    public Guid StudentId { get; set; }
+    public int AttemptNumber { get; set; }
+    public QuizAttemptStatus Status { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public decimal Score { get; set; }
+    public string? SubmittedAnswersJson { get; set; }
+}

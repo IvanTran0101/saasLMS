@@ -6,14 +6,6 @@
     }
   },
   "packages": {
-    "saasLMS.ProductService.Domain.Shared": {
-      "path": "src/saasLMS.ProductService.Domain.Shared/saasLMS.ProductService.Domain.Shared.abppkg",
-      "folder": "src"
-    },
-    "saasLMS.ProductService.Domain": {
-      "path": "src/saasLMS.ProductService.Domain/saasLMS.ProductService.Domain.abppkg",
-      "folder": "src"
-    },
     "saasLMS.ProductService.Application.Contracts": {
       "path": "src/saasLMS.ProductService.Application.Contracts/saasLMS.ProductService.Application.Contracts.abppkg",
       "folder": "src"
@@ -22,12 +14,20 @@
       "path": "src/saasLMS.ProductService.Application/saasLMS.ProductService.Application.abppkg",
       "folder": "src"
     },
-    "saasLMS.ProductService.EntityFrameworkCore": {
-      "path": "src/saasLMS.ProductService.EntityFrameworkCore/saasLMS.ProductService.EntityFrameworkCore.abppkg",
+    "saasLMS.ProductService.Blazor": {
+      "path": "src/saasLMS.ProductService.Blazor/saasLMS.ProductService.Blazor.abppkg",
       "folder": "src"
     },
-    "saasLMS.ProductService.HttpApi": {
-      "path": "src/saasLMS.ProductService.HttpApi/saasLMS.ProductService.HttpApi.abppkg",
+    "saasLMS.ProductService.Domain.Shared": {
+      "path": "src/saasLMS.ProductService.Domain.Shared/saasLMS.ProductService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.Domain": {
+      "path": "src/saasLMS.ProductService.Domain/saasLMS.ProductService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ProductService.EntityFrameworkCore": {
+      "path": "src/saasLMS.ProductService.EntityFrameworkCore/saasLMS.ProductService.EntityFrameworkCore.abppkg",
       "folder": "src"
     },
     "saasLMS.ProductService.HttpApi.Client": {
@@ -38,8 +38,8 @@
       "path": "src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.abppkg",
       "folder": "src"
     },
-    "saasLMS.ProductService.Blazor": {
-      "path": "src/saasLMS.ProductService.Blazor/saasLMS.ProductService.Blazor.abppkg",
+    "saasLMS.ProductService.HttpApi": {
+      "path": "src/saasLMS.ProductService.HttpApi/saasLMS.ProductService.HttpApi.abppkg",
       "folder": "src"
     },
     "saasLMS.ProductService.Web": {

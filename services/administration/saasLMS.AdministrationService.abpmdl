@@ -6,10 +6,6 @@
     }
   },
   "packages": {
-    "saasLMS.AdministrationService.HttpApi": {
-      "path": "src/saasLMS.AdministrationService.HttpApi/saasLMS.AdministrationService.HttpApi.abppkg",
-      "folder": "src"
-    },
     "saasLMS.AdministrationService.Application.Contracts": {
       "path": "src/saasLMS.AdministrationService.Application.Contracts/saasLMS.AdministrationService.Application.Contracts.abppkg",
       "folder": "src"
@@ -38,8 +34,16 @@
       "path": "src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.abppkg",
       "folder": "src"
     },
-    "saasLMS.AdministrationService.TestBase": {
-      "path": "test/saasLMS.AdministrationService.TestBase/saasLMS.AdministrationService.TestBase.abppkg",
+    "saasLMS.AdministrationService.HttpApi": {
+      "path": "src/saasLMS.AdministrationService.HttpApi/saasLMS.AdministrationService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.AdministrationService.Web": {
+      "path": "src/saasLMS.AdministrationService.Web/saasLMS.AdministrationService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.AdministrationService.Application.Tests": {
+      "path": "test/saasLMS.AdministrationService.Application.Tests/saasLMS.AdministrationService.Application.Tests.abppkg",
       "folder": "test"
     },
     "saasLMS.AdministrationService.Domain.Tests": {
@@ -50,8 +54,8 @@
       "path": "test/saasLMS.AdministrationService.EntityFrameworkCore.Tests/saasLMS.AdministrationService.EntityFrameworkCore.Tests.abppkg",
       "folder": "test"
     },
-    "saasLMS.AdministrationService.Application.Tests": {
-      "path": "test/saasLMS.AdministrationService.Application.Tests/saasLMS.AdministrationService.Application.Tests.abppkg",
+    "saasLMS.AdministrationService.TestBase": {
+      "path": "test/saasLMS.AdministrationService.TestBase/saasLMS.AdministrationService.TestBase.abppkg",
       "folder": "test"
     }
   },

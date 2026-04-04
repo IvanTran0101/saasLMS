@@ -4,11 +4,11 @@
       "src": {}
     }
   },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459",
   "packages": {
     "saasLMS.PublicWebGateway": {
       "path": "src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.abppkg",
       "folder": "src"
     }
-  },
-  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+  }
 }

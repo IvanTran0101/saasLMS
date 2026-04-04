@@ -34,6 +34,14 @@
       "type": "dotnet-project",
       "path": "../../services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj"
     },
+    "saasLMS.CourseCatalogService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj"
+    },
+    "saasLMS.EnrollmentService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj"
+    },
     "saasLMS.IdentityService.HttpApi.Host": {
       "type": "dotnet-project",
       "path": "../../services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj"

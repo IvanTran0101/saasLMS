@@ -1,0 +1,32 @@
+﻿using Localization.Resources.AbpUi;
+using Microsoft.Extensions.DependencyInjection;
+using saasLMS.EnrollmentService.Localization;
+using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Localization;
+using Volo.Abp.Modularity;
+
+namespace saasLMS.EnrollmentService;
+
+[DependsOn(
+    typeof(EnrollmentServiceApplicationContractsModule),
+    typeof(AbpAspNetCoreMvcModule))]
+public class EnrollmentServiceHttpApiModule : AbpModule
+{
+    public override void PreConfigureServices(ServiceConfigurationContext context)
+    {
+        PreConfigure<IMvcBuilder>(mvcBuilder =>
+        {
+            mvcBuilder.AddApplicationPartIfNotExists(typeof(EnrollmentServiceHttpApiModule).Assembly);
+        });
+    }
+
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        Configure<AbpLocalizationOptions>(options =>
+        {
+            options.Resources
+                .Get<EnrollmentServiceResource>()
+                .AddBaseTypes(typeof(AbpUiResource));
+        });
+    }
+}

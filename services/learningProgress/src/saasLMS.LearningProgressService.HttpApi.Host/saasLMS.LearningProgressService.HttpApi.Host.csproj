@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <Import Project="..\..\..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>saasLMS.LearningProgressService</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>        
+        <ProjectReference Include="..\..\..\..\shared\saasLMS.Shared.Hosting.Microservices\saasLMS.Shared.Hosting.Microservices.csproj" />
+        <ProjectReference Include="..\saasLMS.LearningProgressService.Application\saasLMS.LearningProgressService.Application.csproj" />
+        <ProjectReference Include="..\saasLMS.LearningProgressService.EntityFrameworkCore\saasLMS.LearningProgressService.EntityFrameworkCore.csproj" />
+        <ProjectReference Include="..\saasLMS.LearningProgressService.HttpApi\saasLMS.LearningProgressService.HttpApi.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="Logs\**" />
+        <Content Remove="Logs\**" />
+        <EmbeddedResource Remove="Logs\**" />
+        <None Remove="Logs\**" />
+    </ItemGroup>
+
+</Project>

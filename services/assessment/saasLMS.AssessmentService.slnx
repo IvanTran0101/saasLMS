@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.AssessmentService.Application.Contracts/saasLMS.AssessmentService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.Application/saasLMS.AssessmentService.Application.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.Blazor/saasLMS.AssessmentService.Blazor.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.Domain/saasLMS.AssessmentService.Domain.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.EntityFrameworkCore/saasLMS.AssessmentService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.HttpApi.Client/saasLMS.AssessmentService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.HttpApi/saasLMS.AssessmentService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.AssessmentService.Web/saasLMS.AssessmentService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.AssessmentService.Application.Tests/saasLMS.AssessmentService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.AssessmentService.Domain.Tests/saasLMS.AssessmentService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.AssessmentService.EntityFrameworkCore.Tests/saasLMS.AssessmentService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.AssessmentService.TestBase/saasLMS.AssessmentService.TestBase.csproj" />
+  </Folder>
+</Solution>

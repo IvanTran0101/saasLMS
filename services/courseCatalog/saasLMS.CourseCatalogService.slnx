@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.Application/saasLMS.CourseCatalogService.Application.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.Blazor/saasLMS.CourseCatalogService.Blazor.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.Domain.Shared/saasLMS.CourseCatalogService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.Domain/saasLMS.CourseCatalogService.Domain.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.EntityFrameworkCore/saasLMS.CourseCatalogService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.HttpApi.Client/saasLMS.CourseCatalogService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.HttpApi/saasLMS.CourseCatalogService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.CourseCatalogService.Web/saasLMS.CourseCatalogService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.CourseCatalogService.Application.Tests/saasLMS.CourseCatalogService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.CourseCatalogService.Domain.Tests/saasLMS.CourseCatalogService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.CourseCatalogService.EntityFrameworkCore.Tests/saasLMS.CourseCatalogService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.CourseCatalogService.TestBase/saasLMS.CourseCatalogService.TestBase.csproj" />
+  </Folder>
+</Solution>

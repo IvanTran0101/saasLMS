@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/saasLMS.NotificationService.Application.Contracts/saasLMS.NotificationService.Application.Contracts.csproj" />
+    <Project Path="src/saasLMS.NotificationService.Application/saasLMS.NotificationService.Application.csproj" />
+    <Project Path="src/saasLMS.NotificationService.Blazor/saasLMS.NotificationService.Blazor.csproj" />
+    <Project Path="src/saasLMS.NotificationService.Domain.Shared/saasLMS.NotificationService.Domain.Shared.csproj" />
+    <Project Path="src/saasLMS.NotificationService.Domain/saasLMS.NotificationService.Domain.csproj" />
+    <Project Path="src/saasLMS.NotificationService.EntityFrameworkCore/saasLMS.NotificationService.EntityFrameworkCore.csproj" />
+    <Project Path="src/saasLMS.NotificationService.HttpApi.Client/saasLMS.NotificationService.HttpApi.Client.csproj" />
+    <Project Path="src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj" />
+    <Project Path="src/saasLMS.NotificationService.HttpApi/saasLMS.NotificationService.HttpApi.csproj" />
+    <Project Path="src/saasLMS.NotificationService.Web/saasLMS.NotificationService.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/saasLMS.NotificationService.Application.Tests/saasLMS.NotificationService.Application.Tests.csproj" />
+    <Project Path="test/saasLMS.NotificationService.Domain.Tests/saasLMS.NotificationService.Domain.Tests.csproj" />
+    <Project Path="test/saasLMS.NotificationService.EntityFrameworkCore.Tests/saasLMS.NotificationService.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/saasLMS.NotificationService.TestBase/saasLMS.NotificationService.TestBase.csproj" />
+  </Folder>
+</Solution>
