@@ -12,6 +12,7 @@ public interface IQuizAppService : IApplicationService
     Task PublishAsync(Guid id);
     Task CloseAsync(Guid id);
     Task<QuizDto> GetAsync(Guid id);
+    Task<QuizDto> GetStudentAsync(Guid id);
     Task<List<QuizListItemDto>> GetListByCourseAsync(Guid courseId);
     Task<List<QuizListItemDto>> GetListByLessonAsync(Guid lessonId);
     Task<List<QuizListItemDto>> GetListByLessonStudentAsync(Guid lessonId);

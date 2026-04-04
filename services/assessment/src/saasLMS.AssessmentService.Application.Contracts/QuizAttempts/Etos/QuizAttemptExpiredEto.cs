@@ -1,7 +1,9 @@
 using System;
+using Volo.Abp.EventBus;
 
 namespace saasLMS.AssessmentService.QuizAttempts.Etos;
 
+[EventName("lms.assessment.quizattemptexpired.v1")]
 public class QuizAttemptExpiredEto : IntegrationEventEtoBase
 {
     public Guid QuizAttemptId { get; set; }

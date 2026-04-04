@@ -1,7 +1,9 @@
 using System;
+using Volo.Abp.EventBus;
 
 namespace saasLMS.AssessmentService.QuizAttempts.Etos;
 
+[EventName("lms.assessment.quizattemptcompleted.v1")]
 public class QuizAttemptCompletedEto : IntegrationEventEtoBase
 {
     public Guid QuizAttemptId { get; set; }

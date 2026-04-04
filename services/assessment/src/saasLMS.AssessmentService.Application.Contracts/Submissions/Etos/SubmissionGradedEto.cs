@@ -1,7 +1,9 @@
 using System;
+using Volo.Abp.EventBus;
 
 namespace saasLMS.AssessmentService.Submissions.Etos;
 
+[EventName("lms.assessment.submissiongraded.v1")]
 public class SubmissionGradedEto : IntegrationEventEtoBase
 {
     public Guid SubmissionId { get; set; }

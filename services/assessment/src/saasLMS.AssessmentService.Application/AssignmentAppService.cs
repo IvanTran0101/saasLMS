@@ -5,6 +5,8 @@ using saasLMS.AssessmentService.Assignments;
 using Volo.Abp;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using saasLMS.AssessmentService.Courses;
+using saasLMS.AssessmentService.Permissions;
 
 namespace saasLMS.AssessmentService;
 
@@ -12,13 +14,19 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
 {
     private readonly IAssignmentRepository _assignmentRepository;
     private readonly AssignmentManager _assignmentManager;
+    private readonly ICourseAccessChecker _courseAccessChecker;
 
-    public AssignmentAppService(IAssignmentRepository assignmentRepository, AssignmentManager assignmentManager)
+    public AssignmentAppService(
+        IAssignmentRepository assignmentRepository,
+        AssignmentManager assignmentManager,
+        ICourseAccessChecker courseAccessChecker)
     {
         _assignmentRepository = assignmentRepository;
         _assignmentManager = assignmentManager;
+        _courseAccessChecker = courseAccessChecker;
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.Create)]
     public async Task<AssignmentDto> CreateAsync(CreateAssignmentDto input)
     {
         Check.NotNull(input, nameof(input));
@@ -27,6 +35,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         {
             throw new BusinessException("AssessmentService:TenantIdNotFound");
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(input.CourseId);
         var assignment = await _assignmentManager.CreateAsync(
             tenantId.Value,
             input.CourseId,
@@ -41,6 +50,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.Update)]
     public async Task<AssignmentDto> UpdateAsync(Guid id, UpdateAssignmentDto input)
     {
         Check.NotNull(input, nameof(input));
@@ -54,6 +64,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         {
             throw new BusinessException("AssessmentService:AssignmentTenantMismatch");
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(assignment.CourseId);
         await _assignmentManager.UpdateInfoAsync(
             assignment,
             input.Title,
@@ -65,6 +76,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         return ObjectMapper.Map<Assignment, AssignmentDto>(assignment);
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.Publish)]
     public async Task PublishAsync(Guid id)
     {
         
@@ -85,10 +97,12 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
             throw new BusinessException("AssessmentService:AssignmentTenantMismatch");
         }
         
+        await _courseAccessChecker.CheckCanManageCourseAsync(assignment.CourseId);
         await _assignmentManager.PublishAsync(assignment, Clock.Now);
         await _assignmentRepository.UpdateAsync(assignment, autoSave:true);
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.Close)]
     public async Task CloseAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -106,10 +120,12 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         {
             throw new BusinessException("AssessmentService:AssignmentTenantMismatch");
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(assignment.CourseId);
         await _assignmentManager.CloseAsync(assignment, Clock.Now);
         await _assignmentRepository.UpdateAsync(assignment, autoSave:true);
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.View)]
     public async Task<AssignmentDto> GetAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -128,9 +144,38 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         {
             throw new BusinessException("AssessmentService:AssignmentTenantMismatch");
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(assignment.CourseId);
         return ObjectMapper.Map<Assignment, AssignmentDto>(assignment);
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.ViewPublished)]
+    public async Task<AssignmentDto> GetStudentAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new BusinessException("AssessmentService:AssignmentIdIsEmpty");
+        }
+        var tenantId = CurrentTenant.Id;
+        if (tenantId == null)
+        {
+            throw new BusinessException("AssessmentService:TenantIdNotFound");
+        }
+        var assignment = await _assignmentRepository.GetAsync(id);
+
+        if (assignment.TenantId != tenantId.Value)
+        {
+            throw new BusinessException("AssessmentService:AssignmentTenantMismatch");
+        }
+        if (assignment.Status != AssignmentStatus.Published && assignment.Status != AssignmentStatus.Closed)
+        {
+            throw new BusinessException("AssessmentService:AssignmentNotAvailable")
+                .WithData("AssignmentId", assignment.Id)
+                .WithData("Status", assignment.Status);
+        }
+        return ObjectMapper.Map<Assignment, AssignmentDto>(assignment);
+    }
+
+    [Authorize(AssessmentServicePermissions.Assignments.View)]
     public async Task<List<AssignmentListItemDto>> GetListByCourseAsync(Guid courseId)
     {
         if (courseId == Guid.Empty)
@@ -146,6 +191,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
             return ObjectMapper.Map<List<Assignment>, List<AssignmentListItemDto>>(assignments); 
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.View)]
     public async Task<List<AssignmentListItemDto>> GetListByLessonAsync(Guid lessonId)
     {
         if (lessonId == Guid.Empty)
@@ -161,6 +207,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
         return ObjectMapper.Map<List<Assignment>, List<AssignmentListItemDto>>(assignments); 
     }
 
+    [Authorize(AssessmentServicePermissions.Assignments.ViewPublished)]
     public async Task<List<AssignmentListItemDto>> GetListByCourseStudentAsync(Guid courseId)
     {
         if (courseId == Guid.Empty)
@@ -178,6 +225,7 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
             .ToList();
         return ObjectMapper.Map<List<Assignment>, List<AssignmentListItemDto>>(assignments);
     }
+    [Authorize(AssessmentServicePermissions.Assignments.ViewPublished)]
     public async Task<List<AssignmentListItemDto>> GetListByLessonStudentAsync(Guid lessonId)
     {
         if (lessonId == Guid.Empty)

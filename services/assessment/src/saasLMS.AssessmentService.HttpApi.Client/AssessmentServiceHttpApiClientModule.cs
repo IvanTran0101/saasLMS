@@ -14,6 +14,8 @@ public class AssessmentServiceHttpApiClientModule : AbpModule
     {
         context.Services.AddStaticHttpClientProxies(typeof(AssessmentServiceApplicationContractsModule).Assembly,
             AssessmentServiceRemoteServiceConsts.RemoteServiceName);
+        context.Services.AddStaticHttpClientProxies(typeof(AssessmentServiceApplicationContractsModule).Assembly,
+            "CourseCatalog");
 
         Configure<AbpVirtualFileSystemOptions>(options =>
         {

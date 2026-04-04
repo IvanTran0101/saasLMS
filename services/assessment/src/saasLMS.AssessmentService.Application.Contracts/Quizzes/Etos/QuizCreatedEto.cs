@@ -1,8 +1,10 @@
 using System;
+using Volo.Abp.EventBus;
 using saasLMS.AssessmentService.Shared;
 
 namespace saasLMS.AssessmentService.Quizzes.Etos;
 
+[EventName("lms.assessment.quizcreated.v1")]
 public class QuizCreatedEto : IntegrationEventEtoBase
 {
     public Guid QuizId { get; set; }

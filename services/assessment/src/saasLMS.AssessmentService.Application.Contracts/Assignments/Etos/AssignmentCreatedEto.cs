@@ -1,7 +1,9 @@
 using System;
+using Volo.Abp.EventBus;
 
 namespace saasLMS.AssessmentService.Assignments.Etos;
 
+[EventName("lms.assessment.assignmentcreated.v1")]
 public class AssignmentCreatedEto : IntegrationEventEtoBase
 {
     public Guid AssignmentId { get; set; }

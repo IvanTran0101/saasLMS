@@ -12,6 +12,7 @@ public interface IAssignmentAppService : IApplicationService
     Task PublishAsync(Guid id);
     Task CloseAsync(Guid id);
     Task<AssignmentDto> GetAsync(Guid id);
+    Task<AssignmentDto> GetStudentAsync(Guid id);
     Task<List<AssignmentListItemDto>> GetListByCourseAsync(Guid courseId);
     Task<List<AssignmentListItemDto>> GetListByLessonAsync(Guid lessonId);
     Task<List<AssignmentListItemDto>> GetListByCourseStudentAsync(Guid courseId);

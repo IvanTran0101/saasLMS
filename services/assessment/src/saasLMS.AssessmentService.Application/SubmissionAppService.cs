@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using saasLMS.AssessmentService.Assignments;
+using saasLMS.AssessmentService.Courses;
 using saasLMS.AssessmentService.Submissions;
 using Volo.Abp;
+using Microsoft.AspNetCore.Authorization;
+using saasLMS.AssessmentService.Permissions;
 
 namespace saasLMS.AssessmentService;
 
@@ -12,17 +15,21 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
     private readonly ISubmissionRepository _submissionRepository;
     private readonly IAssignmentRepository _assignmentRepository;
     private readonly SubmissionManager _submissionManager;
+    private readonly ICourseAccessChecker _courseAccessChecker;
 
     public SubmissionAppService(
         ISubmissionRepository submissionRepository,
         IAssignmentRepository assignmentRepository,
-        SubmissionManager submissionManager)
+        SubmissionManager submissionManager,
+        ICourseAccessChecker courseAccessChecker)
     {
         _submissionRepository = submissionRepository;
         _assignmentRepository = assignmentRepository;
         _submissionManager = submissionManager;
+        _courseAccessChecker = courseAccessChecker;
     }
 
+    [Authorize(AssessmentServicePermissions.Submissions.Submit)]
     public async Task<SubmissionDto> SubmitAsync(SubmitSubmissionDto input)
     {
         Check.NotNull(input, nameof(input));
@@ -77,6 +84,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
         return ObjectMapper.Map<Submission, SubmissionDto>(submission);
     }
 
+    [Authorize(AssessmentServicePermissions.Submissions.Grade)]
     public async Task<SubmissionDto> GradeAsync(Guid submissionId, GradeSubmissionDto input)
     {
         Check.NotNull(input, nameof(input));
@@ -103,6 +111,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
                 .WithData("AssignmentId", assignment.Id)
                 .WithData("TenantId", tenantId.Value);
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(assignment.CourseId);
 
         await _submissionManager.GradeAsync(
             assignment,
@@ -113,6 +122,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
         return ObjectMapper.Map<Submission, SubmissionDto>(submission);
     }
 
+    [Authorize(AssessmentServicePermissions.Submissions.View)]
     public async Task<SubmissionDto> GetAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -131,9 +141,18 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
                 .WithData("SubmissionId", id)
                 .WithData("TenantId", tenantId.Value);
         }
+        var assignment = await _assignmentRepository.GetAsync(submission.AssignmentId);
+        if (assignment.TenantId != tenantId.Value)
+        {
+            throw new BusinessException("AssessmentService:AssignmentTenantMismatch")
+                .WithData("AssignmentId", assignment.Id)
+                .WithData("TenantId", tenantId.Value);
+        }
+        await _courseAccessChecker.CheckCanManageCourseAsync(assignment.CourseId);
         return ObjectMapper.Map<Submission, SubmissionDto>(submission);
     }
 
+    [Authorize(AssessmentServicePermissions.Submissions.View)]
     public async Task<List<SubmissionListItemDto>> GetListByAssignmentAsync(Guid assignmentId)
     {
         if (assignmentId == Guid.Empty)
@@ -156,6 +175,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
         return ObjectMapper.Map<List<Submission>, List<SubmissionListItemDto>>(submissions);
     }
 
+    [Authorize(AssessmentServicePermissions.Submissions.ViewOwn)]
     public async Task<SubmissionDto?> GetMySubmissionByAssignmentAsync(Guid assignmentId)
     {
         if (assignmentId == Guid.Empty)

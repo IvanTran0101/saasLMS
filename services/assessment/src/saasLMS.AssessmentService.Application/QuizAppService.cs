@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using saasLMS.AssessmentService.Courses;
 using saasLMS.AssessmentService.Quizzes;
 using Volo.Abp;
+using Microsoft.AspNetCore.Authorization;
+using saasLMS.AssessmentService.Permissions;
 
 namespace saasLMS.AssessmentService;
 
@@ -11,13 +14,19 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
 {
     private readonly IQuizRepository _quizRepository;
     private readonly QuizManager _quizManager;
+    private readonly ICourseAccessChecker _courseAccessChecker;
 
-    public QuizAppService(IQuizRepository quizRepository, QuizManager quizManager)
+    public QuizAppService(
+        IQuizRepository quizRepository,
+        QuizManager quizManager,
+        ICourseAccessChecker courseAccessChecker)
     {
         _quizRepository = quizRepository;
         _quizManager = quizManager;
+        _courseAccessChecker = courseAccessChecker;
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.Create)]
     public async Task<QuizDto> CreateAsync(CreateQuizDto input)
     {
         Check.NotNull(input, nameof(input));
@@ -26,6 +35,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
         {
             throw new BusinessException("AssessmentService:TenantIdNotFound");
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(input.CourseId);
         var quiz = await _quizManager.CreateAsync(
             tenantId.Value,
             input.CourseId,
@@ -40,6 +50,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
         return ObjectMapper.Map<Quiz, QuizDto>(quiz);
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.Update)]
     public async Task<QuizDto> UpdateAsync(Guid id, UpdateQuizDto input)
     {
         if (id == Guid.Empty)
@@ -59,6 +70,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
                 .WithData("QuizId", quiz.Id)
                 .WithData("TenantId", tenantId.Value);
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(quiz.CourseId);
         await _quizManager.UpdateInfoAsync(
             quiz,
             input.Title,
@@ -71,6 +83,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
         return ObjectMapper.Map<Quiz, QuizDto>(quiz);
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.Publish)]
     public async Task PublishAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -89,12 +102,14 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
                 .WithData("QuizId", quiz.Id)
                 .WithData("TenantId", tenantId.Value);
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(quiz.CourseId);
         await _quizManager.PublishAsync(
             quiz,
             Clock.Now);
         await _quizRepository.UpdateAsync(quiz, autoSave: true);
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.Close)]
     public async Task CloseAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -113,12 +128,14 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
                 .WithData("QuizId", quiz.Id)
                 .WithData("TenantId", tenantId.Value);
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(quiz.CourseId);
         await _quizManager.CloseAsync(
             quiz,
             Clock.Now);
         await _quizRepository.UpdateAsync(quiz, autoSave: true);
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.View)]
     public async Task<QuizDto> GetAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -137,10 +154,40 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
                 .WithData("QuizId", quiz.Id)
                 .WithData("TenantId", tenantId.Value);
         }
+        await _courseAccessChecker.CheckCanManageCourseAsync(quiz.CourseId);
         return ObjectMapper.Map<Quiz, QuizDto>(quiz);
         
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.ViewPublished)]
+    public async Task<QuizDto> GetStudentAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new BusinessException("AssessmentService:QuizIdIsEmpty");
+        }
+        var tenantId = CurrentTenant.Id;
+        if (!tenantId.HasValue)
+        {
+            throw new BusinessException("AssessmentService:TenantIdNotFound");
+        }
+        var quiz = await _quizRepository.GetAsync(id);
+        if (tenantId != quiz.TenantId)
+        {
+            throw new BusinessException("AssessmentService:QuizTenantMismatch")
+                .WithData("QuizId", quiz.Id)
+                .WithData("TenantId", tenantId.Value);
+        }
+        if (quiz.Status != QuizStatus.Published && quiz.Status != QuizStatus.Closed)
+        {
+            throw new BusinessException("AssessmentService:QuizNotAvailable")
+                .WithData("QuizId", quiz.Id)
+                .WithData("Status", quiz.Status);
+        }
+        return ObjectMapper.Map<Quiz, QuizDto>(quiz);
+    }
+
+    [Authorize(AssessmentServicePermissions.Quizzes.View)]
     public async Task<List<QuizListItemDto>> GetListByCourseAsync(Guid courseId)
     {
         if (courseId == Guid.Empty)
@@ -156,6 +203,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
         return ObjectMapper.Map<List<Quiz>, List<QuizListItemDto>>(quizzes);
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.View)]
     public async Task<List<QuizListItemDto>> GetListByLessonAsync(Guid lessonId)
     {
         
@@ -173,6 +221,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
         
     }
 
+    [Authorize(AssessmentServicePermissions.Quizzes.ViewPublished)]
     public async Task<List<QuizListItemDto>> GetListByCourseStudentAsync(Guid courseId)
     {
         if (courseId == Guid.Empty)
@@ -189,6 +238,7 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
             x=> x.Status == QuizStatus.Published || x.Status == QuizStatus.Closed).ToList();
         return ObjectMapper.Map<List<Quiz>, List<QuizListItemDto>>(quizzes);
     }
+    [Authorize(AssessmentServicePermissions.Quizzes.ViewPublished)]
     public async Task<List<QuizListItemDto>> GetListByLessonStudentAsync(Guid lessonId)
     {
         if (lessonId == Guid.Empty)
