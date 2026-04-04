@@ -2,5 +2,5 @@ namespace saasLMS.AssessmentService.QuizAttempts;
 
 public class SubmitQuizAttemptDto
 {
-    public string SubmittedAnswerJson { get; set; } = string.Empty;
+    public string SubmittedAnswersJson { get; set; } = string.Empty;
 }

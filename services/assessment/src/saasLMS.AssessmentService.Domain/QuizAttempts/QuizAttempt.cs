@@ -104,7 +104,8 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
             QuizId,
             StudentId,
             Score,
-            completedAt));
+            completedAt,
+            "Manual"));
     }
 
     public void Expire(DateTime expiredAt)
@@ -178,6 +179,7 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
             QuizId,
             StudentId,
             Score,
-            completedAt));
+            completedAt,
+            "Timeout"));
     }
 }

@@ -11,8 +11,9 @@ public class AssignmentCreatedDomainEvent
     public string Title { get; }
     public DateTime? Deadline { get; }
     public decimal MaxScore { get; }
+    public DateTime CreatedAt { get; }
 
-    public AssignmentCreatedDomainEvent(Guid assignmentId, Guid tenantId, Guid courseId, Guid lessonId, string title, DateTime? deadline, decimal maxScore)
+    public AssignmentCreatedDomainEvent(Guid assignmentId, Guid tenantId, Guid courseId, Guid lessonId, string title, DateTime? deadline, decimal maxScore, DateTime createdAt)
     {
         AssignmentId = assignmentId;
         TenantId = tenantId;
@@ -21,5 +22,6 @@ public class AssignmentCreatedDomainEvent
         Title = title;
         Deadline = deadline;
         MaxScore = maxScore;
+        CreatedAt = createdAt;
     }
 }

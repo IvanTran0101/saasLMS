@@ -34,7 +34,8 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
             input.Title,
             input.Description,
             input.Deadline,
-            input.MaxScore);
+            input.MaxScore,
+            Clock.Now);
         assignment = await _assignmentRepository.InsertAsync(assignment, autoSave:true);
         return ObjectMapper.Map<Assignment, AssignmentDto>(assignment);
         
@@ -58,7 +59,8 @@ public class AssignmentAppService : AssessmentServiceAppService, IAssignmentAppS
             input.Title,
             input.Description,
             input.Deadline,
-            input.MaxScore);
+            input.MaxScore,
+            Clock.Now);
         assignment = await _assignmentRepository.UpdateAsync(assignment, autoSave:true);
         return ObjectMapper.Map<Assignment, AssignmentDto>(assignment);
     }

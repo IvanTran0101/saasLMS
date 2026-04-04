@@ -10,6 +10,6 @@ public interface IQuizAttemptAppService
     Task<QuizAttemptDto> SubmitAsync(Guid quizId, SubmitQuizAttemptDto input);
     Task<QuizAttemptDto> GetAsync(Guid id);
     Task<QuizAttemptDto?> GetMyAttemptByQuizAsync(Guid quizId);
-    Task<List<QuizAttemptDto?>> GetListByQuizAsync(Guid quizId);
+    Task<List<QuizAttemptDto>> GetListByQuizAsync(Guid quizId);
     Task<QuizAttemptDto> HandleTimeoutAsync(Guid quizId);
 }

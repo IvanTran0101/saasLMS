@@ -13,6 +13,7 @@ public class QuizCreatedDomainEvent
     public int? TimeLimitMinutes { get; }
     public decimal MaxScore { get; }
     public AttemptPolicy AttemptPolicy { get; }
+    public DateTime CreatedAt { get; }
 
     public QuizCreatedDomainEvent(
         Guid quizId,
@@ -22,7 +23,8 @@ public class QuizCreatedDomainEvent
         string title,
         int? timeLimitMinutes,
         decimal maxScore,
-        AttemptPolicy attemptPolicy)
+        AttemptPolicy attemptPolicy,
+        DateTime createdAt)
     {
         QuizId = quizId;
         TenantId = tenantId;
@@ -32,5 +34,6 @@ public class QuizCreatedDomainEvent
         TimeLimitMinutes = timeLimitMinutes;
         MaxScore = maxScore;
         AttemptPolicy = attemptPolicy;
+        CreatedAt = createdAt;
     }
 }

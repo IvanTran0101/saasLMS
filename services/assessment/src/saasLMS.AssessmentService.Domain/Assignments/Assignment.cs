@@ -56,7 +56,8 @@ public class Assignment : FullAuditedAggregateRoot<Guid>
         string title,
         string? description,
         DateTime? deadline,
-        decimal maxScore)
+        decimal maxScore,
+        DateTime createdAt)
     {
         var assignment = new Assignment(id, tenantId, courseId, lessonId, title, description, deadline, maxScore);
         assignment.AddLocalEvent(new AssignmentCreatedDomainEvent(
@@ -66,11 +67,12 @@ public class Assignment : FullAuditedAggregateRoot<Guid>
             assignment.LessonId,
             assignment.Title,
             assignment.Deadline,
-            assignment.MaxScore));
+            assignment.MaxScore,
+            createdAt));
         return assignment;
     }
 
-    public void UpdateInfo(string title, string? description, DateTime? deadline, decimal maxScore)
+    public void UpdateInfo(string title, string? description, DateTime? deadline, decimal maxScore, DateTime updatedAt)
     {
         if (Status != AssignmentStatus.Draft)
         {
@@ -89,7 +91,8 @@ public class Assignment : FullAuditedAggregateRoot<Guid>
             LessonId,
             Title,
             Deadline,
-            MaxScore));
+            MaxScore,
+            updatedAt));
     }
 
     public void Publish(DateTime publishedAt)

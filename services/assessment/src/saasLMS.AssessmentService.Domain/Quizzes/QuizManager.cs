@@ -25,6 +25,7 @@ public class QuizManager : DomainService
         decimal maxScore,
         AttemptPolicy attemptPolicy,
         string questionJson,
+        DateTime createdAt,
         CancellationToken cancellationToken = default)
     {
         if (attemptPolicy != AttemptPolicy.OneTime)
@@ -41,7 +42,8 @@ public class QuizManager : DomainService
             timeLimitMinutes,
             maxScore,
             attemptPolicy,
-            questionJson);
+            questionJson,
+            createdAt);
         return Task.FromResult(quiz);
     }
 
@@ -70,6 +72,7 @@ public class QuizManager : DomainService
         decimal maxScore,
         AttemptPolicy attemptPolicy,
         string questionJson,
+        DateTime updatedAt,
         CancellationToken cancellationToken = default)
     {
         Check.NotNull(quiz, nameof(quiz));
@@ -84,7 +87,8 @@ public class QuizManager : DomainService
             timeLimitMinutes,
             maxScore,
             attemptPolicy,
-            questionJson);
+            questionJson,
+            updatedAt);
 
         return Task.CompletedTask;
     }

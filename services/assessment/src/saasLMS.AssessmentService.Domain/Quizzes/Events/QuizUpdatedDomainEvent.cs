@@ -13,8 +13,9 @@ public class QuizUpdatedDomainEvent
     public int? TimeLimitMinutes { get; }
     public decimal MaxScore { get; }
     public AttemptPolicy AttemptPolicy { get; }
+    public DateTime UpdatedAt { get; }
 
-    public QuizUpdatedDomainEvent(Guid quizId, Guid tenantId, Guid courseId, Guid lessonId, string title, int? timeLimitMinutes, decimal maxScore, AttemptPolicy attemptPolicy)
+    public QuizUpdatedDomainEvent(Guid quizId, Guid tenantId, Guid courseId, Guid lessonId, string title, int? timeLimitMinutes, decimal maxScore, AttemptPolicy attemptPolicy, DateTime updatedAt)
     {
         QuizId = quizId;
         TenantId = tenantId;
@@ -24,5 +25,6 @@ public class QuizUpdatedDomainEvent
         TimeLimitMinutes = timeLimitMinutes;
         MaxScore = maxScore;
         AttemptPolicy = attemptPolicy;
+        UpdatedAt = updatedAt;
     }
 }

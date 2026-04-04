@@ -34,7 +34,8 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
             input.TimeLimitMinutes,
             input.MaxScore,
             input.AttemptPolicy,
-            input.QuestionsJson);
+            input.QuestionsJson,
+            Clock.Now);
         quiz = await _quizRepository.InsertAsync(quiz, autoSave: true);
         return ObjectMapper.Map<Quiz, QuizDto>(quiz);
     }
@@ -64,7 +65,8 @@ public class QuizAppService : AssessmentServiceAppService, IQuizAppService
             input.TimeLimitMinutes,
             input.MaxScore,
             input.AttemptPolicy,
-            input.QuestionsJson);
+            input.QuestionsJson,
+            Clock.Now);
         await _quizRepository.UpdateAsync(quiz, autoSave: true);
         return ObjectMapper.Map<Quiz, QuizDto>(quiz);
     }

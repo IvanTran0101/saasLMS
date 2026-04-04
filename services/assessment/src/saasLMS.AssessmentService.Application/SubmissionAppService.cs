@@ -152,8 +152,8 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
                 .WithData("AssignmentId", assignmentId)
                 .WithData("TenantId", tenantId.Value);
         }
-        var submission = await _submissionRepository.GetListByAssignmentAsync(tenantId.Value, assignmentId);
-        return ObjectMapper.Map<List<Submission>, List<SubmissionListItemDto>>(submission);
+        var submissions = await _submissionRepository.GetListByAssignmentAsync(tenantId.Value, assignmentId);
+        return ObjectMapper.Map<List<Submission>, List<SubmissionListItemDto>>(submissions);
     }
 
     public async Task<SubmissionDto?> GetMySubmissionByAssignmentAsync(Guid assignmentId)

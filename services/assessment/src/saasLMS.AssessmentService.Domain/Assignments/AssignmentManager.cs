@@ -23,6 +23,7 @@ public class AssignmentManager : DomainService
         string? description,
         DateTime? deadline,
         decimal maxScore,
+        DateTime createdAt,
         CancellationToken cancellationToken = default)
     {
         var assignment = Assignment.Create(
@@ -33,7 +34,8 @@ public class AssignmentManager : DomainService
             title,
             description,
             deadline,
-            maxScore);
+            maxScore,
+            createdAt);
         return Task.FromResult(assignment);
     }
 
@@ -43,10 +45,11 @@ public class AssignmentManager : DomainService
         string? description,
         DateTime? deadline,
         decimal maxScore,
+        DateTime updatedAt,
         CancellationToken cancellationToken = default)
     {
         Check.NotNull(assignment, nameof(assignment));
-        assignment.UpdateInfo(title, description, deadline, maxScore);
+        assignment.UpdateInfo(title, description, deadline, maxScore, updatedAt);
         return Task.CompletedTask;
     }
 

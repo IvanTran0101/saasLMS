@@ -15,4 +15,9 @@
     <ProjectReference Include="..\saasLMS.AssessmentService.Domain\saasLMS.AssessmentService.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assignments\EventHandlers\" />
+    <Folder Include="QuizzAttemps\EventHandlers\" />
+  </ItemGroup>
+
 </Project>

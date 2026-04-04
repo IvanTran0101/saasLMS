@@ -63,7 +63,8 @@ public class Quiz : FullAuditedAggregateRoot<Guid>
         int? timeLimitMinutes,
         decimal maxScore,
         AttemptPolicy attemptPolicy,
-        string questionJson)
+        string questionJson,
+        DateTime createdAt)
     {
         var quiz = new Quiz(
             id,
@@ -84,7 +85,8 @@ public class Quiz : FullAuditedAggregateRoot<Guid>
             quiz.Title,
             quiz.TimeLimitMinutes,
             quiz.MaxScore,
-            quiz.AttemptPolicy));
+            quiz.AttemptPolicy,
+            createdAt));
 
         return quiz;
     }
@@ -94,7 +96,8 @@ public class Quiz : FullAuditedAggregateRoot<Guid>
         int? timeLimitMinutes,
         decimal maxScore,
         AttemptPolicy attemptPolicy,
-        string questionsJson)
+        string questionsJson,
+        DateTime updatedAt)
     {
         if (Status != QuizStatus.Draft)
         {
@@ -114,7 +117,8 @@ public class Quiz : FullAuditedAggregateRoot<Guid>
             Title,
             TimeLimitMinutes,
             MaxScore,
-            AttemptPolicy));
+            AttemptPolicy,
+            updatedAt));
 
     }
 
