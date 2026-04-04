@@ -17,6 +17,7 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
     Task<List<Enrollment>> GetListByStudentAsync(
         Guid tenantId,
         Guid studentId,
+        EnrollmentStatus? status = null,
         CancellationToken cancellationToken = default);
 
     Task<List<Enrollment>> GetListByCourseAsync(
@@ -31,4 +32,13 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
         Guid studentId,
         CancellationToken cancellationToken = default
     );
+    
+    // Kiểm tra sinh viên có enrollment ACTIVE hay không.
+    // Chỉ check status = Active 
+    // Sinh viên đã Cancelled trước đó vẫn được phép re-enroll.
+    Task<bool> ExistsActiveAsync(
+        Guid tenantId,
+        Guid courseId,
+        Guid studentId,
+        CancellationToken cancellationToken = default);
 }

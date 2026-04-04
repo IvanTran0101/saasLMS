@@ -6,6 +6,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <RootNamespace>saasLMS.SaasService</RootNamespace>
+        <UserSecretsId>09742fec-4e7e-4c2b-a3b4-2e41cb63f0f6</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>

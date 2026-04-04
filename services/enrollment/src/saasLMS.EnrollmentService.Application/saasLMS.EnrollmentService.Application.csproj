@@ -15,4 +15,8 @@
     <ProjectReference Include="..\saasLMS.EnrollmentService.Domain\saasLMS.EnrollmentService.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Enrollments\EtoHandlers\" />
+  </ItemGroup>
+
 </Project>

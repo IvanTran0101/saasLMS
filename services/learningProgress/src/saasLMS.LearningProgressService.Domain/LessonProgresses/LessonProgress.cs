@@ -1,4 +1,5 @@
 using System;
+using saasLMS.LearningProgressService.LessonProgresses.Events;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace saasLMS.LearningProgressService.LessonProgresses;
@@ -50,18 +51,43 @@ public class LessonProgress : FullAuditedAggregateRoot<Guid>
     {
         FirstViewedAt ??= viewedAt;
         LastViewedAt = viewedAt;
+
+        AddLocalEvent(new LessonViewedDomainEvent(this, viewedAt));
+        
         if (Status == LessonProgressStatus.NotStarted)
         {
+            var from = Status;
             Status = LessonProgressStatus.InProgress;
+            
+            AddLocalEvent(new LessonStatusChangedDomainEvent(this, from, Status, viewedAt));
         }
+        
+        AddLocalEvent(new LastLearningPositionUpdatedDomainEvent(
+            TenantId,
+            CourseId,
+            LessonId,
+            StudentId,
+            Status,
+            viewedAt));
     }
 
     public void MarkAsCompleted(DateTime completedAt)
     {
         FirstViewedAt ??= completedAt;
         LastViewedAt = completedAt;
-        CompletedAt = completedAt;
+        CompletedAt ??= completedAt;
+        var from = Status;
         Status = LessonProgressStatus.Completed;
+        
+        AddLocalEvent(new LessonCompletedDomainEvent(this, CompletedAt.Value));
+        AddLocalEvent(new LessonStatusChangedDomainEvent(this, from, Status, completedAt));
+        AddLocalEvent(new LastLearningPositionUpdatedDomainEvent(
+            TenantId,
+            CourseId,
+            LessonId,
+            StudentId,
+            Status,
+            completedAt));
     }
 
     public void ResetToInProgress(DateTime updatedAt)

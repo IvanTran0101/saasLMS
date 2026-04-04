@@ -22,14 +22,16 @@ public class EnrollmentManager : DomainService
         DateTime enrolledAt,
         CancellationToken cancellationToken = default)
     {
-        var exists = await _enrollmentRepository.ExistsByCourseAndStudentAsync(
+        var alreadyActive = await _enrollmentRepository.ExistsActiveAsync(
             tenantId,
             courseId,
             studentId,
             cancellationToken);
-        if (exists)
+ 
+        if (alreadyActive)
         {
-            throw new BusinessException("EnrollmentService:EnrollmentAlreadyExists")                .WithData("TenantId", tenantId)
+            throw new BusinessException(EnrollmentServiceErrorCodes.AlreadyEnrolled)
+                .WithData("TenantId", tenantId)
                 .WithData("CourseId", courseId)
                 .WithData("StudentId", studentId);
         }

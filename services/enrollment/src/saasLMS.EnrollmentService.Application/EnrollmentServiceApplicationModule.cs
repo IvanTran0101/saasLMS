@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Application;
+using Volo.Abp.EventBus;
 using Volo.Abp.Mapperly;
 using Volo.Abp.Modularity;
 
@@ -9,7 +10,8 @@ namespace saasLMS.EnrollmentService;
     typeof(EnrollmentServiceDomainModule),
     typeof(EnrollmentServiceApplicationContractsModule),
     typeof(AbpDddApplicationModule),
-    typeof(AbpMapperlyModule)
+    typeof(AbpMapperlyModule),
+    typeof(AbpEventBusModule)
     )]
 public class EnrollmentServiceApplicationModule : AbpModule
 {
