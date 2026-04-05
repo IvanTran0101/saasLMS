@@ -22,7 +22,6 @@ public class EnrollmentEtoHandler
     {
         await _notificationAppService.SendNotificationAsync(new SendNotificationInput
         {
-            // EventId từ ETO — AppService dùng để idempotency check
             EventId         = eventData.EventId,
             TenantId        = eventData.TenantId,
             RecipientUserId = eventData.StudentId,
