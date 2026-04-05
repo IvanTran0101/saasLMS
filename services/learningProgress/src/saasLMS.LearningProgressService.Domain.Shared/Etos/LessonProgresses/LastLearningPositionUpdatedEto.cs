@@ -1,8 +1,10 @@
 ﻿using System;
 using saasLMS.LearningProgressService.LessonProgresses;
+using Volo.Abp.EventBus;
 
 namespace saasLMS.LearningProgressService.Etos.LessonProgresses;
 
+[EventName("lms.learning_progress.last_learning_position_updated.v1")]
 public class LastLearningPositionUpdatedEto
 {
     public Guid                 EventId    { get; init; }
