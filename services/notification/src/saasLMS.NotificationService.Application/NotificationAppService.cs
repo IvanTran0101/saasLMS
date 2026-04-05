@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using saasLMS.NotificationService.Notifications;
 using saasLMS.NotificationService.Notifications.Dtos.Inputs;
 using saasLMS.NotificationService.Notifications.Dtos.Outputs;
 using saasLMS.NotificationService.Permissions;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Emailing;
 using Volo.Abp.Users;
 
 namespace saasLMS.NotificationService;
@@ -16,13 +18,16 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly NotificationManager _notificationManager;
+    private readonly IEmailSender _emailSender;
 
     public NotificationAppService(
         INotificationRepository notificationRepository,
-        NotificationManager notificationManager)
+        NotificationManager notificationManager,
+        IEmailSender emailSender)
     {
         _notificationRepository = notificationRepository;
         _notificationManager = notificationManager;
+        _emailSender = emailSender;
     }
 
     [Authorize(NotificationServicePermissions.Notifications.ViewOwn)]
@@ -127,5 +132,33 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
             referenceId:   input.ReferenceId);
 
         await _notificationRepository.InsertAsync(notification, autoSave: true);
+        
+        await TrySendEmailAsync(input.RecipientEmail, input.Title, input.Message);
+    }
+    
+    //Private Helper
+    private async Task TrySendEmailAsync(string? recipientEmail, string subject, string body)
+    {
+        if (string.IsNullOrWhiteSpace(recipientEmail))
+        {
+            Logger.LogWarning(
+                "Email channel skipped: RecipientEmail is null. Subject: {Subject}",
+                subject);
+            return;
+        }
+
+        try
+        {
+            await _emailSender.SendAsync(
+                to:      recipientEmail,
+                subject: subject,
+                body:    body);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex,
+                "Email channel failed (best-effort). Recipient: {Email}, Subject: {Subject}",
+                recipientEmail, subject);
+        }
     }
 }
