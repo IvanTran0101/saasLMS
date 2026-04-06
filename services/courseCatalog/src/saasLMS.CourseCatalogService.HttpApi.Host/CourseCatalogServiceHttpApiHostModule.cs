@@ -13,6 +13,9 @@ using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
 using Volo.Abp;
+using Volo.Abp.BlobStoring;
+using saasLMS.CourseCatalogService.BlobStoring;
+using Volo.Abp.BlobStoring.Aws;
 using Volo.Abp.Http.Client;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
@@ -46,6 +49,23 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
             flows: new[] { "authorization_code" },
             apiTitle: "CourseCatalogService Service API"
         );
+        context.Services.Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.Configure<CourseMaterialContainer>(container =>
+            {
+                container.UseAws(aws =>
+                {
+                    aws.UseCredentials = true; // dùng profile
+                    aws.ProfileName = "default"; // tên profile trong ~/.aws/credentials
+                    aws.ProfilesLocation = "/Users/yourname/.aws/credentials"; // đường dẫn file
+                    aws.Region = "ap-southeast-1"; // region của bucket
+                    aws.ContainerName = "your-bucket-name"; // tên bucket
+                    aws.CreateContainerIfNotExists = false; // S3 thường không tự tạo
+                });
+            });
+        });
+
+
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;

@@ -51,6 +51,7 @@ public class CourseCatalogServicePermissions
         public const string Activate = Default + ".Activate";
         public const string View = Default + ".View";
         public const string ViewPublished = Default + ".ViewPublished";
+        public const string DownloadPublished = Default + ".DownloadPublished";
     }
 
     public static string[] GetAll()

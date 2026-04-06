@@ -44,6 +44,7 @@ public class CourseCatalogServicePermissionDefinitionProvider : PermissionDefini
         materials.AddChild(CourseCatalogServicePermissions.Materials.Activate, L("Permission:Activate"));
         materials.AddChild(CourseCatalogServicePermissions.Materials.View, L("Permission:View"));
         materials.AddChild(CourseCatalogServicePermissions.Materials.ViewPublished, L("Permission:ViewPublished"));
+        materials.AddChild(CourseCatalogServicePermissions.Materials.DownloadPublished, L("Permission:DownloadPublished"));
     }
 
     private static LocalizableString L(string name)

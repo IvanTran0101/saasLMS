@@ -1,5 +1,26 @@
 {
   "culture": "en",
   "texts": {
+    "Permission:CourseCatalogService": "Course Catalog Service",
+    "Permission:Courses": "Courses",
+    "Permission:Chapters": "Chapters",
+    "Permission:Lessons": "Lessons",
+    "Permission:Materials": "Materials",
+    "Permission:Create": "Create",
+    "Permission:Update": "Update",
+    "Permission:Delete": "Delete",
+    "Permission:Hide": "Hide",
+    "Permission:Activate": "Activate",
+    "Permission:View": "View",
+    "Permission:ViewPublished": "View Published",
+    "Permission:ListByInstructor": "List By Instructor",
+    "Permission:ListByTenant": "List By Tenant",
+    "Permission:GetOwner": "Get Owner",
+    "Permission:DownloadPublished": "Download Published",
+    "CourseCatalog:FileEmpty": "File is empty or missing.",
+    "CourseCatalog:FileTooLarge": "File is too large.",
+    "CourseCatalog:FileTypeNotAllowed": "File type is not allowed.",
+    "CourseCatalog:MimeTypeNotAllowed": "File MIME type is not allowed.",
+    "CourseCatalog:MaterialFileNotFound": "Material file was not found."
   }
 }
