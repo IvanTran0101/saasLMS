@@ -395,6 +395,7 @@ appsettings.*.local.json
 **/obj/
 **/[Bb]in/
 **/[Oo]bj/
+**bin\**
 
 # Test and coverage artifacts
 **/TestResults/
