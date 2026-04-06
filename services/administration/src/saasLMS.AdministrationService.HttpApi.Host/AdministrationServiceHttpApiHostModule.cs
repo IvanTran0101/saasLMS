@@ -53,7 +53,6 @@ public class AdministrationServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "AdministrationService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "Administration Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

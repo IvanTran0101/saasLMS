@@ -40,7 +40,6 @@ public class SaasServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "SaasService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "Saas Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

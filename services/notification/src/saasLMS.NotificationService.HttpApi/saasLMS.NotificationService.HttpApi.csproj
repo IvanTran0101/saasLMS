@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="10.1.1" />
     <ProjectReference Include="..\saasLMS.NotificationService.Application.Contracts\saasLMS.NotificationService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\saasLMS.NotificationService.Application\saasLMS.NotificationService.Application.csproj" />
   </ItemGroup>
 
 </Project>

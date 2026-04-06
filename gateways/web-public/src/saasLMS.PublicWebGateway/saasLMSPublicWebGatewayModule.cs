@@ -32,8 +32,7 @@ public class saasLMSPublicWebGatewayModule : AbpModule
                     /* Requested scopes for authorization code request and descriptions for swagger UI only */
                     "AccountService", "AdministrationService", "ProductService"
                 },
-                apiTitle: "Public Web Gateway API",
-                discoveryEndpoint: configuration["AuthServer:MetadataAddress"]
+                apiTitle: "Public Web Gateway API"
             );
     }
 

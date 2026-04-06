@@ -41,7 +41,6 @@ public class NotificationServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "NotificationService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "NotificationService Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

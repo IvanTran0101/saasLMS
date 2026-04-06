@@ -35,8 +35,7 @@ public class saasLMSWebGatewayModule : AbpModule
                     /* Requested scopes for authorization code request and descriptions for swagger UI only */
                     "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService"
                 },
-                apiTitle: "Web Gateway API",
-                discoveryEndpoint: configuration["AuthServer:MetadataAddress"]
+                apiTitle: "Web Gateway API"
             );
 
         context.Services.AddCors(options =>

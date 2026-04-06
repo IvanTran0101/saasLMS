@@ -135,6 +135,81 @@
         "Transforms": [
           { "PathRemovePrefix": "/swagger-json/Product" }
         ]
+      },
+      "CourseCatalog": {
+        "ClusterId": "CourseCatalog",
+        "Match": {
+          "Path": "/api/course-catalog/{**catch-all}"
+        }
+      },
+      "CourseCatalogSwagger": {
+        "ClusterId": "CourseCatalog",
+        "Match": {
+          "Path": "/swagger-json/CourseCatalog/swagger/v1/swagger.json"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/swagger-json/CourseCatalog" }
+        ]
+      },
+      "Assessment": {
+        "ClusterId": "Assessment",
+        "Match": {
+          "Path": "/api/assessment/{**catch-all}"
+        }
+      },
+      "AssessmentSwagger": {
+        "ClusterId": "Assessment",
+        "Match": {
+          "Path": "/swagger-json/Assessment/swagger/v1/swagger.json"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/swagger-json/Assessment" }
+        ]
+      },
+      "Enrollment": {
+        "ClusterId": "Enrollment",
+        "Match": {
+          "Path": "/api/enrollment/{**catch-all}"
+        }
+      },
+      "EnrollmentSwagger": {
+        "ClusterId": "Enrollment",
+        "Match": {
+          "Path": "/swagger-json/Enrollment/swagger/v1/swagger.json"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/swagger-json/Enrollment" }
+        ]
+      },
+      "LearningProgress": {
+        "ClusterId": "LearningProgress",
+        "Match": {
+          "Path": "/api/learning-progress/{**catch-all}"
+        }
+      },
+      "LearningProgressSwagger": {
+        "ClusterId": "LearningProgress",
+        "Match": {
+          "Path": "/swagger-json/LearningProgress/swagger/v1/swagger.json"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/swagger-json/LearningProgress" }
+        ]
+      },
+      "Notification": {
+        "ClusterId": "Notification",
+        "Match": {
+          "Path": "/api/notification/{**catch-all}"
+        }
+      },
+      "NotificationSwagger": {
+        "ClusterId": "Notification",
+        "Match": {
+          "Path": "/swagger-json/Notification/swagger/v1/swagger.json"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/swagger-json/Notification" }
+        ]
       }
     },
     "Clusters": {
@@ -170,6 +245,41 @@
         "Destinations": {
           "Product": {
             "Address": "https://localhost:44361/"
+          }
+        }
+      },
+      "CourseCatalog": {
+        "Destinations": {
+          "CourseCatalog": {
+            "Address": "https://localhost:44445/"
+          }
+        }
+      },
+      "Assessment": {
+        "Destinations": {
+          "Assessment": {
+            "Address": "https://localhost:45209/"
+          }
+        }
+      },
+      "Enrollment": {
+        "Destinations": {
+          "Enrollment": {
+            "Address": "https://localhost:44854/"
+          }
+        }
+      },
+      "LearningProgress": {
+        "Destinations": {
+          "LearningProgress": {
+            "Address": "https://localhost:45256/"
+          }
+        }
+      },
+      "Notification": {
+        "Destinations": {
+          "Notification": {
+            "Address": "https://localhost:44664/"
           }
         }
       }

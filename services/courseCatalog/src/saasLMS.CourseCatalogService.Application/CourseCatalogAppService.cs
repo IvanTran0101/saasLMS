@@ -45,12 +45,6 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:TenantNotFound");
         }
-        var userId = CurrentUser.Id;
-        if (!userId.HasValue || userId.Value != input.InstructorId)
-        {
-            throw new AbpAuthorizationException("You are not allowed to create a course for another instructor.");
-        }
-
         var course = await _courseManager.CreateAsync(
             tenantId.Value,
             input.Title,

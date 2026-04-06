@@ -1,5 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
+using System.Collections.Generic;
+using System.Linq;
 using Volo.Abp.Modularity;
 
 namespace saasLMS.Shared.Hosting.AspNetCore;
@@ -13,12 +16,17 @@ public static class SwaggerConfigurationHelper
     {
         context.Services.AddAbpSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo { Title = apiTitle, Version = "v1" });
-            options.DocInclusionPredicate((docName, description) => true);
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = apiTitle,
+                Version = "v1"
+            });
+
+            options.DocInclusionPredicate((_, _) => true);
             options.CustomSchemaIds(type => type.FullName);
         });
     }
-    
+
     public static void ConfigureWithOidc(
         ServiceConfigurationContext context,
         string authority,
@@ -30,15 +38,44 @@ public static class SwaggerConfigurationHelper
         string? discoveryEndpoint = null
     )
     {
+        var env = context.Services.GetHostingEnvironment();
+        var configuredFlows = flows ?? new[] { "authorization_code" };
+
+        if (env.IsDevelopment())
+        {
+            var scopeDictionary = scopes.ToDictionary(scope => scope, scope => scope);
+            context.Services.AddAbpSwaggerGenWithOAuth(
+                authority,
+                scopes: scopeDictionary,
+                options =>
+                {
+                    options.SwaggerDoc(apiName, new OpenApiInfo
+                    {
+                        Title = apiTitle,
+                        Version = apiVersion
+                    });
+
+                    options.DocInclusionPredicate((_, _) => true);
+                    options.CustomSchemaIds(type => type.FullName);
+                });
+
+            return;
+        }
+
         context.Services.AddAbpSwaggerGenWithOidc(
-            authority: authority,
+            authority,
             scopes: scopes,
-            flows: flows,
+            flows: configuredFlows,
             discoveryEndpoint: discoveryEndpoint,
             options =>
             {
-                options.SwaggerDoc(apiName, new OpenApiInfo { Title = apiTitle, Version = apiVersion });
-                options.DocInclusionPredicate((docName, description) => true);
+                options.SwaggerDoc(apiName, new OpenApiInfo
+                {
+                    Title = apiTitle,
+                    Version = apiVersion
+                });
+
+                options.DocInclusionPredicate((_, _) => true);
                 options.CustomSchemaIds(type => type.FullName);
             });
     }

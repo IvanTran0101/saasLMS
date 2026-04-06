@@ -117,7 +117,7 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Project.saasLMS.DbMigrator" />
+            <option name="id" value="runConfig:.NET Launch Settings Profile.saasLMS.CourseCatalogService.Web" />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>
@@ -129,7 +129,31 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.saasLMS.Blazor.Client" />
+            <option name="id" value="runConfig:.NET Launch Settings Profile.saasLMS.AssessmentService.HttpApi.Host" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="immediately" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:.NET Launch Settings Profile.saasLMS.EnrollmentService.HttpApi.Host" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="immediately" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:.NET Launch Settings Profile.saasLMS.CourseCatalogService.HttpApi.Host" />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>

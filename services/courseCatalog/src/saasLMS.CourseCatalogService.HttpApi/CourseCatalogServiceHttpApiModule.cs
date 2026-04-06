@@ -26,7 +26,9 @@ public class CourseCatalogServiceHttpApiModule : AbpModule
     {
         Configure<AbpAspNetCoreMvcOptions>(options =>
         {
-            options.ConventionalControllers.Create(typeof(CourseCatalogServiceApplicationModule).Assembly);
+            options.ConventionalControllers.Create(
+                typeof(CourseCatalogServiceApplicationModule).Assembly,
+                opts => { opts.RootPath = "course-catalog"; });
         });
 
         Configure<AbpLocalizationOptions>(options =>

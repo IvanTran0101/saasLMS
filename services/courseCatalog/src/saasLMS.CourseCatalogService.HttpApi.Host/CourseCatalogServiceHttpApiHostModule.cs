@@ -13,6 +13,7 @@ using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
 using Volo.Abp;
+using Volo.Abp.Http.Client;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -36,12 +37,13 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
         var configuration = context.Services.GetConfiguration();
 
         JwtBearerConfigurationHelper.Configure(context, "CourseCatalogService");
+        context.Services.AddHttpClientProxies(
+            typeof(CourseCatalogServiceApplicationContractsModule).Assembly);
         SwaggerConfigurationHelper.ConfigureWithOidc(
             context: context,
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "CourseCatalogService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "CourseCatalogService Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

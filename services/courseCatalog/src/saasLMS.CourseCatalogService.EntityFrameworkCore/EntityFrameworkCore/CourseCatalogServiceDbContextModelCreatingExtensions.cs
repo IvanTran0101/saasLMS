@@ -37,6 +37,11 @@ public static class CourseCatalogServiceDbContextModelCreatingExtensions
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => x.InstructorId);
             b.HasIndex(x => new { x.TenantId, x.Title }).IsUnique();
+            b.HasMany(x => x.Chapters)
+                .WithOne()
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.Chapters).UsePropertyAccessMode(PropertyAccessMode.Field);
         });
         builder.Entity<Chapter>(b =>
         {
@@ -50,7 +55,11 @@ public static class CourseCatalogServiceDbContextModelCreatingExtensions
             b.Property(x =>
                 x.OrderNo).IsRequired();
             b.HasIndex(x => new { x.CourseId, x.OrderNo }).IsUnique();
-            b.HasOne<Course>().WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Lessons)
+                .WithOne()
+                .HasForeignKey(x => x.ChapterId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.Lessons).UsePropertyAccessMode(PropertyAccessMode.Field);
         });
         builder.Entity<Lesson>(b =>
         {
@@ -66,7 +75,11 @@ public static class CourseCatalogServiceDbContextModelCreatingExtensions
             b.Property(x =>
                 x.ContentState).IsRequired();
             b.HasIndex(x => new { x.ChapterId, x.SortOrder }).IsUnique();
-            b.HasOne<Chapter>().WithMany().HasForeignKey(x => x.ChapterId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Materials)
+                .WithOne()
+                .HasForeignKey(x => x.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.Materials).UsePropertyAccessMode(PropertyAccessMode.Field);
         });
         builder.Entity<Material>(b =>
         {
@@ -93,7 +106,6 @@ public static class CourseCatalogServiceDbContextModelCreatingExtensions
             b.HasIndex(x => x.TenantId);
             b.HasIndex(x => x.LessonId);
             b.HasIndex(x => new { x.LessonId, x.Type });
-            b.HasOne<Lesson>().WithMany().HasForeignKey(x => x.LessonId).IsRequired();
         });
     }
 }

@@ -41,7 +41,6 @@ public class EnrollmentServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "EnrollmentService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "EnrollmentService Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
