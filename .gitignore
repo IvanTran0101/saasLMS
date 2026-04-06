@@ -409,6 +409,7 @@ coverage-*/
 !.idea/.name
 !.idea/codeStyles/
 !.idea/inspectionProfiles/
+bin/Debug/
 
 # Optional local tooling caches
 *.pid
