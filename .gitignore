@@ -416,3 +416,7 @@ coverage-*/
 **/bin/
 **/obj/
 .vs/
+**/bin/
+**/obj/
+.vs/
+.idea/
