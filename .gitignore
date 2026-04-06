@@ -412,3 +412,7 @@ coverage-*/
 # Optional local tooling caches
 *.pid
 *.seed
+
+**/bin/
+**/obj/
+.vs/
