@@ -41,7 +41,6 @@ public class AssessmentServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "AssessmentService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "AssessmentService Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

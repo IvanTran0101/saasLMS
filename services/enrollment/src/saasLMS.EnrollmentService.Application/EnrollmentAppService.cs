@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using saasLMS.EnrollmentService.Enrollments;
 using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs;
 using saasLMS.EnrollmentService.Enrollments.Dtos.Outputs;
 using saasLMS.EnrollmentService.Permissions;
 using Volo.Abp;
+using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Users;
 
 namespace saasLMS.EnrollmentService;
@@ -90,7 +90,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
         return ObjectMapper.Map<Enrollment, EnrollmentDto>(enrollment);
     }
     
-    [Authorize(EnrollmentServicePermissions.Enrollments.ViewOwn)]
+    [Authorize(EnrollmentServicePermissions.Enrollments.View)]
     public async Task<EnrollmentDto> GetByIdAsync(Guid id)
     {
         if (id == Guid.Empty)
@@ -115,7 +115,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
         return ObjectMapper.Map<Enrollment, EnrollmentDto>(enrollment);
     }
     
-    [Authorize(EnrollmentServicePermissions.Enrollments.ViewOwn)]
+    [Authorize(EnrollmentServicePermissions.Enrollments.View)]
     public async Task<EnrollmentDto?> FindByCourseAsync(Guid courseId)
     {
         if (courseId == Guid.Empty)
@@ -141,7 +141,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
             : ObjectMapper.Map<Enrollment, EnrollmentDto>(enrollment);
     }
     
-    [Authorize(EnrollmentServicePermissions.Enrollments.ViewOwn)]
+    [Authorize(EnrollmentServicePermissions.Enrollments.ViewMy)]
     public async Task<List<EnrollmentListItemDto>> GetMyEnrollmentsAsync(GetMyEnrollmentsInput input)
     {
         Check.NotNull(input, nameof(input));
@@ -162,7 +162,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
         return ObjectMapper.Map<List<Enrollment>, List<EnrollmentListItemDto>>(enrollments);
     }
     
-    [Authorize(EnrollmentServicePermissions.Enrollments.View)]
+    [Authorize(EnrollmentServicePermissions.Enrollments.ViewByCourse)]
     public async Task<List<EnrollmentListItemDto>> GetEnrollmentsByCourseAsync(Guid courseId)
     {
         if (courseId == Guid.Empty)
@@ -183,7 +183,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
         return ObjectMapper.Map<List<Enrollment>, List<EnrollmentListItemDto>>(enrollments);
     }
     
-    [Authorize(EnrollmentServicePermissions.Enrollments.View)]
+    [Authorize(EnrollmentServicePermissions.Enrollments.CheckActive)]
     public async Task<ActiveEnrollmentDto> CheckActiveEnrollmentAsync(Guid courseId, Guid studentId)
     {
         if (courseId == Guid.Empty || studentId == Guid.Empty)

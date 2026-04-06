@@ -41,7 +41,6 @@ public class LearningProgressServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "LearningProgressService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "LearningProgressService Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

@@ -4,10 +4,12 @@ using saasLMS.AssessmentService.Localization;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
+using Volo.Abp.AspNetCore.Mvc.Conventions;
 
 namespace saasLMS.AssessmentService;
 
 [DependsOn(
+    typeof(AssessmentServiceApplicationModule),
     typeof(AssessmentServiceApplicationContractsModule),
     typeof(AbpAspNetCoreMvcModule))]
 public class AssessmentServiceHttpApiModule : AbpModule
@@ -22,6 +24,13 @@ public class AssessmentServiceHttpApiModule : AbpModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        Configure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options.ConventionalControllers.Create(
+                typeof(AssessmentServiceApplicationModule).Assembly,
+                opts => { opts.RootPath = "assessment"; });
+        });
+
         Configure<AbpLocalizationOptions>(options =>
         {
             options.Resources

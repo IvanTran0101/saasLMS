@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
@@ -253,6 +254,13 @@ public class saasLMSAuthServerModule : AbpModule
         });
     }
 
+    public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        using var scope = context.ServiceProvider.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<AuthServerOpenIddictDataSeeder>();
+        await seeder.SeedAsync();
+    }
+
     private void ConfigureBundles()
     {
         Configure<AbpBundlingOptions>(options =>
@@ -321,7 +329,6 @@ public class saasLMSAuthServerModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "AccountService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "Account Service API"
         );
     }

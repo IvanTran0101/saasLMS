@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using saasLMS.CourseCatalogService.Courses;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.Modularity;
@@ -24,6 +25,7 @@ public class CourseCatalogServiceEntityFrameworkCoreModule : AbpModule
                 /* Remove "includeAllEntities: true" to create
                  * default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
+            options.AddRepository<Course, CourseRepository>();
         });
 
         Configure<AbpDbContextOptions>(options =>

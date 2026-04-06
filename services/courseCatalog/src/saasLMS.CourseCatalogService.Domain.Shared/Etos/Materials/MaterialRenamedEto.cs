@@ -1,14 +1,16 @@
 using System;
 using saasLMS.CourseCatalogService.Courses;
 
+using Volo.Abp.EventBus;
 namespace saasLMS.CourseCatalogService.Etos.Materials;
 
+[EventName("lms.coursecatalog.materialrenamed.v1")]
 public class MaterialRenamedEto : CourseCatalogEtoBase
 {
    
     public Guid LessonId { get; set; }
     public Guid MaterialId { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public MaterialType Type { get; set; }
     public MaterialStatus Status { get; set; }
     public int SortOrder { get; set; }

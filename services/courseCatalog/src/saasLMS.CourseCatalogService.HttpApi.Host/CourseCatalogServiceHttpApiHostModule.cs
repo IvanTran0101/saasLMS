@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,10 +12,11 @@ using saasLMS.CourseCatalogService.EntityFrameworkCore;
 using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
-using saasLMS.CourseCatalogService.BlobContainers;
 using Volo.Abp;
 using Volo.Abp.BlobStoring;
+using saasLMS.CourseCatalogService.BlobStoring;
 using Volo.Abp.BlobStoring.Aws;
+using Volo.Abp.Http.Client;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -27,8 +28,7 @@ namespace saasLMS.CourseCatalogService;
     typeof(CourseCatalogServiceHttpApiModule),
     typeof(CourseCatalogServiceEntityFrameworkCoreModule)
     )]
-[DependsOn(typeof(AbpBlobStoringAwsModule))]
-    public class CourseCatalogServiceHttpApiHostModule : AbpModule
+public class CourseCatalogServiceHttpApiHostModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
@@ -40,14 +40,32 @@ namespace saasLMS.CourseCatalogService;
         var configuration = context.Services.GetConfiguration();
 
         JwtBearerConfigurationHelper.Configure(context, "CourseCatalogService");
+        context.Services.AddHttpClientProxies(
+            typeof(CourseCatalogServiceApplicationContractsModule).Assembly);
         SwaggerConfigurationHelper.ConfigureWithOidc(
             context: context,
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "CourseCatalogService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "CourseCatalogService Service API"
         );
+        context.Services.Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.Configure<CourseMaterialContainer>(container =>
+            {
+                container.UseAws(aws =>
+                {
+                    aws.UseCredentials = true; // dùng profile
+                    aws.ProfileName = "default"; // tên profile trong ~/.aws/credentials
+                    aws.ProfilesLocation = "/Users/yourname/.aws/credentials"; // đường dẫn file
+                    aws.Region = "ap-southeast-1"; // region của bucket
+                    aws.ContainerName = "your-bucket-name"; // tên bucket
+                    aws.CreateContainerIfNotExists = false; // S3 thường không tự tạo
+                });
+            });
+        });
+
+
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;
@@ -72,22 +90,6 @@ namespace saasLMS.CourseCatalogService;
         });
 
         context.Services.TransformAbpClaims();
-        
-        //Check lại Config 
-        Configure<AbpBlobStoringOptions>(options =>
-        {
-            options.Containers.Configure<CourseMaterialContainer>(container =>
-            {
-                container.UseAws(aws =>
-                {
-                    aws.AccessKeyId     = configuration["BlobStoring:Aws:AccessKeyId"];
-                    aws.SecretAccessKey = configuration["BlobStoring:Aws:SecretAccessKey"];
-                    aws.Region          = configuration["BlobStoring:Aws:Region"];
-                    aws.ContainerName   = configuration["BlobStoring:Aws:BucketName"];
-                    aws.CreateContainerIfNotExists = false;
-                });
-            });
-        });
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -130,6 +132,9 @@ namespace saasLMS.CourseCatalogService;
             await scope.ServiceProvider
                 .GetRequiredService<CourseCatalogServiceDatabaseMigrationChecker>()
                 .CheckAndApplyDatabaseMigrationsAsync();
+            await scope.ServiceProvider
+                .GetRequiredService<CourseCatalogServicePermissionSeeder>()
+                .SeedAsync();
         }
     }
 }

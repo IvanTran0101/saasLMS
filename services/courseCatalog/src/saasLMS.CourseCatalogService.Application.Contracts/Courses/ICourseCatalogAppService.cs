@@ -25,10 +25,15 @@ public interface ICourseCatalogAppService : IApplicationService
     Task ReopenCourseAsync(ReopenCourseInput input);
     
     Task<CourseDto> GetCourseAsync(Guid id);
+    Task<CourseDto> GetCourseStudentAsync(Guid id);
+    Task<CourseOwnerDto> GetOwnerAsync(Guid id);
     Task<CourseDetailDto> GetCourseDetailAsync(Guid id);
+    Task<CourseDetailDto> GetCourseDetailStudentAsync(Guid id);
     Task<List<CourseListItemDto>> GetPublishedCoursesAsync();
     Task<List<CourseListItemDto>> GetCoursesByInstructorAsync(Guid instructorId);
+    Task<List<CourseListItemDto>> GetPublishedCoursesByInstructorAsync(Guid instructorId);
     Task<List<CourseListItemDto>> GetCoursesByTenantAsync();
+    Task<List<CourseListItemDto>> GetPublishedCoursesByTenantAsync();
     
     //Chapters
     Task<ChapterDto> CreateChapterAsync(CreateChapterInput input);
@@ -36,6 +41,9 @@ public interface ICourseCatalogAppService : IApplicationService
     Task RemoveChapterAsync(RemoveChapterInput input);
     
     Task<ChapterDto> GetChapterAsync(Guid courseId, Guid chapterId);
+    Task<List<ChapterDto>> GetChaptersByCourseAsync(Guid courseId);
+    Task<List<ChapterDto>> GetChaptersByCourseStudentAsync(Guid courseId);
+    Task<ChapterDto> GetChapterStudentAsync(Guid courseId, Guid chapterId);
     
     //Lessons
     Task<LessonDto> CreateLessonAsync(CreateLessonInput input);
@@ -44,6 +52,8 @@ public interface ICourseCatalogAppService : IApplicationService
     Task RemoveLessonAsync(RemoveLessonInput input);
     Task<List<LessonDto>> GetLessonsByChapterAsync(Guid courseId, Guid chapterId);
     Task<LessonDto> GetLessonAsync(Guid courseId, Guid chapterId, Guid lessonId);
+    Task<List<LessonDto>> GetLessonsByChapterStudentAsync(Guid courseId, Guid chapterId);
+    Task<LessonDto> GetLessonStudentAsync(Guid courseId, Guid chapterId, Guid lessonId);
     
     //Material
     Task<MaterialDto> CreateFileMaterialAsync(CreateFileMaterialInput input);
@@ -56,8 +66,12 @@ public interface ICourseCatalogAppService : IApplicationService
     Task HideMaterialAsync(HideMaterialInput input);
     Task ActivateMaterialAsync(ActivateMaterialInput input);
     Task RemoveMaterialAsync(RemoveMaterialInput input);
+    
     Task<List<MaterialDto>> GetMaterialsByLessonAsync(Guid courseId, Guid chapterId, Guid lessonId);
     Task<MaterialDto> GetMaterialAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
-    Task<UploadFileMaterialDto> UploadFileMaterialAsync(UploadFileMaterialInput input);
-    Task<IRemoteStreamContent> DownloadFileMaterialAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
+    Task<List<MaterialDto>> GetMaterialsByLessonStudentAsync(Guid courseId, Guid chapterId, Guid lessonId);
+    Task<MaterialDto> GetMaterialStudentAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
+    Task<MaterialDto> UploadMaterialFileAsync(UploadMaterialFileInput input, IRemoteStreamContent file);
+    Task<IRemoteStreamContent> DownloadMaterialFileAsync(DownloadMaterialFileInput input);
+    Task<IRemoteStreamContent> DownloadMaterialFileStudentAsync(DownloadMaterialFileInput input);
 }

@@ -38,7 +38,6 @@ public class ProductServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "ProductService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "Product Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>

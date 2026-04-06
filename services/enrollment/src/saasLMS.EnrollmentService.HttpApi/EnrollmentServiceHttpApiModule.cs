@@ -2,12 +2,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using saasLMS.EnrollmentService.Localization;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 
 namespace saasLMS.EnrollmentService;
 
 [DependsOn(
+    typeof(EnrollmentServiceApplicationModule),
     typeof(EnrollmentServiceApplicationContractsModule),
     typeof(AbpAspNetCoreMvcModule))]
 public class EnrollmentServiceHttpApiModule : AbpModule
@@ -22,6 +24,13 @@ public class EnrollmentServiceHttpApiModule : AbpModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        Configure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options.ConventionalControllers.Create(
+                typeof(EnrollmentServiceApplicationModule).Assembly,
+                opts => { opts.RootPath = "enrollment"; });
+        });
+
         Configure<AbpLocalizationOptions>(options =>
         {
             options.Resources

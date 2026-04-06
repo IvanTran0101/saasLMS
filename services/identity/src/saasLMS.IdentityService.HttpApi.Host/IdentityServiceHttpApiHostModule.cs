@@ -43,7 +43,6 @@ public class IdentityServiceHttpApiHostModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "IdentityService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "Identity Service API"
         );
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
