@@ -435,3 +435,11 @@ bin/Debug/
 **/obj/
 .vs/
 .idea/
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
+*\\bin\\*
+*\\obj\\*
+.vs/
+.idea/
