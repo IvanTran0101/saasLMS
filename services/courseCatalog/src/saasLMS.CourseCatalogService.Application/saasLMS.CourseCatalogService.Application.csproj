@@ -15,6 +15,7 @@
     <PackageReference Include="Volo.Abp.Mapperly" Version="10.1.1" />
     <ProjectReference Include="..\saasLMS.CourseCatalogService.Application.Contracts\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
     <ProjectReference Include="..\saasLMS.CourseCatalogService.Domain\saasLMS.CourseCatalogService.Domain.csproj" />
+    <ProjectReference Include="..\..\..\enrollment\src\saasLMS.EnrollmentService.Application.Contracts\saasLMS.EnrollmentService.Application.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

@@ -140,6 +140,90 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
         return ObjectMapper.Map<Submission, SubmissionDto>(submission);
     }
 
+    [Authorize(AssessmentServicePermissions.Submissions.Submit)]
+    [RemoteService(false)]
+    public async Task<SubmissionDto> SubmitFileAsync(Guid assignmentId, IRemoteStreamContent file)
+    {
+        if (assignmentId == Guid.Empty)
+        {
+            throw new BusinessException("AssessmentService:AssignmentIdIsEmpty");
+        }
+
+        var tenantId = CurrentTenant.Id;
+        if (!tenantId.HasValue)
+        {
+            throw new BusinessException("AssessmentService:TenantIdNotFound");
+        }
+
+        var studentId = CurrentUser.Id;
+        if (!studentId.HasValue)
+        {
+            throw new BusinessException("AssessmentService:StudentIdNotFound");
+        }
+
+        if (file == null || file.ContentLength <= 0 || string.IsNullOrWhiteSpace(file.FileName))
+        {
+            throw new BusinessException("Assessment:FileEmpty");
+        }
+
+        var assignment = await _assignmentRepository.GetAsync(assignmentId);
+        if (assignment.TenantId != tenantId.Value)
+        {
+            throw new BusinessException("AssessmentService:AssignmentTenantMismatch")
+                .WithData("AssignmentId", assignment.Id)
+                .WithData("TenantId", tenantId.Value);
+        }
+
+        var existingSubmission = await _submissionRepository.FindByAssignmentAndStudentAsync(
+            tenantId.Value,
+            assignment.Id,
+            studentId.Value);
+
+        var safeFileName = Path.GetFileName(file.FileName);
+        ValidateSubmissionUpload(safeFileName, file.ContentType, file.ContentLength);
+
+        var storageKey = $"submissions/{tenantId.Value}/{assignment.Id}/{studentId.Value}/{safeFileName}";
+        await _blobContainer.SaveAsync(storageKey, file.GetStream());
+
+        Submission submission;
+        try
+        {
+            submission = await _submissionManager.SubmitAsync(
+                tenantId.Value,
+                assignment,
+                studentId.Value,
+                Clock.Now,
+                ContentType.File,
+                storageKey,
+                safeFileName,
+                file.ContentType,
+                file.ContentLength);
+        }
+        catch
+        {
+            await _blobContainer.DeleteAsync(storageKey);
+            throw;
+        }
+
+        if (existingSubmission == null)
+        {
+            submission = await _submissionRepository.InsertAsync(submission, autoSave: true);
+        }
+        else
+        {
+            submission = await _submissionRepository.UpdateAsync(submission, autoSave: true);
+        }
+
+        if (existingSubmission?.ContentType == ContentType.File &&
+            !string.IsNullOrWhiteSpace(existingSubmission.StorageKey) &&
+            existingSubmission.StorageKey != storageKey)
+        {
+            await _blobContainer.DeleteAsync(existingSubmission.StorageKey);
+        }
+
+        return ObjectMapper.Map<Submission, SubmissionDto>(submission);
+    }
+
     [Authorize(AssessmentServicePermissions.Submissions.Grade)]
     public async Task<SubmissionDto> GradeAsync(Guid submissionId, GradeSubmissionDto input)
     {
@@ -269,6 +353,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
     }
 
     [Authorize(AssessmentServicePermissions.Submissions.Submit)]
+    [RemoteService(false)]
     public async Task<SubmissionDto> UploadSubmissionFileAsync(UploadSubmissionFileInput input, IRemoteStreamContent file)
     {
         Check.NotNull(input, nameof(input));

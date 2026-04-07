@@ -18,9 +18,11 @@ using saasLMS.CourseCatalogService.BlobStoring;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.BlobStoring.Aws;
 using Volo.Abp.Http.Client;
+using Volo.Abp.Http.Client.IdentityModel.Web;
 using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
+using saasLMS.EnrollmentService.Enrollments;
 
 namespace saasLMS.CourseCatalogService;
 
@@ -28,7 +30,8 @@ namespace saasLMS.CourseCatalogService;
     typeof(saasLMSSharedHostingMicroservicesModule),
     typeof(CourseCatalogServiceApplicationModule),
     typeof(CourseCatalogServiceHttpApiModule),
-    typeof(CourseCatalogServiceEntityFrameworkCoreModule)
+    typeof(CourseCatalogServiceEntityFrameworkCoreModule),
+    typeof(AbpHttpClientIdentityModelWebModule)
     )]
 public class CourseCatalogServiceHttpApiHostModule : AbpModule
 {
@@ -57,7 +60,7 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
         SwaggerConfigurationHelper.ConfigureWithOidc(
             context: context,
             authority: configuration["AuthServer:Authority"]!,
-            scopes: new[] { "CourseCatalogService" },
+            scopes: new[] { "CourseCatalogService", "EnrollmentService" },
             flows: new[] { "authorization_code" },
             apiTitle: "CourseCatalogService Service API"
         );
@@ -67,12 +70,13 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
             {
                 container.UseAws(aws =>
                 {
-                    aws.UseCredentials = true; // dùng profile
-                    aws.ProfileName = "default"; // tên profile trong ~/.aws/credentials
-                    aws.ProfilesLocation = "/Users/yourname/.aws/credentials"; // đường dẫn file
-                    aws.Region = "ap-southeast-1"; // region của bucket
-                    aws.ContainerName = "your-bucket-name"; // tên bucket
-                    aws.CreateContainerIfNotExists = false; // S3 thường không tự tạo
+                    var awsSection = configuration.GetSection("CourseCatalogService:Aws");
+                    aws.UseCredentials = awsSection.GetValue("UseCredentials", true);
+                    aws.ProfileName = awsSection.GetValue("ProfileName", "default");
+                    aws.ProfilesLocation = awsSection.GetValue("ProfilesLocation", "/Users/yourname/.aws/credentials");
+                    aws.Region = awsSection.GetValue("Region", "ap-southeast-1");
+                    aws.ContainerName = awsSection.GetValue("ContainerName", "your-coursecatalog-bucket");
+                    aws.CreateContainerIfNotExists = awsSection.GetValue("CreateContainerIfNotExists", false);
                 });
             });
         });
@@ -102,6 +106,8 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
         });
 
         context.Services.TransformAbpClaims();
+
+        context.Services.AddHttpClientProxy<IEnrollmentAppService>("EnrollmentService");
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

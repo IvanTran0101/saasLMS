@@ -21,6 +21,7 @@ public class CourseCatalogServicePermissionDefinitionProvider : PermissionDefini
         courses.AddChild(CourseCatalogServicePermissions.Courses.ListByInstructor, L("Permission:ListByInstructor"));
         courses.AddChild(CourseCatalogServicePermissions.Courses.ListByTenant, L("Permission:ListByTenant"));
         courses.AddChild(CourseCatalogServicePermissions.Courses.GetOwner, L("Permission:GetOwner"));
+        courses.AddChild(CourseCatalogServicePermissions.Courses.CheckEligibility, L("Permission:CheckEligibility"));
 
         var chapters = myGroup.AddPermission(CourseCatalogServicePermissions.Chapters.Default, L("Permission:Chapters"));
         chapters.AddChild(CourseCatalogServicePermissions.Chapters.Create, L("Permission:Create"));

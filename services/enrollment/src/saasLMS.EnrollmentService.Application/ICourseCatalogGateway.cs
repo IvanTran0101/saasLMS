@@ -10,6 +10,7 @@ public interface ICourseCatalogGateway
     /// Trả null nếu course không tồn tại.
     Task<CourseEligibilityResult?> GetEnrollmentEligibility(
         Guid courseId,
+        Guid tenantId,
         CancellationToken cancellationToken = default);
 }
 
@@ -17,7 +18,7 @@ public sealed class CourseEligibilityResult
 {
     public Guid CourseId { get; init; }
     public Guid TenantId { get; init; }
-    public string Status { get; init; } = string.Empty;
+    public saasLMS.CourseCatalogService.Courses.CourseStatus Status { get; init; }
  
     public bool IsHidden { get; init; }
 }

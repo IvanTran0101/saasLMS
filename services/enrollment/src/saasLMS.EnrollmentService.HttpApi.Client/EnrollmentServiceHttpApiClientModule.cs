@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using saasLMS.CourseCatalogService;
 using Volo.Abp.Http.Client;
 using Volo.Abp.Modularity;
 using Volo.Abp.VirtualFileSystem;
@@ -14,6 +15,8 @@ public class EnrollmentServiceHttpApiClientModule : AbpModule
     {
         context.Services.AddStaticHttpClientProxies(typeof(EnrollmentServiceApplicationContractsModule).Assembly,
             EnrollmentServiceRemoteServiceConsts.RemoteServiceName);
+        context.Services.AddStaticHttpClientProxies(typeof(CourseCatalogServiceApplicationContractsModule).Assembly,
+            CourseCatalogServiceRemoteServiceConsts.RemoteServiceName);
 
         Configure<AbpVirtualFileSystemOptions>(options =>
         {

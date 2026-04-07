@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="../enrollment/src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.csproj" />
     <Project Path="src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.csproj" />
     <Project Path="src/saasLMS.CourseCatalogService.Application/saasLMS.CourseCatalogService.Application.csproj" />
     <Project Path="src/saasLMS.CourseCatalogService.Blazor/saasLMS.CourseCatalogService.Blazor.csproj" />

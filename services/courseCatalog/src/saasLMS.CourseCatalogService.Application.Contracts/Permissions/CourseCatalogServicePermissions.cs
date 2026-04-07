@@ -19,6 +19,7 @@ public class CourseCatalogServicePermissions
         public const string ListByInstructor = Default + ".ListByInstructor";
         public const string ListByTenant = Default + ".ListByTenant";
         public const string GetOwner = Default + ".GetOwner";
+        public const string CheckEligibility = Default + ".CheckEligibility";
     }
 
     public static class Chapters

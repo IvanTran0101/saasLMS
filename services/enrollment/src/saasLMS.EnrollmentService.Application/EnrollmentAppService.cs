@@ -212,7 +212,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
     //Private Helper
     private async Task ValidateCourseEligibilityAsync(Guid courseId, Guid tenantId)
     {
-        var eligibility = await _courseCatalogGateway.GetEnrollmentEligibility(courseId);
+        var eligibility = await _courseCatalogGateway.GetEnrollmentEligibility(courseId, tenantId);
  
         if (eligibility is null)
         {
@@ -227,7 +227,7 @@ public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppS
                 .WithData("TenantId", tenantId);
         }
  
-        if (eligibility.Status != "Published" || eligibility.IsHidden)
+        if (eligibility.Status != saasLMS.CourseCatalogService.Courses.CourseStatus.Published || eligibility.IsHidden)
         {
             throw new BusinessException(EnrollmentServiceErrorCodes.CourseNotEligibleForEnrollment)
                 .WithData("CourseId", courseId)
