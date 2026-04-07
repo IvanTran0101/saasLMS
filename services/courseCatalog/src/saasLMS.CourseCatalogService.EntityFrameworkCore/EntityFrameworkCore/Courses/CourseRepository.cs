@@ -8,7 +8,7 @@ using saasLMS.CourseCatalogService.Courses;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 
-namespace saasLMS.CourseCatalogService.EntityFrameworkCore;
+namespace saasLMS.CourseCatalogService.EntityFrameworkCore.Courses;
 
 public class CourseRepository
     : EfCoreRepository<CourseCatalogServiceDbContext, Course, Guid>,
