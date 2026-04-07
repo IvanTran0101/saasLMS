@@ -14,6 +14,7 @@ using Volo.Abp.Users;
 
 namespace saasLMS.LearningProgressService;
 
+[RemoteService(Name = LearningProgressServiceRemoteServiceConsts.RemoteServiceName)]
 public class LearningProgressAppService : LearningProgressServiceAppService, ILearningProgressAppService
 {
     private readonly ILessonProgressRepository _lessonProgressRepository;

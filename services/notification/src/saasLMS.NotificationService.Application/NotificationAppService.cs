@@ -14,6 +14,7 @@ using Volo.Abp.Users;
 
 namespace saasLMS.NotificationService;
 
+[RemoteService(Name = NotificationServiceRemoteServiceConsts.RemoteServiceName)]
 public class NotificationAppService : NotificationServiceAppService, INotificationAppService
 {
     private readonly INotificationRepository _notificationRepository;
@@ -103,6 +104,7 @@ public class NotificationAppService : NotificationServiceAppService, INotificati
         await _notificationRepository.UpdateManyAsync(unreadNotifications, autoSave: true);
     }
     
+    [RemoteService(IsMetadataEnabled = false)]
     public async Task SendNotificationAsync(SendNotificationInput input)
     {
         Check.NotNull(input, nameof(input));

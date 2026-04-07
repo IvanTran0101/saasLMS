@@ -13,6 +13,7 @@ using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
 using Volo.Abp;
+using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -67,6 +68,17 @@ public class LearningProgressServiceHttpApiHostModule : AbpModule
         });
 
         context.Services.TransformAbpClaims();
+        
+        Configure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options.ConventionalControllers.Create(
+                typeof(LearningProgressServiceApplicationModule).Assembly,
+                opts =>
+                {
+                    opts.RootPath = "learning-progress";
+                    opts.RemoteServiceName = LearningProgressServiceRemoteServiceConsts.RemoteServiceName;
+                });
+        });
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
