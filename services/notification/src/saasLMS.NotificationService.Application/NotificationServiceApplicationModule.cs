@@ -12,11 +12,10 @@ namespace saasLMS.NotificationService;
     typeof(NotificationServiceApplicationContractsModule),
     typeof(AbpDddApplicationModule),
     typeof(AbpMapperlyModule),
+    typeof(AbpEmailingModule),
     typeof(AbpMailKitModule)
     )]
-[DependsOn(typeof(AbpEmailingModule))]
-    [DependsOn(typeof(AbpMailKitModule))]
-    public class NotificationServiceApplicationModule : AbpModule
+public class NotificationServiceApplicationModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
