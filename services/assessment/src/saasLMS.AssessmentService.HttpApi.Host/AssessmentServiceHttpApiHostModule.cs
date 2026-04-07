@@ -6,13 +6,20 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using saasLMS.CourseCatalogService;
+using saasLMS.CourseCatalogService.Courses;
 using Microsoft.Extensions.Hosting;
 using saasLMS.AssessmentService.DbMigrations;
 using saasLMS.AssessmentService.EntityFrameworkCore;
+using saasLMS.AssessmentService.BlobStoring;
 using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
 using Volo.Abp;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Aws;
+using Volo.Abp.Http.Client;
+using Volo.Abp.Http.Client.IdentityModel.Web;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -20,9 +27,12 @@ namespace saasLMS.AssessmentService;
 
 [DependsOn(
     typeof(saasLMSSharedHostingMicroservicesModule),
+    typeof(AbpHttpClientIdentityModelWebModule),
     typeof(AssessmentServiceApplicationModule),
+    typeof(AssessmentServiceHttpApiClientModule),
     typeof(AssessmentServiceHttpApiModule),
-    typeof(AssessmentServiceEntityFrameworkCoreModule)
+    typeof(AssessmentServiceEntityFrameworkCoreModule),
+    typeof(AbpBlobStoringAwsModule)
     )]
 public class AssessmentServiceHttpApiHostModule : AbpModule
 {
@@ -36,13 +46,32 @@ public class AssessmentServiceHttpApiHostModule : AbpModule
         var configuration = context.Services.GetConfiguration();
 
         JwtBearerConfigurationHelper.Configure(context, "AssessmentService");
+        context.Services.AddStaticHttpClientProxies(
+            typeof(CourseCatalogServiceApplicationContractsModule).Assembly,
+            "course-catalog");
+        context.Services.AddHttpClientProxy<ICourseCatalogAppService>("course-catalog");
         SwaggerConfigurationHelper.ConfigureWithOidc(
             context: context,
             authority: configuration["AuthServer:Authority"]!,
-            scopes: new[] { "AssessmentService" },
+            scopes: new[] { "AssessmentService", "CourseCatalogService" },
             flows: new[] { "authorization_code" },
             apiTitle: "AssessmentService Service API"
         );
+        context.Services.Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.Configure<SubmissionFileContainer>(container =>
+            {
+                container.UseAws(aws =>
+                {
+                    aws.UseCredentials = true; // profile
+                    aws.ProfileName = "default";
+                    aws.ProfilesLocation = "/Users/yourname/.aws/credentials";
+                    aws.Region = "ap-southeast-1";
+                    aws.ContainerName = "your-bucket-name";
+                    aws.CreateContainerIfNotExists = false;
+                });
+            });
+        });
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;

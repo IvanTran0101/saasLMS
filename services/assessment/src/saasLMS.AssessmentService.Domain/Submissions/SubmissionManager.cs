@@ -45,7 +45,7 @@ using ContentType = saasLMS.AssessmentService.Shared.ContentType;
 // 	•	file storage abstraction/service
 // 
 // Submission hiện đã có đủ dữ liệu nền:
-// 	•	ContentRef
+// 	•	StorageKey
 // 	•	FileName
 // 	•	MimeType
 // 	•	FileSize
@@ -69,7 +69,7 @@ public class SubmissionManager : DomainService
         Guid studentId,
         DateTime submittedAt,
         ContentType contentType,
-        string contentRef,
+        string storageKey,
         string? fileName,
         string? mimeType,
         long? fileSize,
@@ -111,7 +111,7 @@ public class SubmissionManager : DomainService
                 assignment.Id,
                 studentId,
                 contentType,
-                contentRef,
+                storageKey,
                 submittedAt,
                 fileName,
                 mimeType,
@@ -142,7 +142,7 @@ public class SubmissionManager : DomainService
                 }
                 exists.UpdateContent(
                     contentType,
-                    contentRef,
+                    storageKey,
                     fileName,
                     mimeType,
                     fileSize,

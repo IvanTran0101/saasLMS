@@ -9,11 +9,13 @@ using saasLMS.CourseCatalogService.Lessons.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Content;
 
 namespace saasLMS.CourseCatalogService.Courses;
 
+[RemoteService(Name = CourseCatalogServiceRemoteServiceConsts.RemoteServiceName)]
 public interface ICourseCatalogAppService : IApplicationService
 {
     //Courses

@@ -309,7 +309,7 @@ namespace saasLMS.AssessmentService.Migrations
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
-                    b.Property<string>("ContentRef")
+                    b.Property<string>("StorageKey")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");

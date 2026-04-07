@@ -15,8 +15,10 @@ using Prometheus;
 using Volo.Abp;
 using Volo.Abp.BlobStoring;
 using saasLMS.CourseCatalogService.BlobStoring;
+using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.BlobStoring.Aws;
 using Volo.Abp.Http.Client;
+using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -42,6 +44,16 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
         JwtBearerConfigurationHelper.Configure(context, "CourseCatalogService");
         context.Services.AddHttpClientProxies(
             typeof(CourseCatalogServiceApplicationContractsModule).Assembly);
+        Configure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options.ConventionalControllers.Create(
+                typeof(CourseCatalogServiceApplicationModule).Assembly,
+                opts =>
+                {
+                    opts.RootPath = "course-catalog";
+                    opts.RemoteServiceName = CourseCatalogServiceRemoteServiceConsts.RemoteServiceName;
+                });
+        });
         SwaggerConfigurationHelper.ConfigureWithOidc(
             context: context,
             authority: configuration["AuthServer:Authority"]!,

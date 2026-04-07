@@ -28,7 +28,11 @@ public class CourseCatalogServiceHttpApiModule : AbpModule
         {
             options.ConventionalControllers.Create(
                 typeof(CourseCatalogServiceApplicationModule).Assembly,
-                opts => { opts.RootPath = "course-catalog"; });
+                opts =>
+                {
+                    opts.RootPath = "course-catalog";
+                    opts.RemoteServiceName = CourseCatalogServiceRemoteServiceConsts.RemoteServiceName;
+                });
         });
 
         Configure<AbpLocalizationOptions>(options =>

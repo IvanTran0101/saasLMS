@@ -15,14 +15,14 @@ using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using saasLMS.CourseCatalogService.BlobStoring;
-using Volo.Abp;
 using Volo.Abp.Authorization;
 using Volo.Abp.BlobStoring;
-using saasLMS.CourseCatalogService.BlobStoring;
 using Volo.Abp.Content;
+using Volo.Abp;
 
 namespace saasLMS.CourseCatalogService;
 
+[RemoteService(Name = CourseCatalogServiceRemoteServiceConsts.RemoteServiceName)]
 public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCatalogAppService
 {
     private readonly ICourseRepository _courseRepository;
@@ -100,11 +100,17 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:TenantNotFound");
         }
+        var userId = CurrentUser.Id;
+        if (!userId.HasValue)
+        {
+            throw new AbpAuthorizationException("You must be logged in to create a course.");
+        }
+
         var course = await _courseManager.CreateAsync(
             tenantId.Value,
             input.Title,
             input.Description,
-            input.InstructorId);
+            userId.Value);
         
         await _courseRepository.InsertAsync(course, autoSave: true);
         return ObjectMapper.Map<Course,  CourseDto>(course);
@@ -291,7 +297,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:CourseNotFound");
         }
         await _courseAccessChecker.CheckCanManageCourseAsync(course.Id);
-        return ObjectMapper.Map<Course, CourseDetailDto>(course);
+        return MapCourseDetail(course);
     }
 
     [Authorize(CourseCatalogServicePermissions.Courses.ViewPublished)]
@@ -313,7 +319,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         }
         EnsureCoursePublished(course);
         await _courseEnrollmentChecker.CheckStudentEnrolledAsync(course.Id);
-        var dto = ObjectMapper.Map<Course, CourseDetailDto>(course);
+        var dto = MapCourseDetail(course);
         FilterMaterialsForStudent(dto);
         return dto;
     }
@@ -1687,6 +1693,42 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             FilterMaterialsForStudent(chapter);
         }
+    }
+
+    private CourseDetailDto MapCourseDetail(Course course)
+    {
+        var dto = ObjectMapper.Map<Course, CourseDetailDto>(course);
+
+        var chapterDtos = new List<ChapterDto>();
+        foreach (var chapter in course.Chapters.OrderBy(c => c.OrderNo))
+        {
+            var chapterDto = ObjectMapper.Map<Chapter, ChapterDto>(chapter);
+            chapterDto.CourseId = course.Id;
+
+            var lessonDtos = new List<LessonInChapterDto>();
+            foreach (var lesson in chapter.Lessons.OrderBy(l => l.SortOrder))
+            {
+                var lessonDto = ObjectMapper.Map<Lesson, LessonInChapterDto>(lesson);
+                lessonDto.ChapterId = chapter.Id;
+
+                var materialDtos = new List<MaterialInLessonDto>();
+                foreach (var material in lesson.Materials.OrderBy(m => m.SortOrder))
+                {
+                    var materialDto = ObjectMapper.Map<Material, MaterialInLessonDto>(material);
+                    materialDto.LessonId = lesson.Id;
+                    materialDtos.Add(materialDto);
+                }
+
+                lessonDto.Materials = materialDtos;
+                lessonDtos.Add(lessonDto);
+            }
+
+            chapterDto.Lessons = lessonDtos;
+            chapterDtos.Add(chapterDto);
+        }
+
+        dto.Chapters = chapterDtos;
+        return dto;
     }
 
     private MaterialDto MapMaterialDetail(Material material, Guid courseId, Guid chapterId)

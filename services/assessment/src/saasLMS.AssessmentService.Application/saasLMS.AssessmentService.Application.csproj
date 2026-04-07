@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\..\..\common.props" />
 
@@ -9,9 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.Ddd.Application" Version="10.1.1" />
-    <PackageReference Include="Volo.Abp.Mapperly" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Ddd.Application" Version="10.2.0" />
+    <PackageReference Include="Volo.Abp.BlobStoring" Version="10.2.0" />
+    <PackageReference Include="Volo.Abp.Mapperly" Version="10.2.0" />
     <ProjectReference Include="..\saasLMS.AssessmentService.Application.Contracts\saasLMS.AssessmentService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\courseCatalog\src\saasLMS.CourseCatalogService.Application.Contracts\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
     <ProjectReference Include="..\saasLMS.AssessmentService.Domain\saasLMS.AssessmentService.Domain.csproj" />
   </ItemGroup>
 

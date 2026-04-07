@@ -2,5 +2,5 @@
 
 public static class CourseCatalogServiceRemoteServiceConsts
 {
-    public const string RemoteServiceName = "CourseCatalogService";
+    public const string RemoteServiceName = "course-catalog";
 }

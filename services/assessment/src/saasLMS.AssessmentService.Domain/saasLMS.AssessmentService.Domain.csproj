@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\..\..\common.props" />
 
@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.Ddd.Domain" Version="10.1.1" />
-    <PackageReference Include="Volo.Abp.Caching" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Ddd.Domain" Version="10.2.0" />
+    <PackageReference Include="Volo.Abp.Caching" Version="10.2.0" />
     <ProjectReference Include="..\saasLMS.AssessmentService.Domain.Shared\saasLMS.AssessmentService.Domain.Shared.csproj" />
   </ItemGroup>
 

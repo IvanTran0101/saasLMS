@@ -48,7 +48,7 @@ public static class AssessmentServiceDbContextModelCreatingExtensions
             b.Property(x => x.StudentId).IsRequired();
             b.Property(x => x.SubmittedAt).IsRequired();
             b.Property(x => x.ContentType).IsRequired();
-            b.Property(x => x.ContentRef).IsRequired().HasMaxLength(1000);
+            b.Property(x => x.StorageKey).IsRequired().HasMaxLength(1000);
             b.Property(x => x.FileName).HasMaxLength(255);
             b.Property(x => x.MimeType).HasMaxLength(128);
             b.Property(x => x.Status).IsRequired();
