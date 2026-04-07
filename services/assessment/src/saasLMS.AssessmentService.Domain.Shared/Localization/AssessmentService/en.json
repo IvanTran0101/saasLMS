@@ -1,5 +1,10 @@
 {
   "culture": "en",
   "texts": {
+    "Assessment:FileEmpty": "File is empty or missing.",
+    "Assessment:FileTooLarge": "File is too large.",
+    "Assessment:FileTypeNotAllowed": "File type is not allowed.",
+    "Assessment:MimeTypeNotAllowed": "File MIME type is not allowed.",
+    "Assessment:SubmissionFileNotFound": "Submission file was not found."
   }
 }

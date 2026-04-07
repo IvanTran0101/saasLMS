@@ -12,7 +12,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
     public Guid AssignmentId { get; protected set; }
     public Guid StudentId { get; protected set; }
     public ContentType ContentType { get; protected set; }
-    public string ContentRef { get; protected set; } = string.Empty;
+    public string StorageKey { get; protected set; } = string.Empty;
     public DateTime SubmittedAt { get; protected set; }
     public string? FileName {get; protected set; }
     public string? MimeType { get; protected set; }
@@ -24,7 +24,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
     {
     }
 
-    public Submission(Guid id, Guid tenantId, Guid assignmentId, Guid studentId, ContentType contentType, string contentRef, DateTime submittedAt, string? fileName, string? mimeType, long? fileSize) : base(id)
+    public Submission(Guid id, Guid tenantId, Guid assignmentId, Guid studentId, ContentType contentType, string storageKey, DateTime submittedAt, string? fileName, string? mimeType, long? fileSize) : base(id)
     {
         if (tenantId == Guid.Empty)
         {
@@ -45,7 +45,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
         TenantId = tenantId;
         AssignmentId = assignmentId;
         StudentId = studentId;
-        SetContent(contentType, contentRef, fileName, mimeType, fileSize);
+        SetContent(contentType, storageKey, fileName, mimeType, fileSize);
         SubmittedAt = submittedAt;
         
         Status = SubmissionStatus.Submitted;
@@ -57,7 +57,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
         Guid assignmentId,
         Guid studentId,
         ContentType contentType,
-        string contentRef,
+        string storageKey,
         DateTime submittedAt,
         string? fileName,
         string? mimeType,
@@ -70,7 +70,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
 			assignmentId,
 			studentId,
 			contentType,
-			contentRef,
+			storageKey,
 			submittedAt,
 			fileName,
 			mimeType,
@@ -116,7 +116,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
     }
 
     public void UpdateContent(ContentType contentType,
-        string contentRef,
+        string storageKey,
         string? fileName,
         string? mimeType,
         long? fileSize,
@@ -130,7 +130,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
         {
             throw new ArgumentException("The submitted time cannot be earlier than the current submitted time.", nameof(submittedAt));
         }
-        SetContent(contentType, contentRef, fileName, mimeType, fileSize);
+        SetContent(contentType, storageKey, fileName, mimeType, fileSize);
         SubmittedAt = submittedAt;
         
         AddLocalEvent(new SubmissionUpdatedDomainEvent(
@@ -144,12 +144,12 @@ public class Submission : FullAuditedAggregateRoot<Guid>
 
     private void SetContent(
         ContentType contentType,
-        string contentRef,
+        string storageKey,
         string? fileName,
         string? mimeType,
         long? fileSize)
     {
-        var normalizedContentRef = Check.NotNullOrWhiteSpace(contentRef, nameof(contentRef)).Trim();  
+        var normalizedStorageKey = Check.NotNullOrWhiteSpace(storageKey, nameof(storageKey)).Trim();  
         var normalizedFileName = fileName?.Trim();
         var normalizedMimeType = mimeType?.Trim();
         switch (contentType)
@@ -181,7 +181,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
 
                 break;
             case ContentType.VideoLink:
-                if (!Uri.TryCreate(contentRef, UriKind.Absolute, out _))
+                if (!Uri.TryCreate(storageKey, UriKind.Absolute, out _))
                 {
                     throw new BusinessException("Link submissions must contain a valid video URL");
                 }
@@ -201,7 +201,7 @@ public class Submission : FullAuditedAggregateRoot<Guid>
         
         
         ContentType = contentType;
-        ContentRef = normalizedContentRef;
+        StorageKey = normalizedStorageKey;
         FileName = normalizedFileName;
         MimeType = normalizedMimeType;
         FileSize = fileSize;

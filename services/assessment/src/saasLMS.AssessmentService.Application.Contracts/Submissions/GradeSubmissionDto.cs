@@ -1,4 +1,4 @@
-namespace saasLMS.AssessmentService.Assignments;
+namespace saasLMS.AssessmentService.Submissions;
 
 public class GradeSubmissionDto
 {
