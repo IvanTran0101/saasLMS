@@ -1,4 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using saasLMS.LearningProgressService.CourseProgresses;
+using saasLMS.LearningProgressService.EntityFrameworkCore.CourseProgresses;
+using saasLMS.LearningProgressService.EntityFrameworkCore.LessonProgresses;
+using saasLMS.LearningProgressService.LessonProgresses;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.Modularity;
@@ -24,6 +28,8 @@ public class LearningProgressServiceEntityFrameworkCoreModule : AbpModule
                 /* Remove "includeAllEntities: true" to create
                  * default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
+            options.AddRepository<LessonProgress, LessonProgressRepository>();
+            options.AddRepository<CourseProgress, CourseProgressRepository>();
         });
 
         Configure<AbpDbContextOptions>(options =>
