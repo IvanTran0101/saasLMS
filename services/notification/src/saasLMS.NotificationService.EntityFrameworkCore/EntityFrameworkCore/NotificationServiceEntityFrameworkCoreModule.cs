@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using saasLMS.NotificationService.EntityFrameworkCore.Notifications;
+using saasLMS.NotificationService.Notifications;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.Modularity;
@@ -24,6 +26,7 @@ public class NotificationServiceEntityFrameworkCoreModule : AbpModule
                 /* Remove "includeAllEntities: true" to create
                  * default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
+            options.AddRepository<Notification, NotificationRepository>();
         });
 
         Configure<AbpDbContextOptions>(options =>
