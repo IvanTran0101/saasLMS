@@ -30,6 +30,7 @@ public class EnrollmentEtoHandler
             Type            = NotificationType.Enrollment,
             ReferenceType   = nameof(StudentEnrolledEto),
             ReferenceId     = eventData.EnrollmentId.ToString()
+            
         });
     }
     
