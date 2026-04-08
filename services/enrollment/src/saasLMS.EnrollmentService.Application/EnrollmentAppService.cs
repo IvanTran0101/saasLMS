@@ -11,6 +11,7 @@ using Volo.Abp.Users;
 
 namespace saasLMS.EnrollmentService;
 
+[RemoteService(Name = EnrollmentServiceRemoteServiceConsts.RemoteServiceName)]
 public class EnrollmentAppService : EnrollmentServiceAppService, IEnrollmentAppService  
 {
     private readonly IEnrollmentRepository _enrollmentRepository;

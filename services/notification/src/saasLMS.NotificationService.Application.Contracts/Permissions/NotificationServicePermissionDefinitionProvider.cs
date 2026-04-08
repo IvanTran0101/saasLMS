@@ -15,7 +15,7 @@ public class NotificationServicePermissionDefinitionProvider : PermissionDefinit
             L("Permission:Notifications"));
 
         notifications.AddChild(
-            NotificationServicePermissions.Notifications.ViewOwn,
+            NotificationServicePermissions.Notifications.ViewMy,
             L("Permission:ViewOwn"));
 
         notifications.AddChild(

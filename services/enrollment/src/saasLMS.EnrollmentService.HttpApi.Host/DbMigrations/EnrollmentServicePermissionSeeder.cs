@@ -39,6 +39,13 @@ public class EnrollmentServicePermissionSeeder : ITransientDependency
                 "CourseCatalogService",
                 new[] { EnrollmentServicePermissions.Enrollments.CheckActive },
                 tenantId: null);
+            
+            _logger.LogInformation("Seeding EnrollmentService permissions for LearningProgressService client.");
+            await _permissionDataSeeder.SeedAsync(
+                ClientPermissionValueProvider.ProviderName,
+                "LearningProgressService",
+                new[] { EnrollmentServicePermissions.Enrollments.CheckActive },
+                tenantId: null);
 
             await uow.CompleteAsync();
         }

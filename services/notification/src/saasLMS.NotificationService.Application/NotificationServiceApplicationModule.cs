@@ -2,8 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Application;
 using Volo.Abp.Mapperly;
 using Volo.Abp.Modularity;
-using Volo.Abp.Emailing;
-using Volo.Abp.MailKit;
 
 namespace saasLMS.NotificationService;
 
@@ -11,9 +9,7 @@ namespace saasLMS.NotificationService;
     typeof(NotificationServiceDomainModule),
     typeof(NotificationServiceApplicationContractsModule),
     typeof(AbpDddApplicationModule),
-    typeof(AbpMapperlyModule),
-    typeof(AbpEmailingModule),
-    typeof(AbpMailKitModule)
+    typeof(AbpMapperlyModule)
     )]
 public class NotificationServiceApplicationModule : AbpModule
 {
