@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using saasLMS.CourseCatalogService.Courses;
+using saasLMS.CourseCatalogService.EntityFrameworkCore.Courses;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.Modularity;

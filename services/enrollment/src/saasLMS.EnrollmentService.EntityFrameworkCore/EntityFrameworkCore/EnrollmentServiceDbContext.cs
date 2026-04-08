@@ -8,7 +8,7 @@ namespace saasLMS.EnrollmentService.EntityFrameworkCore;
 [ConnectionStringName(EnrollmentServiceDbProperties.ConnectionStringName)]
 public class EnrollmentServiceDbContext : AbpDbContext<EnrollmentServiceDbContext>
 {
-    DbSet<Enrollment> Enrollments { get; set; }
+    public DbSet<Enrollment> Enrollments { get; set; }
     public EnrollmentServiceDbContext(DbContextOptions<EnrollmentServiceDbContext> options)
         : base(options)
     {

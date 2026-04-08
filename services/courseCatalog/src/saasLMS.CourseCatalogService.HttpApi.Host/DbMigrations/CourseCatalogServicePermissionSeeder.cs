@@ -40,6 +40,13 @@ public class CourseCatalogServicePermissionSeeder : ITransientDependency
                 new[] { CourseCatalogServicePermissions.Courses.GetOwner },
                 tenantId: null);
 
+            _logger.LogInformation("Seeding CourseCatalog permissions for EnrollmentService client.");
+            await _permissionDataSeeder.SeedAsync(
+                ClientPermissionValueProvider.ProviderName,
+                "EnrollmentService",
+                new[] { CourseCatalogServicePermissions.Courses.CheckEligibility },
+                tenantId: null);
+
             await uow.CompleteAsync();
         }
     }

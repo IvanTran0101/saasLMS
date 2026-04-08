@@ -63,12 +63,13 @@ public class AssessmentServiceHttpApiHostModule : AbpModule
             {
                 container.UseAws(aws =>
                 {
-                    aws.UseCredentials = true; // profile
-                    aws.ProfileName = "default";
-                    aws.ProfilesLocation = "/Users/yourname/.aws/credentials";
-                    aws.Region = "ap-southeast-1";
-                    aws.ContainerName = "your-bucket-name";
-                    aws.CreateContainerIfNotExists = false;
+                    var awsSection = configuration.GetSection("AssessmentService:Aws");
+                    aws.UseCredentials = awsSection.GetValue("UseCredentials", true);
+                    aws.ProfileName = awsSection.GetValue("ProfileName", "default");
+                    aws.ProfilesLocation = awsSection.GetValue("ProfilesLocation", "/Users/yourname/.aws/credentials");
+                    aws.Region = awsSection.GetValue("Region", "ap-southeast-1");
+                    aws.ContainerName = awsSection.GetValue("ContainerName", "your-assessment-bucket");
+                    aws.CreateContainerIfNotExists = awsSection.GetValue("CreateContainerIfNotExists", false);
                 });
             });
         });

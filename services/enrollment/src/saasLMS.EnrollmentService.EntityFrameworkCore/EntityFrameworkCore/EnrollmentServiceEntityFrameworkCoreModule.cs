@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using saasLMS.EnrollmentService.Enrollments;
+using saasLMS.EnrollmentService.EntityFrameworkCore.Enrollments;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.Modularity;
@@ -24,6 +26,7 @@ public class EnrollmentServiceEntityFrameworkCoreModule : AbpModule
                 /* Remove "includeAllEntities: true" to create
                  * default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
+            options.AddRepository<Enrollment, EnrollmentRepository>();
         });
 
         Configure<AbpDbContextOptions>(options =>

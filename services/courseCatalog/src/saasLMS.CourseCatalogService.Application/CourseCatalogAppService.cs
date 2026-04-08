@@ -279,6 +279,29 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         };
     }
 
+    [Authorize(CourseCatalogServicePermissions.Courses.CheckEligibility)]
+    public async Task<CourseEligibilityDto?> GetEnrollmentEligibilityAsync(Guid courseId, Guid tenantId)
+    {
+        if (courseId == Guid.Empty || tenantId == Guid.Empty)
+        {
+            throw new BusinessException("CourseCatalog:CourseNotFound");
+        }
+
+        var course = await _courseRepository.FindWithDetailsAsync(courseId, tenantId);
+        if (course == null)
+        {
+            return null;
+        }
+
+        return new CourseEligibilityDto
+        {
+            CourseId = course.Id,
+            TenantId = course.TenantId,
+            Status = course.Status,
+            IsHidden = course.Status == CourseStatus.Hidden
+        };
+    }
+
     [Authorize(CourseCatalogServicePermissions.Courses.View)]
     public async Task<CourseDetailDto> GetCourseDetailAsync(Guid id)
     {
@@ -1741,6 +1764,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
     }
 
     [Authorize(CourseCatalogServicePermissions.Materials.Update)]
+    [RemoteService(false)]
     public async Task<MaterialDto> UploadMaterialFileAsync(UploadMaterialFileInput input, IRemoteStreamContent file)
     {
         await _courseAccessChecker.CheckCanManageCourseAsync(input.CourseId);

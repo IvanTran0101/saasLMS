@@ -12,7 +12,11 @@ using saasLMS.EnrollmentService.EntityFrameworkCore;
 using saasLMS.Shared.Hosting.Microservices;
 using saasLMS.Shared.Hosting.AspNetCore;
 using Prometheus;
+using saasLMS.CourseCatalogService;
+using saasLMS.CourseCatalogService.Courses;
 using Volo.Abp;
+using Volo.Abp.Http.Client;
+using Volo.Abp.Http.Client.IdentityModel.Web;
 using Volo.Abp.Modularity;
 using Volo.Abp.Security.Claims;
 
@@ -22,7 +26,9 @@ namespace saasLMS.EnrollmentService;
     typeof(saasLMSSharedHostingMicroservicesModule),
     typeof(EnrollmentServiceApplicationModule),
     typeof(EnrollmentServiceHttpApiModule),
-    typeof(EnrollmentServiceEntityFrameworkCoreModule)
+    typeof(EnrollmentServiceEntityFrameworkCoreModule),
+    typeof(CourseCatalogServiceApplicationContractsModule),
+    typeof(AbpHttpClientIdentityModelWebModule)
     )]
 public class EnrollmentServiceHttpApiHostModule : AbpModule
 {
@@ -39,7 +45,7 @@ public class EnrollmentServiceHttpApiHostModule : AbpModule
         SwaggerConfigurationHelper.ConfigureWithOidc(
             context: context,
             authority: configuration["AuthServer:Authority"]!,
-            scopes: new[] { "EnrollmentService" },
+            scopes: new[] { "EnrollmentService", "CourseCatalogService" },
             flows: new[] { "authorization_code" },
             apiTitle: "EnrollmentService Service API"
         );
@@ -67,6 +73,9 @@ public class EnrollmentServiceHttpApiHostModule : AbpModule
         });
 
         context.Services.TransformAbpClaims();
+
+        context.Services.AddHttpClientProxy<ICourseCatalogAppService>(
+            CourseCatalogServiceRemoteServiceConsts.RemoteServiceName);
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

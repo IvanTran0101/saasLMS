@@ -29,6 +29,7 @@ public interface ICourseCatalogAppService : IApplicationService
     Task<CourseDto> GetCourseAsync(Guid id);
     Task<CourseDto> GetCourseStudentAsync(Guid id);
     Task<CourseOwnerDto> GetOwnerAsync(Guid id);
+    Task<CourseEligibilityDto?> GetEnrollmentEligibilityAsync(Guid courseId, Guid tenantId);
     Task<CourseDetailDto> GetCourseDetailAsync(Guid id);
     Task<CourseDetailDto> GetCourseDetailStudentAsync(Guid id);
     Task<List<CourseListItemDto>> GetPublishedCoursesAsync();

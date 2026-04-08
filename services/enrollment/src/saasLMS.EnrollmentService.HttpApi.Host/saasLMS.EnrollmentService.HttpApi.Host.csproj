@@ -13,6 +13,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Volo.Abp.Http.Client.IdentityModel.Web" Version="10.1.1" />
     </ItemGroup>
 
     <ItemGroup>        
@@ -20,6 +21,7 @@
         <ProjectReference Include="..\saasLMS.EnrollmentService.Application\saasLMS.EnrollmentService.Application.csproj" />
         <ProjectReference Include="..\saasLMS.EnrollmentService.EntityFrameworkCore\saasLMS.EnrollmentService.EntityFrameworkCore.csproj" />
         <ProjectReference Include="..\saasLMS.EnrollmentService.HttpApi\saasLMS.EnrollmentService.HttpApi.csproj" />
+        <ProjectReference Include="..\..\..\courseCatalog\src\saasLMS.CourseCatalogService.Application.Contracts\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -16,6 +16,7 @@
     "Permission:ListByInstructor": "List By Instructor",
     "Permission:ListByTenant": "List By Tenant",
     "Permission:GetOwner": "Get Owner",
+    "Permission:CheckEligibility": "Check Eligibility",
     "Permission:DownloadPublished": "Download Published",
     "CourseCatalog:FileEmpty": "File is empty or missing.",
     "CourseCatalog:FileTooLarge": "File is too large.",
