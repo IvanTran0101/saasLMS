@@ -1,0 +1,67 @@
+{
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "saasLMS.ReportingService.Domain.Shared": {
+      "path": "src/saasLMS.ReportingService.Domain.Shared/saasLMS.ReportingService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.Application.Contracts": {
+      "path": "src/saasLMS.ReportingService.Application.Contracts/saasLMS.ReportingService.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.Domain": {
+      "path": "src/saasLMS.ReportingService.Domain/saasLMS.ReportingService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.Application": {
+      "path": "src/saasLMS.ReportingService.Application/saasLMS.ReportingService.Application.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.EntityFrameworkCore": {
+      "path": "src/saasLMS.ReportingService.EntityFrameworkCore/saasLMS.ReportingService.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.HttpApi": {
+      "path": "src/saasLMS.ReportingService.HttpApi/saasLMS.ReportingService.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.HttpApi.Client": {
+      "path": "src/saasLMS.ReportingService.HttpApi.Client/saasLMS.ReportingService.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.HttpApi.Host": {
+      "path": "src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.Blazor": {
+      "path": "src/saasLMS.ReportingService.Blazor/saasLMS.ReportingService.Blazor.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.Web": {
+      "path": "src/saasLMS.ReportingService.Web/saasLMS.ReportingService.Web.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.ReportingService.Domain.Tests": {
+      "path": "test/saasLMS.ReportingService.Domain.Tests/saasLMS.ReportingService.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.ReportingService.EntityFrameworkCore.Tests": {
+      "path": "test/saasLMS.ReportingService.EntityFrameworkCore.Tests/saasLMS.ReportingService.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.ReportingService.TestBase": {
+      "path": "test/saasLMS.ReportingService.TestBase/saasLMS.ReportingService.TestBase.abppkg",
+      "folder": "test"
+    },
+    "saasLMS.ReportingService.Application.Tests": {
+      "path": "test/saasLMS.ReportingService.Application.Tests/saasLMS.ReportingService.Application.Tests.abppkg",
+      "folder": "test"
+    }
+  },
+  "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
+}

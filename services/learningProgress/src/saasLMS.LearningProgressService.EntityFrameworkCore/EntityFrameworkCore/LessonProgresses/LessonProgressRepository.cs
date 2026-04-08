@@ -85,4 +85,28 @@ public class LessonProgressRepository
             .OrderByDescending(lp => lp.LastViewedAt)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<int> CountCompletedByCourseAndStudentAsync(
+        Guid tenantId,
+        Guid courseId,
+        Guid studentId,
+        IReadOnlyCollection<Guid> lessonIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (lessonIds.Count == 0)
+        {
+            return 0;
+        }
+
+        var dbSet = await GetDbSetAsync();
+        return await dbSet
+            .AsNoTracking()
+            .CountAsync(
+                lp => lp.TenantId == tenantId
+                   && lp.CourseId == courseId
+                   && lp.StudentId == studentId
+                   && lp.Status == LessonProgressStatus.Completed
+                   && lessonIds.Contains(lp.LessonId),
+                cancellationToken);
+    }
 }

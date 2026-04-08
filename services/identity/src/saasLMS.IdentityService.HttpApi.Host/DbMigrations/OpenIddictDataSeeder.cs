@@ -80,12 +80,26 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
         await CreateScopesAsync("ProductService");
         await CreateScopesAsync("CourseCatalogService");
         await CreateScopesAsync("EnrollmentService");
+        await CreateScopesAsync("ReportingService");
+        await CreateScopesAsync("LearningProgressService");
+        await CreateScopesAsync("AssessmentService");
     }
 
     private async Task CreateWebGatewaySwaggerClientsAsync()
     {
         await CreateSwaggerClientAsync("WebGateway",
-            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService", "CourseCatalogService", "EnrollmentService" });
+            new[] {
+                "AccountService",
+                "IdentityService",
+                "AdministrationService",
+                "SaasService",
+                "ProductService",
+                "CourseCatalogService",
+                "EnrollmentService",
+                "LearningProgressService",
+                "AssessmentService",
+                "ReportingService"
+            });
     }
 
     private async Task CreateSwaggerClientAsync(string name, string[]? scopes = null)
@@ -113,6 +127,9 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
             var productServiceRootUrl = _configuration[$"OpenIddict:Resources:ProductService:RootUrl"]?.EnsureEndsWith('/');
             var courseCatalogServiceRootUrl = _configuration[$"OpenIddict:Resources:CourseCatalogService:RootUrl"]?.EnsureEndsWith('/');
             var enrollmentServiceRootUrl = _configuration[$"OpenIddict:Resources:EnrollmentService:RootUrl"]?.EnsureEndsWith('/');
+            var reportingServiceRootUrl = _configuration[$"OpenIddict:Resources:ReportingService:RootUrl"]?.EnsureEndsWith('/');
+            var learningProgressServiceRootUrl = _configuration[$"OpenIddict:Resources:LearningProgressService:RootUrl"]?.EnsureEndsWith('/');
+            var assessmentServiceRootUrl = _configuration[$"OpenIddict:Resources:AssessmentService:RootUrl"]?.EnsureEndsWith('/');
 
             await CreateApplicationAsync(
                 name: swaggerClientId!,
@@ -132,6 +149,9 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
                     $"{productServiceRootUrl}swagger/oauth2-redirect.html", // ProductService redirect uri
                     $"{courseCatalogServiceRootUrl}swagger/oauth2-redirect.html", // CourseCatalogService redirect uri
                     $"{enrollmentServiceRootUrl}swagger/oauth2-redirect.html", // EnrollmentService redirect uri
+                    $"{learningProgressServiceRootUrl}swagger/oauth2-redirect.html", // LearningProgressService redirect uri
+                    $"{assessmentServiceRootUrl}swagger/oauth2-redirect.html", // AssessmentService redirect uri
+                    $"{reportingServiceRootUrl}swagger/oauth2-redirect.html", // ReportingService redirect uri
                 }
             );
         }

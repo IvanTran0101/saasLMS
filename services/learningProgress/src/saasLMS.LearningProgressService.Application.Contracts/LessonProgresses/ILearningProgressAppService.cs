@@ -13,7 +13,6 @@ namespace saasLMS.LearningProgressService.LessonProgresses;
 public interface ILearningProgressAppService : IApplicationService
 {
     Task<LessonProgressDto> StartLessonAsync(StartLessonInput input);
-    Task<LessonProgressDto> ViewLessonAsync(ViewLessonInput input);
     Task<LessonProgressDto> CompleteLessonAsync(CompleteLessonInput input);
  
     Task<List<LessonProgressDto>> GetMyProgressAsync(Guid courseId);

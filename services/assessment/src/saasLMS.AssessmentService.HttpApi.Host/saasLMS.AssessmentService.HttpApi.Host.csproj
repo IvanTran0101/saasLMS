@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
         <RootNamespace>saasLMS.AssessmentService</RootNamespace>
         <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+        <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
     </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +34,17 @@
         <Content Remove="Logs\**" />
         <EmbeddedResource Remove="Logs\**" />
         <None Remove="Logs\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Remove="bin\**;obj\**" />
+        <None Remove="bin\**;obj\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appsettings.secrets.json">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

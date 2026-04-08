@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using saasLMS.LearningProgressService.CourseProgresses;
 using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs;
+using saasLMS.LearningProgressService.CourseStructures;
+using saasLMS.LearningProgressService.Enrollments;
+using saasLMS.LearningProgressService.Etos.CourseProgresses;
 using saasLMS.LearningProgressService.LessonProgresses;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs;
 using saasLMS.LearningProgressService.Permissions;
 using Volo.Abp;
+using Volo.Abp.EventBus.Distributed;
 using Volo.Abp.Users;
 
 namespace saasLMS.LearningProgressService;
@@ -19,22 +23,28 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
 {
     private readonly ILessonProgressRepository _lessonProgressRepository;
     private readonly ICourseProgressRepository _courseProgressRepository;
+    private readonly ILessonProjectionRepository _lessonProjectionRepository;
+    private readonly IEnrollmentProjectionRepository _enrollmentProjectionRepository;
     private readonly LessonProgressManager _lessonProgressManager;
     private readonly CourseProgressManager _courseProgressManager;
-    private readonly IEnrollmentGateway _enrollmentGateway;
+    private readonly IDistributedEventBus _distributedEventBus;
  
     public LearningProgressAppService(
         ILessonProgressRepository lessonProgressRepository,
         ICourseProgressRepository courseProgressRepository,
+        ILessonProjectionRepository lessonProjectionRepository,
+        IEnrollmentProjectionRepository enrollmentProjectionRepository,
         LessonProgressManager lessonProgressManager,
         CourseProgressManager courseProgressManager,
-        IEnrollmentGateway enrollmentGateway)
+        IDistributedEventBus distributedEventBus)
     {
         _lessonProgressRepository = lessonProgressRepository;
         _courseProgressRepository = courseProgressRepository;
+        _lessonProjectionRepository = lessonProjectionRepository;
+        _enrollmentProjectionRepository = enrollmentProjectionRepository;
         _lessonProgressManager = lessonProgressManager;
         _courseProgressManager = courseProgressManager;
-        _enrollmentGateway = enrollmentGateway;
+        _distributedEventBus = distributedEventBus;
     }
     
     [Authorize(LearningProgressServicePermissions.LessonProgresses.Record)]
@@ -46,31 +56,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         ValidateCourseId(input.CourseId);
         ValidateLessonId(input.LessonId);
         await EnsureEnrollmentActiveAsync(tenantId, input.CourseId, studentId);
- 
-        var lessonProgress = await FindOrCreateLessonProgressAsync(
-            tenantId, input.CourseId, input.LessonId, studentId);
- 
-        if (lessonProgress.Status == LessonProgressStatus.NotStarted)
-        {
-            await _lessonProgressManager.MarkAsViewedAsync(lessonProgress, Clock.Now);
-            await _lessonProgressRepository.UpdateAsync(lessonProgress, autoSave: true);
-        }
- 
-        await UpdateCourseProgressLastAccessAsync(
-            tenantId, input.CourseId, studentId, input.LessonId, input.TotalLessonsCount);
- 
-        return ObjectMapper.Map<LessonProgress, LessonProgressDto>(lessonProgress);
-    }
-    
-    [Authorize(LearningProgressServicePermissions.LessonProgresses.Record)]
-    public async Task<LessonProgressDto> ViewLessonAsync(ViewLessonInput input)
-    {
-        Check.NotNull(input, nameof(input));
- 
-        var (tenantId, studentId) = ResolveAndValidateStudentContext();
-        ValidateCourseId(input.CourseId);
-        ValidateLessonId(input.LessonId);
-        await EnsureEnrollmentActiveAsync(tenantId, input.CourseId, studentId);
+        await EnsureLessonActiveAsync(tenantId, input.CourseId, input.LessonId);
  
         var lessonProgress = await FindOrCreateLessonProgressAsync(
             tenantId, input.CourseId, input.LessonId, studentId);
@@ -93,6 +79,7 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         ValidateCourseId(input.CourseId);
         ValidateLessonId(input.LessonId);
         await EnsureEnrollmentActiveAsync(tenantId, input.CourseId, studentId);
+        await EnsureLessonActiveAsync(tenantId, input.CourseId, input.LessonId);
  
         var lessonProgress = await FindOrCreateLessonProgressAsync(
             tenantId, input.CourseId, input.LessonId, studentId);
@@ -119,6 +106,14 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
  
         var lessonProgresses = await _lessonProgressRepository.GetListByCourseAndStudentAsync(
             tenantId, courseId, studentId);
+        var activeLessonIds = await _lessonProjectionRepository.GetActiveLessonIdsByCourseAsync(
+            tenantId, courseId);
+        if (activeLessonIds.Count > 0)
+        {
+            lessonProgresses = lessonProgresses
+                .Where(lp => activeLessonIds.Contains(lp.LessonId))
+                .ToList();
+        }
  
         return lessonProgresses
             .Select(MapLessonProgressDetail)
@@ -162,10 +157,14 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         var (tenantId, studentId) = ResolveAndValidateStudentContext();
         ValidateCourseId(courseId);
  
+        var activeLessonIds = await _lessonProjectionRepository.GetActiveLessonIdsByCourseAsync(
+            tenantId, courseId);
         var inProgressLesson = await _lessonProgressRepository.GetListByCourseAndStudentAsync(
             tenantId, courseId, studentId, status: LessonProgressStatus.InProgress);
  
-        var target = inProgressLesson.FirstOrDefault();
+        var target = activeLessonIds.Count == 0
+            ? inProgressLesson.FirstOrDefault()
+            : inProgressLesson.FirstOrDefault(lp => activeLessonIds.Contains(lp.LessonId));
  
         if (target != null)
         {
@@ -175,11 +174,25 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         var lastViewedLesson = await _lessonProgressRepository.GetLastViewedLessonAsync(
             tenantId, courseId, studentId);
  
-        if (lastViewedLesson != null)
+        if (lastViewedLesson != null
+            && (activeLessonIds.Count == 0 || activeLessonIds.Contains(lastViewedLesson.LessonId)))
         {
             return ObjectMapper.Map<LessonProgress, ResumeResultDto>(lastViewedLesson);
         }
- 
+        var firstActiveLessonId = await _lessonProjectionRepository.GetFirstActiveLessonIdByCourseAsync(
+            tenantId, courseId);
+
+        if (firstActiveLessonId.HasValue)
+        {
+            return new ResumeResultDto
+            {
+                CourseId     = courseId,
+                LessonId     = firstActiveLessonId.Value,
+                LessonStatus = LessonProgressStatus.NotStarted,
+                LastViewedAt = null
+            };
+        }
+
         return new ResumeResultDto
         {
             CourseId     = courseId,
@@ -220,10 +233,9 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
  
     private async Task EnsureEnrollmentActiveAsync(Guid tenantId, Guid courseId, Guid studentId)
     {
-        var isActive = await _enrollmentGateway.IsEnrollmentActiveAsync(
+        var projection = await _enrollmentProjectionRepository.FindByCourseAndStudentAsync(
             tenantId, courseId, studentId);
- 
-        if (!isActive)
+        if (projection == null || !projection.IsActive)
         {
             throw new BusinessException("LearningProgressService:NotEnrolled");
         }
@@ -258,15 +270,18 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
             return courseProgress;
         }
  
-        if (!clientTotalLessonsCount.HasValue || clientTotalLessonsCount.Value <= 0)
+        var totalLessonsCount = await ResolveTotalLessonsCountAsync(
+            tenantId, courseId, clientTotalLessonsCount);
+        if (totalLessonsCount <= 0)
         {
             throw new BusinessException("LearningProgressService:TotalLessonsCountRequired");
         }
  
         courseProgress = await _courseProgressManager.CreateAsync(
-            tenantId, courseId, studentId, clientTotalLessonsCount.Value);
+            tenantId, courseId, studentId, totalLessonsCount);
  
         await _courseProgressRepository.InsertAsync(courseProgress, autoSave: true);
+        await PublishCourseProgressUpdatedAsync(courseProgress);
         return courseProgress;
     }
  
@@ -276,16 +291,17 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         var courseProgress = await FindOrCreateCourseProgressAsync(
             tenantId, courseId, studentId, clientTotalLessonsCount);
  
-        if (clientTotalLessonsCount.HasValue
-            && clientTotalLessonsCount.Value > 0
-            && clientTotalLessonsCount.Value != courseProgress.TotalLessonsCount)
+        var totalLessonsCount = await ResolveTotalLessonsCountAsync(
+            tenantId, courseId, clientTotalLessonsCount);
+        if (totalLessonsCount > 0 && totalLessonsCount != courseProgress.TotalLessonsCount)
         {
             await _courseProgressManager.UpdateTotalLessonsCountAsync(
-                courseProgress, clientTotalLessonsCount.Value, Clock.Now);
+                courseProgress, totalLessonsCount, Clock.Now);
         }
  
         await _courseProgressManager.UpdateLastAccessAsync(courseProgress, lessonId, Clock.Now);
         await _courseProgressRepository.UpdateAsync(courseProgress, autoSave: true);
+        await PublishCourseProgressUpdatedAsync(courseProgress);
     }
  
     private async Task RecalculateCourseProgressAsync(
@@ -294,28 +310,81 @@ public class LearningProgressAppService : LearningProgressServiceAppService, ILe
         var courseProgress = await FindOrCreateCourseProgressAsync(
             tenantId, courseId, studentId, clientTotalLessonsCount);
  
-        if (clientTotalLessonsCount.HasValue
-            && clientTotalLessonsCount.Value > 0
-            && clientTotalLessonsCount.Value != courseProgress.TotalLessonsCount)
+        var totalLessonsCount = await ResolveTotalLessonsCountAsync(
+            tenantId, courseId, clientTotalLessonsCount);
+        if (totalLessonsCount > 0 && totalLessonsCount != courseProgress.TotalLessonsCount)
         {
             await _courseProgressManager.UpdateTotalLessonsCountAsync(
-                courseProgress, clientTotalLessonsCount.Value, Clock.Now);
+                courseProgress, totalLessonsCount, Clock.Now);
         }
  
-        var lessonProgresses = await _lessonProgressRepository.GetListByCourseAndStudentAsync(
-            tenantId, courseId, studentId);
- 
-        var completedCount = lessonProgresses.Count(lp => lp.Status == LessonProgressStatus.Completed);
+        var activeLessonIds = await _lessonProjectionRepository.GetActiveLessonIdsByCourseAsync(
+            tenantId, courseId);
+        var completedCount = await _lessonProgressRepository.CountCompletedByCourseAndStudentAsync(
+            tenantId, courseId, studentId, activeLessonIds);
  
         await _courseProgressManager.UpdateCompletedLessonsAsync(
             courseProgress, completedCount, Clock.Now);
  
         await _courseProgressManager.UpdateLastAccessAsync(courseProgress, lessonId, Clock.Now);
         await _courseProgressRepository.UpdateAsync(courseProgress, autoSave: true);
+        await PublishCourseProgressUpdatedAsync(courseProgress);
     }
     
     private LessonProgressDto MapLessonProgressDetail(LessonProgress lessonProgress)
     {
         return ObjectMapper.Map<LessonProgress, LessonProgressDto>(lessonProgress);
+    }
+
+    private Task PublishCourseProgressUpdatedAsync(CourseProgress courseProgress)
+    {
+        return _distributedEventBus.PublishAsync(new CourseProgressUpdatedEto
+        {
+            EventId = Guid.NewGuid(),
+            OccurredAt = DateTime.UtcNow,
+            TenantId = courseProgress.TenantId,
+            CourseId = courseProgress.CourseId,
+            StudentId = courseProgress.StudentId,
+            Status = courseProgress.Status,
+            CompletedLessonsCount = courseProgress.CompletedLessonsCount,
+            TotalLessonsCount = courseProgress.TotalLessonsCount,
+            ProgressPercent = courseProgress.ProgressPercent,
+            StartedAt = courseProgress.StartedAt,
+            CompletedAt = courseProgress.CompletedAt,
+            LastAccessedAt = courseProgress.LastAccessedAt,
+            LastAccessedLessonId = courseProgress.LastAccessedLessonId
+        });
+    }
+
+    private async Task EnsureLessonActiveAsync(Guid tenantId, Guid courseId, Guid lessonId)
+    {
+        var projection = await _lessonProjectionRepository.FindByLessonIdAsync(tenantId, lessonId);
+        if (projection == null || !projection.IsActive || projection.CourseId != courseId)
+        {
+            throw new BusinessException("LearningProgressService:LessonNotFound")
+                .WithData("TenantId", tenantId)
+                .WithData("CourseId", courseId)
+                .WithData("LessonId", lessonId);
+        }
+    }
+
+    private async Task<int> ResolveTotalLessonsCountAsync(
+        Guid tenantId,
+        Guid courseId,
+        int? clientTotalLessonsCount)
+    {
+        var totalLessonsCount = await _lessonProjectionRepository.CountActiveByCourseAsync(
+            tenantId, courseId);
+        if (totalLessonsCount > 0)
+        {
+            return totalLessonsCount;
+        }
+
+        if (clientTotalLessonsCount.HasValue && clientTotalLessonsCount.Value > 0)
+        {
+            return clientTotalLessonsCount.Value;
+        }
+
+        return 0;
     }
 }

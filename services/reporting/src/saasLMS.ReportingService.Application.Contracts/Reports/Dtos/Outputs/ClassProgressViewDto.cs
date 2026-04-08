@@ -1,0 +1,23 @@
+using System;
+
+namespace saasLMS.ReportingService.Reports.Dtos.Outputs;
+
+public class ClassProgressViewDto
+{
+    public Guid TenantId { get; set; }
+    public Guid CourseId { get; set; }
+
+    public int ActiveEnrollmentCount { get; set; }
+    public int TotalStudents { get; set; }
+    public int CompletedCount { get; set; }
+    public int InProgressCount { get; set; }
+
+    public int Bucket_0_25 { get; set; }
+    public int Bucket_26_50 { get; set; }
+    public int Bucket_51_75 { get; set; }
+    public int Bucket_76_99 { get; set; }
+    public int Bucket_100 { get; set; }
+
+    public DateTime? LastRecalculatedAt { get; set; }
+    public DateTime LastUpdatedAt { get; set; }
+}

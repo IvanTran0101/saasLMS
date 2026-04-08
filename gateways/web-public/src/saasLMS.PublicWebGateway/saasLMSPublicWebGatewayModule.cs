@@ -30,7 +30,7 @@ public class saasLMSPublicWebGatewayModule : AbpModule
                 authority: configuration["AuthServer:Authority"]!,
                 scopes: new[] {
                     /* Requested scopes for authorization code request and descriptions for swagger UI only */
-                    "AccountService", "AdministrationService", "ProductService"
+                    "AccountService", "AdministrationService", "ProductService", "ReportingService"
                 },
                 apiTitle: "Public Web Gateway API"
             );
@@ -75,7 +75,8 @@ public class saasLMSPublicWebGatewayModule : AbpModule
         options.OAuthScopes(
             "AdministrationService",
             "AccountService",
-            "ProductService"
+            "ProductService",
+            "ReportingService"
         );
     }
 
