@@ -1,11 +1,12 @@
 ﻿using System.Threading.Tasks;
-using saasLMS.AssessmentService.Submissions.Etos;
+using saasLMS.NotificationService.Etos.Assessments.Submissions;
 using saasLMS.NotificationService.Notifications.Dtos.Inputs;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus.Distributed;
 
 namespace saasLMS.NotificationService.Notifications.EtoHandlers;
 
-public class AssessmentEtoHandler : ITransientDependency
+public class AssessmentEtoHandler : IDistributedEventHandler<SubmissionGradedEto>, ITransientDependency
 {
     private readonly INotificationAppService _notificationAppService;
 
