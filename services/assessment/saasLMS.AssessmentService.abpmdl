@@ -6,28 +6,28 @@
     }
   },
   "packages": {
-    "saasLMS.AssessmentService.Domain.Shared": {
-      "path": "src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.abppkg",
-      "folder": "src"
-    },
     "saasLMS.AssessmentService.Application.Contracts": {
       "path": "src/saasLMS.AssessmentService.Application.Contracts/saasLMS.AssessmentService.Application.Contracts.abppkg",
-      "folder": "src"
-    },
-    "saasLMS.AssessmentService.Domain": {
-      "path": "src/saasLMS.AssessmentService.Domain/saasLMS.AssessmentService.Domain.abppkg",
       "folder": "src"
     },
     "saasLMS.AssessmentService.Application": {
       "path": "src/saasLMS.AssessmentService.Application/saasLMS.AssessmentService.Application.abppkg",
       "folder": "src"
     },
-    "saasLMS.AssessmentService.EntityFrameworkCore": {
-      "path": "src/saasLMS.AssessmentService.EntityFrameworkCore/saasLMS.AssessmentService.EntityFrameworkCore.abppkg",
+    "saasLMS.AssessmentService.Blazor": {
+      "path": "src/saasLMS.AssessmentService.Blazor/saasLMS.AssessmentService.Blazor.abppkg",
       "folder": "src"
     },
-    "saasLMS.AssessmentService.HttpApi": {
-      "path": "src/saasLMS.AssessmentService.HttpApi/saasLMS.AssessmentService.HttpApi.abppkg",
+    "saasLMS.AssessmentService.Domain.Shared": {
+      "path": "src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.AssessmentService.Domain": {
+      "path": "src/saasLMS.AssessmentService.Domain/saasLMS.AssessmentService.Domain.abppkg",
+      "folder": "src"
+    },
+    "saasLMS.AssessmentService.EntityFrameworkCore": {
+      "path": "src/saasLMS.AssessmentService.EntityFrameworkCore/saasLMS.AssessmentService.EntityFrameworkCore.abppkg",
       "folder": "src"
     },
     "saasLMS.AssessmentService.HttpApi.Client": {
@@ -38,13 +38,17 @@
       "path": "src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.abppkg",
       "folder": "src"
     },
-    "saasLMS.AssessmentService.Blazor": {
-      "path": "src/saasLMS.AssessmentService.Blazor/saasLMS.AssessmentService.Blazor.abppkg",
+    "saasLMS.AssessmentService.HttpApi": {
+      "path": "src/saasLMS.AssessmentService.HttpApi/saasLMS.AssessmentService.HttpApi.abppkg",
       "folder": "src"
     },
     "saasLMS.AssessmentService.Web": {
       "path": "src/saasLMS.AssessmentService.Web/saasLMS.AssessmentService.Web.abppkg",
       "folder": "src"
+    },
+    "saasLMS.AssessmentService.Application.Tests": {
+      "path": "test/saasLMS.AssessmentService.Application.Tests/saasLMS.AssessmentService.Application.Tests.abppkg",
+      "folder": "test"
     },
     "saasLMS.AssessmentService.Domain.Tests": {
       "path": "test/saasLMS.AssessmentService.Domain.Tests/saasLMS.AssessmentService.Domain.Tests.abppkg",
@@ -56,10 +60,6 @@
     },
     "saasLMS.AssessmentService.TestBase": {
       "path": "test/saasLMS.AssessmentService.TestBase/saasLMS.AssessmentService.TestBase.abppkg",
-      "folder": "test"
-    },
-    "saasLMS.AssessmentService.Application.Tests": {
-      "path": "test/saasLMS.AssessmentService.Application.Tests/saasLMS.AssessmentService.Application.Tests.abppkg",
       "folder": "test"
     }
   },

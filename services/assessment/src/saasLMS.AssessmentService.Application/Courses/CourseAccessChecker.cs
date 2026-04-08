@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using saasLMS.CourseCatalogService.Courses;
 using Volo.Abp.Authorization;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Users;

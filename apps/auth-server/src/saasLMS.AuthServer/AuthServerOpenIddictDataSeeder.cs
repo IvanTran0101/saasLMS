@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -59,6 +60,7 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
         {
             await CreateApiScopesAsync();
             await CreateServiceClientsAsync();
+            await CreateSwaggerUiClientAsync();
         }
     }
 
@@ -115,6 +117,60 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
             {
                 await _applicationManager.UpdateAsync(client.ToModel(), descriptor);
             }
+        }
+    }
+
+    private async Task CreateSwaggerUiClientAsync()
+    {
+        const string clientId = "WebGateway_Swagger";
+
+        var client = await _applicationRepository.FindByClientIdAsync(clientId);
+        var descriptor = new AbpApplicationDescriptor
+        {
+            ClientId = clientId,
+            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ConsentType = OpenIddictConstants.ConsentTypes.Implicit,
+            DisplayName = "WebGateway Swagger UI"
+        };
+
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+
+        foreach (var scope in ServiceScopes)
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + scope);
+        }
+
+        var baseUrls = new[]
+        {
+            "https://localhost:44325",
+            "https://localhost:44353",
+            "https://localhost:44367",
+            "https://localhost:44388",
+            "https://localhost:44381",
+            "https://localhost:44361",
+            "https://localhost:45209",
+            "https://localhost:44445",
+            "https://localhost:44854",
+            "https://localhost:45256",
+            "https://localhost:44664"
+        };
+
+        foreach (var baseUrl in baseUrls)
+        {
+            descriptor.RedirectUris.Add(new Uri($"{baseUrl}/swagger/oauth2-redirect.html"));
+            descriptor.RedirectUris.Add(new Uri($"{baseUrl}/swagger/ui/oauth2-redirect.html"));
+        }
+
+        if (client == null)
+        {
+            await _applicationManager.CreateAsync(descriptor);
+        }
+        else
+        {
+            await _applicationManager.UpdateAsync(client.ToModel(), descriptor);
         }
     }
 }

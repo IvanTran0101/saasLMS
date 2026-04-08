@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Inputs;
@@ -13,29 +14,83 @@ using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Permissions;
 using Microsoft.AspNetCore.Authorization;
-using Volo.Abp;
+using saasLMS.CourseCatalogService.BlobStoring;
 using Volo.Abp.Authorization;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
+using Volo.Abp;
 
 namespace saasLMS.CourseCatalogService;
 
+[RemoteService(Name = CourseCatalogServiceRemoteServiceConsts.RemoteServiceName)]
 public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCatalogAppService
 {
     private readonly ICourseRepository _courseRepository;
     private readonly CourseManager _courseManager;
     private readonly ICourseAccessChecker _courseAccessChecker;
     private readonly ICourseEnrollmentChecker _courseEnrollmentChecker;
+    private readonly IBlobContainer<CourseMaterialContainer> _blobContainer;
 
     public CourseCatalogAppService(
         ICourseRepository courseRepository,
         CourseManager courseManager,
         ICourseAccessChecker courseAccessChecker,
-        ICourseEnrollmentChecker courseEnrollmentChecker)
+        ICourseEnrollmentChecker courseEnrollmentChecker,
+        IBlobContainer<CourseMaterialContainer> blobContainer)
     {
         _courseRepository = courseRepository;
         _courseManager = courseManager;
         _courseAccessChecker = courseAccessChecker;
         _courseEnrollmentChecker = courseEnrollmentChecker;
+        _blobContainer = blobContainer;
     }
+    private const long MaxMaterialFileSize = 20 * 1024 * 1024; // 20MB
+
+    private static readonly Dictionary<string, HashSet<string>> AllowedFileTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".pptx"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        },
+        [".doc"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "application/msword"
+        },
+        [".zip"] = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "application/zip",
+            "application/x-zip-compressed"
+        }
+    };
+
+    private static void ValidateMaterialUpload(string fileName, string? contentType, long? contentLength)
+    {
+        if (contentLength <= 0)
+        {
+            throw new BusinessException("CourseCatalog:FileEmpty");
+        }
+
+        if (contentLength > MaxMaterialFileSize)
+        {
+            throw new BusinessException("CourseCatalog:FileTooLarge")
+                .WithData("MaxBytes", MaxMaterialFileSize);
+        }
+
+        var extension = Path.GetExtension(fileName);
+        if (string.IsNullOrWhiteSpace(extension) || !AllowedFileTypes.ContainsKey(extension))
+        {
+            throw new BusinessException("CourseCatalog:FileTypeNotAllowed")
+                .WithData("Extension", extension ?? string.Empty);
+        }
+
+        if (!string.IsNullOrWhiteSpace(contentType) &&
+            !AllowedFileTypes[extension].Contains(contentType))
+        {
+            throw new BusinessException("CourseCatalog:MimeTypeNotAllowed")
+                .WithData("MimeType", contentType ?? string.Empty);
+        }
+    }
+    
     [Authorize(CourseCatalogServicePermissions.Courses.Create)]
     public async Task<CourseDto> CreateCourseAsync(CreateCourseInput input)
     {
@@ -46,16 +101,16 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:TenantNotFound");
         }
         var userId = CurrentUser.Id;
-        if (!userId.HasValue || userId.Value != input.InstructorId)
+        if (!userId.HasValue)
         {
-            throw new AbpAuthorizationException("You are not allowed to create a course for another instructor.");
+            throw new AbpAuthorizationException("You must be logged in to create a course.");
         }
 
         var course = await _courseManager.CreateAsync(
             tenantId.Value,
             input.Title,
             input.Description,
-            input.InstructorId);
+            userId.Value);
         
         await _courseRepository.InsertAsync(course, autoSave: true);
         return ObjectMapper.Map<Course,  CourseDto>(course);
@@ -224,6 +279,29 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         };
     }
 
+    [Authorize(CourseCatalogServicePermissions.Courses.CheckEligibility)]
+    public async Task<CourseEligibilityDto?> GetEnrollmentEligibilityAsync(Guid courseId, Guid tenantId)
+    {
+        if (courseId == Guid.Empty || tenantId == Guid.Empty)
+        {
+            throw new BusinessException("CourseCatalog:CourseNotFound");
+        }
+
+        var course = await _courseRepository.FindWithDetailsAsync(courseId, tenantId);
+        if (course == null)
+        {
+            return null;
+        }
+
+        return new CourseEligibilityDto
+        {
+            CourseId = course.Id,
+            TenantId = course.TenantId,
+            Status = course.Status,
+            IsHidden = course.Status == CourseStatus.Hidden
+        };
+    }
+
     [Authorize(CourseCatalogServicePermissions.Courses.View)]
     public async Task<CourseDetailDto> GetCourseDetailAsync(Guid id)
     {
@@ -242,7 +320,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
             throw new BusinessException("CourseCatalog:CourseNotFound");
         }
         await _courseAccessChecker.CheckCanManageCourseAsync(course.Id);
-        return ObjectMapper.Map<Course, CourseDetailDto>(course);
+        return MapCourseDetail(course);
     }
 
     [Authorize(CourseCatalogServicePermissions.Courses.ViewPublished)]
@@ -264,7 +342,7 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         }
         EnsureCoursePublished(course);
         await _courseEnrollmentChecker.CheckStudentEnrolledAsync(course.Id);
-        var dto = ObjectMapper.Map<Course, CourseDetailDto>(course);
+        var dto = MapCourseDetail(course);
         FilterMaterialsForStudent(dto);
         return dto;
     }
@@ -1640,6 +1718,42 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         }
     }
 
+    private CourseDetailDto MapCourseDetail(Course course)
+    {
+        var dto = ObjectMapper.Map<Course, CourseDetailDto>(course);
+
+        var chapterDtos = new List<ChapterDto>();
+        foreach (var chapter in course.Chapters.OrderBy(c => c.OrderNo))
+        {
+            var chapterDto = ObjectMapper.Map<Chapter, ChapterDto>(chapter);
+            chapterDto.CourseId = course.Id;
+
+            var lessonDtos = new List<LessonInChapterDto>();
+            foreach (var lesson in chapter.Lessons.OrderBy(l => l.SortOrder))
+            {
+                var lessonDto = ObjectMapper.Map<Lesson, LessonInChapterDto>(lesson);
+                lessonDto.ChapterId = chapter.Id;
+
+                var materialDtos = new List<MaterialInLessonDto>();
+                foreach (var material in lesson.Materials.OrderBy(m => m.SortOrder))
+                {
+                    var materialDto = ObjectMapper.Map<Material, MaterialInLessonDto>(material);
+                    materialDto.LessonId = lesson.Id;
+                    materialDtos.Add(materialDto);
+                }
+
+                lessonDto.Materials = materialDtos;
+                lessonDtos.Add(lessonDto);
+            }
+
+            chapterDto.Lessons = lessonDtos;
+            chapterDtos.Add(chapterDto);
+        }
+
+        dto.Chapters = chapterDtos;
+        return dto;
+    }
+
     private MaterialDto MapMaterialDetail(Material material, Guid courseId, Guid chapterId)
     {
         // This method generated by Codex
@@ -1647,5 +1761,118 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         dto.CourseId = courseId;
         dto.ChapterId = chapterId;
         return dto;
+    }
+
+    [Authorize(CourseCatalogServicePermissions.Materials.Update)]
+    [RemoteService(false)]
+    public async Task<MaterialDto> UploadMaterialFileAsync(UploadMaterialFileInput input, IRemoteStreamContent file)
+    {
+        await _courseAccessChecker.CheckCanManageCourseAsync(input.CourseId);
+        if (file == null || file.ContentLength <= 0 || string.IsNullOrWhiteSpace(file.FileName))
+            throw new BusinessException("CourseCatalog:FileEmpty");
+        var safeFileName = Path.GetFileName(file.FileName);
+        ValidateMaterialUpload(safeFileName, file.ContentType, file.ContentLength);
+
+        var existingMaterial = await GetMaterialAsync(
+            input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
+        if (!string.IsNullOrWhiteSpace(existingMaterial.StorageKey))
+        {
+            await _blobContainer.DeleteAsync(existingMaterial.StorageKey);
+        }
+
+        var storageKey = $"materials/{input.CourseId}/{input.MaterialId}/{safeFileName}";
+        await _blobContainer.SaveAsync(storageKey, file.GetStream());
+        await UpdateFileMaterialAsync(new UpdateFileMaterialInput()
+        {
+            CourseId = input.CourseId,
+            ChapterId = input.ChapterId,
+            LessonId = input.LessonId,
+            MaterialId = input.MaterialId,
+            StorageKey = storageKey,
+            FileName = safeFileName,
+            MimeType = file.ContentType,
+            FileSize = file.ContentLength
+        });
+        return await GetMaterialAsync(input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
+    }
+    [Authorize(CourseCatalogServicePermissions.Materials.View)]
+    public async Task<IRemoteStreamContent> DownloadMaterialFileAsync(DownloadMaterialFileInput input)
+    {
+        // check permission or enrollment
+        await _courseAccessChecker.CheckCanManageCourseAsync(input.CourseId);
+
+        var material = await GetMaterialAsync(input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
+
+        // load blob
+        if (string.IsNullOrWhiteSpace(material.StorageKey))
+        {
+            throw new BusinessException("CourseCatalog:MaterialFileNotFound");
+        }
+        
+        var stream = await _blobContainer.GetAsync(material.StorageKey);
+        if (stream == null)
+        {
+            throw new BusinessException("CourseCatalog:MaterialFileNotFound");
+        }
+
+        return new RemoteStreamContent(
+            stream,
+            material.FileName,
+            material.MimeType
+        );
+    }
+
+    [Authorize(CourseCatalogServicePermissions.Materials.DownloadPublished)]
+    public async Task<IRemoteStreamContent> DownloadMaterialFileStudentAsync(DownloadMaterialFileInput input)
+    {
+        var tenantId = CurrentTenant.Id;
+        if (!tenantId.HasValue)
+        {
+            throw new BusinessException("CourseCatalog:TenantNotFound");
+        }
+
+        var course = await _courseRepository.FindWithDetailsAsync(input.CourseId, tenantId.Value);
+        if (course == null)
+        {
+            throw new BusinessException("CourseCatalog:CourseNotFound");
+        }
+        EnsureCoursePublished(course);
+        await _courseEnrollmentChecker.CheckStudentEnrolledAsync(course.Id);
+
+        var chapter = course.Chapters.FirstOrDefault(c => c.Id == input.ChapterId);
+        if (chapter == null)
+        {
+            throw new BusinessException("CourseCatalog:ChapterNotFound");
+        }
+        var lesson = chapter.Lessons.FirstOrDefault(l => l.Id == input.LessonId);
+        if (lesson == null)
+        {
+            throw new BusinessException("CourseCatalog:LessonNotFound");
+        }
+        var material = lesson.Materials.FirstOrDefault(m => m.Id == input.MaterialId);
+        if (material == null)
+        {
+            throw new BusinessException("CourseCatalog:MaterialNotFound");
+        }
+        if (material.Status != MaterialStatus.Active)
+        {
+            throw new BusinessException("CourseCatalog:MaterialNotFound");
+        }
+        if (string.IsNullOrWhiteSpace(material.StorageKey))
+        {
+            throw new BusinessException("CourseCatalog:MaterialFileNotFound");
+        }
+
+        var stream = await _blobContainer.GetAsync(material.StorageKey);
+        if (stream == null)
+        {
+            throw new BusinessException("CourseCatalog:MaterialFileNotFound");
+        }
+
+        return new RemoteStreamContent(
+            stream,
+            material.FileName,
+            material.MimeType
+        );
     }
 }

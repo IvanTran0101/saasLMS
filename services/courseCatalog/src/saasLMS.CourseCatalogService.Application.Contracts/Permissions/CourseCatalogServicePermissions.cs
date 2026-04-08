@@ -19,6 +19,7 @@ public class CourseCatalogServicePermissions
         public const string ListByInstructor = Default + ".ListByInstructor";
         public const string ListByTenant = Default + ".ListByTenant";
         public const string GetOwner = Default + ".GetOwner";
+        public const string CheckEligibility = Default + ".CheckEligibility";
     }
 
     public static class Chapters
@@ -51,6 +52,7 @@ public class CourseCatalogServicePermissions
         public const string Activate = Default + ".Activate";
         public const string View = Default + ".View";
         public const string ViewPublished = Default + ".ViewPublished";
+        public const string DownloadPublished = Default + ".DownloadPublished";
     }
 
     public static string[] GetAll()

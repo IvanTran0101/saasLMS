@@ -21,6 +21,7 @@ public class CourseCatalogServicePermissionDefinitionProvider : PermissionDefini
         courses.AddChild(CourseCatalogServicePermissions.Courses.ListByInstructor, L("Permission:ListByInstructor"));
         courses.AddChild(CourseCatalogServicePermissions.Courses.ListByTenant, L("Permission:ListByTenant"));
         courses.AddChild(CourseCatalogServicePermissions.Courses.GetOwner, L("Permission:GetOwner"));
+        courses.AddChild(CourseCatalogServicePermissions.Courses.CheckEligibility, L("Permission:CheckEligibility"));
 
         var chapters = myGroup.AddPermission(CourseCatalogServicePermissions.Chapters.Default, L("Permission:Chapters"));
         chapters.AddChild(CourseCatalogServicePermissions.Chapters.Create, L("Permission:Create"));
@@ -44,6 +45,7 @@ public class CourseCatalogServicePermissionDefinitionProvider : PermissionDefini
         materials.AddChild(CourseCatalogServicePermissions.Materials.Activate, L("Permission:Activate"));
         materials.AddChild(CourseCatalogServicePermissions.Materials.View, L("Permission:View"));
         materials.AddChild(CourseCatalogServicePermissions.Materials.ViewPublished, L("Permission:ViewPublished"));
+        materials.AddChild(CourseCatalogServicePermissions.Materials.DownloadPublished, L("Permission:DownloadPublished"));
     }
 
     private static LocalizableString L(string name)

@@ -26,7 +26,9 @@ public class EnrollmentServiceHttpApiModule : AbpModule
     {
         Configure<AbpAspNetCoreMvcOptions>(options =>
         {
-            options.ConventionalControllers.Create(typeof(EnrollmentServiceApplicationModule).Assembly);
+            options.ConventionalControllers.Create(
+                typeof(EnrollmentServiceApplicationModule).Assembly,
+                opts => { opts.RootPath = "enrollment"; });
         });
 
         Configure<AbpLocalizationOptions>(options =>

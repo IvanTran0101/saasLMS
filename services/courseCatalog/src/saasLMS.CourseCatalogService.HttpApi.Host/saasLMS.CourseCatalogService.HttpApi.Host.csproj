@@ -6,6 +6,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <RootNamespace>saasLMS.CourseCatalogService</RootNamespace>
+        <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,6 +14,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Volo.Abp.Http.Client.IdentityModel.Web" Version="10.1.1" />
     </ItemGroup>
 
     <ItemGroup>        
@@ -20,6 +22,7 @@
         <ProjectReference Include="..\saasLMS.CourseCatalogService.Application\saasLMS.CourseCatalogService.Application.csproj" />
         <ProjectReference Include="..\saasLMS.CourseCatalogService.EntityFrameworkCore\saasLMS.CourseCatalogService.EntityFrameworkCore.csproj" />
         <ProjectReference Include="..\saasLMS.CourseCatalogService.HttpApi\saasLMS.CourseCatalogService.HttpApi.csproj" />
+        <ProjectReference Include="..\..\..\enrollment\src\saasLMS.EnrollmentService.Application.Contracts\saasLMS.EnrollmentService.Application.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,6 +30,11 @@
         <Content Remove="Logs\**" />
         <EmbeddedResource Remove="Logs\**" />
         <None Remove="Logs\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Remove="bin\**;obj\**" />
+        <None Remove="bin\**;obj\**" />
     </ItemGroup>
 
 </Project>

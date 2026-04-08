@@ -329,7 +329,6 @@ public class saasLMSAuthServerModule : AbpModule
             authority: configuration["AuthServer:Authority"]!,
             scopes: new[] { "AccountService" },
             flows: new[] { "authorization_code" },
-            discoveryEndpoint: configuration["AuthServer:MetadataAddress"],
             apiTitle: "Account Service API"
         );
     }

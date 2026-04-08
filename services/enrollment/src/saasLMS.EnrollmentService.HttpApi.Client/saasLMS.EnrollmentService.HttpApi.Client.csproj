@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Volo.Abp.Http.Client" Version="10.1.1" />
     <ProjectReference Include="..\saasLMS.EnrollmentService.Application.Contracts\saasLMS.EnrollmentService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\courseCatalog\src\saasLMS.CourseCatalogService.Application.Contracts\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

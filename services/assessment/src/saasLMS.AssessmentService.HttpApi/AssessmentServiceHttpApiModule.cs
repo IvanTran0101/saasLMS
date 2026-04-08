@@ -26,7 +26,9 @@ public class AssessmentServiceHttpApiModule : AbpModule
     {
         Configure<AbpAspNetCoreMvcOptions>(options =>
         {
-            options.ConventionalControllers.Create(typeof(AssessmentServiceApplicationModule).Assembly);
+            options.ConventionalControllers.Create(
+                typeof(AssessmentServiceApplicationModule).Assembly,
+                opts => { opts.RootPath = "assessment"; });
         });
 
         Configure<AbpLocalizationOptions>(options =>

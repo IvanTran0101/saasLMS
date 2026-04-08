@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="10.1.1" />
     <ProjectReference Include="..\saasLMS.LearningProgressService.Application.Contracts\saasLMS.LearningProgressService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\saasLMS.LearningProgressService.Application\saasLMS.LearningProgressService.Application.csproj" />
   </ItemGroup>
 
 </Project>

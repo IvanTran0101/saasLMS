@@ -35,6 +35,9 @@ namespace saasLMS.CourseCatalogService.Migrations
                     b.Property<int>("OrderNo")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -139,6 +142,9 @@ namespace saasLMS.CourseCatalogService.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -174,6 +180,9 @@ namespace saasLMS.CourseCatalogService.Migrations
                     b.Property<string>("MimeType")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -213,7 +222,7 @@ namespace saasLMS.CourseCatalogService.Migrations
             modelBuilder.Entity("saasLMS.CourseCatalogService.Courses.Chapter", b =>
                 {
                     b.HasOne("saasLMS.CourseCatalogService.Courses.Course", null)
-                        .WithMany()
+                        .WithMany("Chapters")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -222,7 +231,7 @@ namespace saasLMS.CourseCatalogService.Migrations
             modelBuilder.Entity("saasLMS.CourseCatalogService.Courses.Lesson", b =>
                 {
                     b.HasOne("saasLMS.CourseCatalogService.Courses.Chapter", null)
-                        .WithMany()
+                        .WithMany("Lessons")
                         .HasForeignKey("ChapterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -231,10 +240,25 @@ namespace saasLMS.CourseCatalogService.Migrations
             modelBuilder.Entity("saasLMS.CourseCatalogService.Courses.Material", b =>
                 {
                     b.HasOne("saasLMS.CourseCatalogService.Courses.Lesson", null)
-                        .WithMany()
+                        .WithMany("Materials")
                         .HasForeignKey("LessonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("saasLMS.CourseCatalogService.Courses.Chapter", b =>
+                {
+                    b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("saasLMS.CourseCatalogService.Courses.Course", b =>
+                {
+                    b.Navigation("Chapters");
+                });
+
+            modelBuilder.Entity("saasLMS.CourseCatalogService.Courses.Lesson", b =>
+                {
+                    b.Navigation("Materials");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,10 +9,13 @@ using saasLMS.CourseCatalogService.Lessons.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 
 namespace saasLMS.CourseCatalogService.Courses;
 
+[RemoteService(Name = CourseCatalogServiceRemoteServiceConsts.RemoteServiceName)]
 public interface ICourseCatalogAppService : IApplicationService
 {
     //Courses
@@ -26,6 +29,7 @@ public interface ICourseCatalogAppService : IApplicationService
     Task<CourseDto> GetCourseAsync(Guid id);
     Task<CourseDto> GetCourseStudentAsync(Guid id);
     Task<CourseOwnerDto> GetOwnerAsync(Guid id);
+    Task<CourseEligibilityDto?> GetEnrollmentEligibilityAsync(Guid courseId, Guid tenantId);
     Task<CourseDetailDto> GetCourseDetailAsync(Guid id);
     Task<CourseDetailDto> GetCourseDetailStudentAsync(Guid id);
     Task<List<CourseListItemDto>> GetPublishedCoursesAsync();
@@ -70,5 +74,7 @@ public interface ICourseCatalogAppService : IApplicationService
     Task<MaterialDto> GetMaterialAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
     Task<List<MaterialDto>> GetMaterialsByLessonStudentAsync(Guid courseId, Guid chapterId, Guid lessonId);
     Task<MaterialDto> GetMaterialStudentAsync(Guid courseId, Guid chapterId, Guid lessonId, Guid materialId);
-    
+    Task<MaterialDto> UploadMaterialFileAsync(UploadMaterialFileInput input, IRemoteStreamContent file);
+    Task<IRemoteStreamContent> DownloadMaterialFileAsync(DownloadMaterialFileInput input);
+    Task<IRemoteStreamContent> DownloadMaterialFileStudentAsync(DownloadMaterialFileInput input);
 }

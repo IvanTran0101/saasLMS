@@ -78,12 +78,14 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
         await CreateScopesAsync("AdministrationService");
         await CreateScopesAsync("SaasService");
         await CreateScopesAsync("ProductService");
+        await CreateScopesAsync("CourseCatalogService");
+        await CreateScopesAsync("EnrollmentService");
     }
 
     private async Task CreateWebGatewaySwaggerClientsAsync()
     {
         await CreateSwaggerClientAsync("WebGateway",
-            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService" });
+            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService", "CourseCatalogService", "EnrollmentService" });
     }
 
     private async Task CreateSwaggerClientAsync(string name, string[]? scopes = null)
@@ -109,6 +111,8 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
             var administrationServiceRootUrl = _configuration[$"OpenIddict:Resources:AdministrationService:RootUrl"]?.EnsureEndsWith('/');
             var saasServiceRootUrl = _configuration[$"OpenIddict:Resources:SaasService:RootUrl"]?.EnsureEndsWith('/');
             var productServiceRootUrl = _configuration[$"OpenIddict:Resources:ProductService:RootUrl"]?.EnsureEndsWith('/');
+            var courseCatalogServiceRootUrl = _configuration[$"OpenIddict:Resources:CourseCatalogService:RootUrl"]?.EnsureEndsWith('/');
+            var enrollmentServiceRootUrl = _configuration[$"OpenIddict:Resources:EnrollmentService:RootUrl"]?.EnsureEndsWith('/');
 
             await CreateApplicationAsync(
                 name: swaggerClientId!,
@@ -126,6 +130,8 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
                     $"{administrationServiceRootUrl}swagger/oauth2-redirect.html", // AdministrationService redirect uri
                     $"{saasServiceRootUrl}swagger/oauth2-redirect.html", // SaasService redirect uri
                     $"{productServiceRootUrl}swagger/oauth2-redirect.html", // ProductService redirect uri
+                    $"{courseCatalogServiceRootUrl}swagger/oauth2-redirect.html", // CourseCatalogService redirect uri
+                    $"{enrollmentServiceRootUrl}swagger/oauth2-redirect.html", // EnrollmentService redirect uri
                 }
             );
         }
