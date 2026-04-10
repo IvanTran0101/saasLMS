@@ -154,6 +154,9 @@ namespace saasLMS.AssessmentService.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
+                    b.Property<Guid?>("FormResponseId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -171,7 +174,7 @@ namespace saasLMS.AssessmentService.Migrations
                     b.Property<Guid>("QuizId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal?>("Score")
+                    b.Property<decimal>("Score")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("StartedAt")
@@ -182,6 +185,9 @@ namespace saasLMS.AssessmentService.Migrations
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SubmittedAnswersJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
@@ -241,6 +247,9 @@ namespace saasLMS.AssessmentService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
+
+                    b.Property<Guid?>("FormId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -309,11 +318,6 @@ namespace saasLMS.AssessmentService.Migrations
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
 
-                    b.Property<string>("StorageKey")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<int>("ContentType")
                         .HasColumnType("int");
 
@@ -371,6 +375,11 @@ namespace saasLMS.AssessmentService.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");

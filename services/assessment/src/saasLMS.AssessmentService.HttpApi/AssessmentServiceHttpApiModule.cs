@@ -5,13 +5,15 @@ using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.AspNetCore.Mvc.Conventions;
+using Volo.Forms;
 
 namespace saasLMS.AssessmentService;
 
 [DependsOn(
     typeof(AssessmentServiceApplicationModule),
     typeof(AssessmentServiceApplicationContractsModule),
-    typeof(AbpAspNetCoreMvcModule))]
+    typeof(AbpAspNetCoreMvcModule),
+    typeof(FormsHttpApiModule))]
 public class AssessmentServiceHttpApiModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)

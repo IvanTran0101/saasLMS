@@ -2,6 +2,7 @@
 using Volo.Abp.Application;
 using Volo.Abp.Mapperly;
 using Volo.Abp.Modularity;
+using Volo.Forms;
 
 namespace saasLMS.AssessmentService;
 
@@ -9,7 +10,8 @@ namespace saasLMS.AssessmentService;
     typeof(AssessmentServiceDomainModule),
     typeof(AssessmentServiceApplicationContractsModule),
     typeof(AbpDddApplicationModule),
-    typeof(AbpMapperlyModule)
+    typeof(AbpMapperlyModule),
+    typeof(FormsApplicationModule)
     )]
 public class AssessmentServiceApplicationModule : AbpModule
 {

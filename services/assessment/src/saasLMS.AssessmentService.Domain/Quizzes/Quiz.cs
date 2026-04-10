@@ -12,6 +12,7 @@ public class Quiz : FullAuditedAggregateRoot<Guid>
     public Guid TenantId { get; protected set; }
     public Guid CourseId { get; protected set; }
     public Guid LessonId { get; protected set; }
+    public Guid? FormId { get; protected set; }
     public string Title { get; protected set; } = string.Empty;
     public int? TimeLimitMinutes { get; protected set; }
     public decimal MaxScore { get; protected set; }
@@ -23,6 +24,24 @@ public class Quiz : FullAuditedAggregateRoot<Guid>
     
     protected Quiz()
     {
+    }
+
+    public void AttachForm(Guid formId)
+    {
+        if (formId == Guid.Empty)
+        {
+            throw new ArgumentException("The form id cannot be empty.", nameof(formId));
+        }
+        FormId = formId;
+    }
+
+    public void EnsureFormAttached()
+    {
+        if (!FormId.HasValue || FormId.Value == Guid.Empty)
+        {
+            throw new BusinessException("AssessmentService:QuizFormNotAttached")
+                .WithData("QuizId", Id);
+        }
     }
 
     public Quiz(Guid id, Guid tenantId, Guid courseId, Guid lessonId, string title, int? timeLimitMinutes, decimal maxScore, AttemptPolicy attemptPolicy, string questionJson) : base(id)
