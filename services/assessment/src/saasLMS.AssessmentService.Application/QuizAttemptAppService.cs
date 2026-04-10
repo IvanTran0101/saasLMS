@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text.Json;
 using Volo.Forms.Forms;
 using Volo.Forms.Responses;
+using Volo.Abp.Uow;
 
 namespace saasLMS.AssessmentService;
 
@@ -24,6 +25,7 @@ public class QuizAttemptAppService : AssessmentServiceAppService, IQuizAttemptAp
     private readonly QuizGradingService _quizGradingService;
     private readonly IFormAppService _formAppService;
     private readonly IResponseAppService _responseAppService;
+    private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     public QuizAttemptAppService(
         IQuizRepository quizRepository,
@@ -32,7 +34,8 @@ public class QuizAttemptAppService : AssessmentServiceAppService, IQuizAttemptAp
         ICourseAccessChecker courseAccessChecker,
         QuizGradingService quizGradingService,
         IFormAppService formAppService,
-        IResponseAppService responseAppService)
+        IResponseAppService responseAppService,
+        IUnitOfWorkManager unitOfWorkManager)
     {
         _quizRepository = quizRepository;
         _quizAttemptRepository = quizAttemptRepository;
@@ -41,6 +44,7 @@ public class QuizAttemptAppService : AssessmentServiceAppService, IQuizAttemptAp
         _quizGradingService = quizGradingService;
         _formAppService = formAppService;
         _responseAppService = responseAppService;
+        _unitOfWorkManager = unitOfWorkManager;
     }
 
     [Authorize(AssessmentServicePermissions.QuizAttempts.Start)]
@@ -126,6 +130,10 @@ public class QuizAttemptAppService : AssessmentServiceAppService, IQuizAttemptAp
                     Value = a.Value ?? string.Empty
                 }).ToList()
             });
+            if (_unitOfWorkManager.Current != null)
+            {
+                await _unitOfWorkManager.Current.SaveChangesAsync();
+            }
 
             quizAttempt.AttachFormResponse(response.Id);
 

@@ -303,6 +303,39 @@ namespace saasLMS.AssessmentService.Migrations
                     b.ToTable("AssessmentService_Quizzes", (string)null);
                 });
 
+            modelBuilder.Entity("saasLMS.AssessmentService.Quizzes.QuizQuestionMap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FormQuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("QuestionIndex")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizId");
+
+                    b.HasIndex("TenantId", "QuizId", "FormQuestionId")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.HasIndex("TenantId", "QuizId", "QuestionIndex")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.ToTable("AssessmentService_QuizQuestionMaps", (string)null);
+                });
+
             modelBuilder.Entity("saasLMS.AssessmentService.Submissions.Submission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -405,6 +438,15 @@ namespace saasLMS.AssessmentService.Migrations
                 });
 
             modelBuilder.Entity("saasLMS.AssessmentService.QuizAttempts.QuizAttempt", b =>
+                {
+                    b.HasOne("saasLMS.AssessmentService.Quizzes.Quiz", null)
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("saasLMS.AssessmentService.Quizzes.QuizQuestionMap", b =>
                 {
                     b.HasOne("saasLMS.AssessmentService.Quizzes.Quiz", null)
                         .WithMany()
