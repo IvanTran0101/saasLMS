@@ -11,10 +11,14 @@ public class CourseOutcomeReportView : Entity<Guid>
     public int AssignmentGradedCount { get; set; }
     public decimal AssignmentScoreSum { get; set; }
     public decimal AvgAssignmentScore { get; set; }
+    public int TotalAssignmentsCount { get; set; }
 
     public int QuizCompletedCount { get; set; }
     public decimal QuizScoreSum { get; set; }
     public decimal AvgQuizScore { get; set; }
+    public int TotalQuizzesCount { get; set; }
+
+    public int TotalLessonsCount { get; set; }
 
     public int FinalScoreCount { get; set; }
     public decimal FinalScoreSum { get; set; }

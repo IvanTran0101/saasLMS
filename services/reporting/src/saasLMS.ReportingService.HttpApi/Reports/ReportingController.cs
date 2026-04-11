@@ -27,35 +27,31 @@ public class ReportingController : ReportingServiceController
     [HttpGet("student-course-progress")]
     [Authorize(ReportingServicePermissions.Reports.StudentView)]
     public Task<StudentCourseProgressViewDto?> GetStudentCourseProgressAsync(
-        Guid tenantId,
-        Guid courseId,
-        Guid studentId)
+        Guid courseId)
     {
-        return _reportingAppService.GetStudentCourseProgressAsync(tenantId, courseId, studentId);
+        return _reportingAppService.GetStudentCourseProgressAsync(courseId);
     }
 
     [HttpGet("class-progress")]
     [Authorize(ReportingServicePermissions.Reports.View)]
     public Task<ClassProgressViewDto?> GetClassProgressAsync(
-        Guid tenantId,
         Guid courseId)
     {
-        return _reportingAppService.GetClassProgressAsync(tenantId, courseId);
+        return _reportingAppService.GetClassProgressAsync(courseId);
     }
 
     [HttpGet("course-outcome")]
     [Authorize(ReportingServicePermissions.Reports.View)]
     public Task<CourseOutcomeReportViewDto?> GetCourseOutcomeReportAsync(
-        Guid tenantId,
         Guid courseId)
     {
-        return _reportingAppService.GetCourseOutcomeReportAsync(tenantId, courseId);
+        return _reportingAppService.GetCourseOutcomeReportAsync(courseId);
     }
 
     [HttpGet("tenant-summary")]
     [Authorize(ReportingServicePermissions.Reports.View)]
-    public Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync(Guid tenantId)
+    public Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync()
     {
-        return _reportingAppService.GetTenantSummaryAsync(tenantId);
+        return _reportingAppService.GetTenantSummaryAsync();
     }
 }

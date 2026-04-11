@@ -7,18 +7,11 @@ namespace saasLMS.ReportingService.Reports;
 
 public interface IReportingAppService : IApplicationService
 {
-    Task<StudentCourseProgressViewDto?> GetStudentCourseProgressAsync(
-        Guid tenantId,
-        Guid courseId,
-        Guid studentId);
+    Task<StudentCourseProgressViewDto?> GetStudentCourseProgressAsync(Guid courseId);
 
-    Task<ClassProgressViewDto?> GetClassProgressAsync(
-        Guid tenantId,
-        Guid courseId);
+    Task<ClassProgressViewDto?> GetClassProgressAsync(Guid courseId);
 
-    Task<CourseOutcomeReportViewDto?> GetCourseOutcomeReportAsync(
-        Guid tenantId,
-        Guid courseId);
+    Task<CourseOutcomeReportViewDto?> GetCourseOutcomeReportAsync(Guid courseId);
 
-    Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync(Guid tenantId);
+    Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync();
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using saasLMS.ReportingService.ReadModels;
 using saasLMS.ReportingService.Reports.Dtos.Outputs;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Caching;
 using Volo.Abp.Domain.Repositories;
@@ -43,11 +44,10 @@ public class ReportingAppService : ApplicationService, IReportingAppService
         _tenantSummaryCache = tenantSummaryCache;
     }
 
-    public async Task<StudentCourseProgressViewDto?> GetStudentCourseProgressAsync(
-        Guid tenantId,
-        Guid courseId,
-        Guid studentId)
+    public async Task<StudentCourseProgressViewDto?> GetStudentCourseProgressAsync(Guid courseId)
     {
+        var tenantId = GetRequiredTenantId();
+        var studentId = GetRequiredUserId();
         var cacheKey = BuildStudentKey(tenantId, courseId, studentId);
         var cached = await _studentCache.GetAsync(cacheKey);
         if (cached != null)
@@ -69,8 +69,9 @@ public class ReportingAppService : ApplicationService, IReportingAppService
         return dto;
     }
 
-    public async Task<ClassProgressViewDto?> GetClassProgressAsync(Guid tenantId, Guid courseId)
+    public async Task<ClassProgressViewDto?> GetClassProgressAsync(Guid courseId)
     {
+        var tenantId = GetRequiredTenantId();
         var cacheKey = BuildClassKey(tenantId, courseId);
         var cached = await _classCache.GetAsync(cacheKey);
         if (cached != null)
@@ -91,8 +92,9 @@ public class ReportingAppService : ApplicationService, IReportingAppService
         return dto;
     }
 
-    public async Task<CourseOutcomeReportViewDto?> GetCourseOutcomeReportAsync(Guid tenantId, Guid courseId)
+    public async Task<CourseOutcomeReportViewDto?> GetCourseOutcomeReportAsync(Guid courseId)
     {
+        var tenantId = GetRequiredTenantId();
         var cacheKey = BuildCourseOutcomeKey(tenantId, courseId);
         var cached = await _courseOutcomeCache.GetAsync(cacheKey);
         if (cached != null)
@@ -113,8 +115,9 @@ public class ReportingAppService : ApplicationService, IReportingAppService
         return dto;
     }
 
-    public async Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync(Guid tenantId)
+    public async Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync()
     {
+        var tenantId = GetRequiredTenantId();
         var cacheKey = BuildTenantKey(tenantId);
         var cached = await _tenantSummaryCache.GetAsync(cacheKey);
         if (cached != null)
@@ -152,6 +155,24 @@ public class ReportingAppService : ApplicationService, IReportingAppService
 
     private static string BuildTenantKey(Guid tenantId)
         => $"report:tenant:{tenantId}";
+
+    private Guid GetRequiredTenantId()
+    {
+        if (!CurrentTenant.Id.HasValue)
+        {
+            throw new AbpException("Tenant context is required for reporting.");
+        }
+        return CurrentTenant.Id.Value;
+    }
+
+    private Guid GetRequiredUserId()
+    {
+        if (!CurrentUser.Id.HasValue)
+        {
+            throw new AbpException("User context is required for reporting.");
+        }
+        return CurrentUser.Id.Value;
+    }
 
     private static StudentCourseProgressViewDto MapStudentCourseProgress(StudentCourseProgressView e)
     {

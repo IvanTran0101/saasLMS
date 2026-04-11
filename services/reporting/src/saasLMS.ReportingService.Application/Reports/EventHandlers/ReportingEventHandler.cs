@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using saasLMS.AssessmentService.Assignments.Etos;
@@ -86,9 +87,12 @@ public class ReportingEventHandler :
             classView.LastUpdatedAt = DateTime.UtcNow;
             await _classProgressRepo.UpdateAsync(classView, autoSave: true);
 
+            await RecalculateCourseOutcomeMetricsAsync(eventData.TenantId, eventData.CourseId);
+
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
             await InvalidateTenantCacheAsync(eventData.TenantId);
+            await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
         });
     }
 
@@ -117,9 +121,12 @@ public class ReportingEventHandler :
             classView.LastUpdatedAt = DateTime.UtcNow;
             await _classProgressRepo.UpdateAsync(classView, autoSave: true);
 
+            await RecalculateCourseOutcomeMetricsAsync(eventData.TenantId, eventData.CourseId);
+
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
             await InvalidateTenantCacheAsync(eventData.TenantId);
+            await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
         });
     }
 
@@ -165,8 +172,11 @@ public class ReportingEventHandler :
             classView.LastUpdatedAt = DateTime.UtcNow;
             await _classProgressRepo.UpdateAsync(classView, autoSave: true);
 
+            await RecalculateCourseOutcomeMetricsAsync(eventData.TenantId, eventData.CourseId);
+
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
+            await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
         });
     }
 
@@ -206,6 +216,8 @@ public class ReportingEventHandler :
             courseOutcome.LastUpdatedAt = DateTime.UtcNow;
             await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
 
+            await RecalculateCourseOutcomeMetricsAsync(eventData.TenantId, eventData.CourseId);
+
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
         });
@@ -237,6 +249,8 @@ public class ReportingEventHandler :
             courseOutcome.LastUpdatedAt = DateTime.UtcNow;
             await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
 
+            await RecalculateCourseOutcomeMetricsAsync(eventData.TenantId, eventData.CourseId);
+
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
         });
@@ -254,6 +268,10 @@ public class ReportingEventHandler :
         }
 
         entity = new StudentCourseProgressView(Guid.NewGuid(), tenantId, courseId, studentId);
+        var courseOutcome = await GetOrCreateCourseOutcomeAsync(tenantId, courseId);
+        entity.TotalLessonsCount = courseOutcome.TotalLessonsCount;
+        entity.TotalAssignmentsCount = courseOutcome.TotalAssignmentsCount;
+        entity.TotalQuizzesCount = courseOutcome.TotalQuizzesCount;
         await _studentCourseRepo.InsertAsync(entity, autoSave: true);
         return entity;
     }
@@ -305,6 +323,11 @@ public class ReportingEventHandler :
             await _studentCourseRepo.UpdateAsync(student, autoSave: true);
             await InvalidateStudentCacheAsync(tenantId, courseId, student.StudentId);
         }
+        var courseOutcome = await GetOrCreateCourseOutcomeAsync(tenantId, courseId);
+        courseOutcome.TotalLessonsCount = Math.Max(0, courseOutcome.TotalLessonsCount + delta);
+        courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+        await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+        await RecalculateCourseOutcomeMetricsAsync(tenantId, courseId);
         await InvalidateClassCacheAsync(tenantId, courseId);
     }
 
@@ -322,6 +345,11 @@ public class ReportingEventHandler :
             await _studentCourseRepo.UpdateAsync(student, autoSave: true);
             await InvalidateStudentCacheAsync(tenantId, courseId, student.StudentId);
         }
+        var courseOutcome = await GetOrCreateCourseOutcomeAsync(tenantId, courseId);
+        courseOutcome.TotalAssignmentsCount = Math.Max(0, courseOutcome.TotalAssignmentsCount + delta);
+        courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+        await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+        await RecalculateCourseOutcomeMetricsAsync(tenantId, courseId);
         await InvalidateCourseOutcomeCacheAsync(tenantId, courseId);
     }
 
@@ -339,7 +367,92 @@ public class ReportingEventHandler :
             await _studentCourseRepo.UpdateAsync(student, autoSave: true);
             await InvalidateStudentCacheAsync(tenantId, courseId, student.StudentId);
         }
+        var courseOutcome = await GetOrCreateCourseOutcomeAsync(tenantId, courseId);
+        courseOutcome.TotalQuizzesCount = Math.Max(0, courseOutcome.TotalQuizzesCount + delta);
+        courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+        await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+        await RecalculateCourseOutcomeMetricsAsync(tenantId, courseId);
         await InvalidateCourseOutcomeCacheAsync(tenantId, courseId);
+    }
+
+    private async Task RecalculateCourseOutcomeMetricsAsync(Guid tenantId, Guid courseId)
+    {
+        var students = await _studentCourseRepo.GetListAsync(
+            x => x.TenantId == tenantId && x.CourseId == courseId && x.IsActiveEnrollment);
+
+        var courseOutcome = await GetOrCreateCourseOutcomeAsync(tenantId, courseId);
+
+        if (students.Count == 0)
+        {
+            courseOutcome.FinalScoreCount = 0;
+            courseOutcome.FinalScoreSum = 0;
+            courseOutcome.FinalScoreAvg = 0;
+            courseOutcome.CompletionRate = 0;
+            courseOutcome.PassRate = 0;
+            courseOutcome.ScoreDistributionJson = JsonSerializer.Serialize(new ScoreDistribution());
+            courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+            await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+            return;
+        }
+
+        var finalScores = students
+            .Select(s => Math.Round((s.AvgAssignmentScore + s.AvgQuizScore) / 2, 2))
+            .ToList();
+
+        var distribution = new ScoreDistribution();
+        foreach (var score in finalScores)
+        {
+            ApplyScoreBucket(distribution, GetScoreBucket(score), 1);
+        }
+
+        courseOutcome.FinalScoreCount = students.Count;
+        courseOutcome.FinalScoreSum = finalScores.Sum();
+        courseOutcome.FinalScoreAvg = Math.Round(courseOutcome.FinalScoreSum / courseOutcome.FinalScoreCount, 2);
+        courseOutcome.CompletionRate = Math.Round(students.Average(s => s.OverallProgress), 2);
+        courseOutcome.PassRate = Math.Round((decimal)finalScores.Count(s => s >= 50) / courseOutcome.FinalScoreCount * 100, 2);
+        courseOutcome.ScoreDistributionJson = JsonSerializer.Serialize(distribution);
+        courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+        await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+    }
+
+    private static int GetScoreBucket(decimal score)
+    {
+        if (score >= 100) return 100;
+        if (score >= 76) return 76;
+        if (score >= 51) return 51;
+        if (score >= 26) return 26;
+        return 0;
+    }
+
+    private static void ApplyScoreBucket(ScoreDistribution dist, int bucket, int delta)
+    {
+        switch (bucket)
+        {
+            case 100:
+                dist.Bucket_100 = Math.Max(0, dist.Bucket_100 + delta);
+                break;
+            case 76:
+                dist.Bucket_76_99 = Math.Max(0, dist.Bucket_76_99 + delta);
+                break;
+            case 51:
+                dist.Bucket_51_75 = Math.Max(0, dist.Bucket_51_75 + delta);
+                break;
+            case 26:
+                dist.Bucket_26_50 = Math.Max(0, dist.Bucket_26_50 + delta);
+                break;
+            default:
+                dist.Bucket_0_25 = Math.Max(0, dist.Bucket_0_25 + delta);
+                break;
+        }
+    }
+
+    private sealed class ScoreDistribution
+    {
+        public int Bucket_0_25 { get; set; }
+        public int Bucket_26_50 { get; set; }
+        public int Bucket_51_75 { get; set; }
+        public int Bucket_76_99 { get; set; }
+        public int Bucket_100 { get; set; }
     }
 
     private static decimal ComputeOverallProgress(StudentCourseProgressView student)

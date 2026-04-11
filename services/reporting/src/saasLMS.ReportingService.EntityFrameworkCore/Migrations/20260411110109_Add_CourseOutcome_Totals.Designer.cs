@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 using saasLMS.ReportingService.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using saasLMS.ReportingService.EntityFrameworkCore;
 namespace saasLMS.ReportingService.Migrations
 {
     [DbContext(typeof(ReportingServiceDbContext))]
-    partial class ReportingServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411110109_Add_CourseOutcome_Totals")]
+    partial class Add_CourseOutcome_Totals
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
