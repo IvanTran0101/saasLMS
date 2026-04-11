@@ -1,0 +1,343 @@
+﻿@page "/instructor/dashboard"
+@inherits AbpComponentBase
+
+@using saasLMS.Blazor.Client.Components.Shared
+@using saasLMS.CourseCatalogService.Courses
+
+<PageTitle>Instructor Dashboard</PageTitle>
+
+<style>
+    .idb-hero {
+        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 60%, #1e4976 100%);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .idb-hero__title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+
+    .idb-hero__subtitle {
+        opacity: 0.72;
+        margin-bottom: 1.25rem;
+        font-size: 0.95rem;
+    }
+
+    .idb-hero__actions .btn-glass {
+        background: rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,0.28);
+        color: #fff;
+        backdrop-filter: blur(4px);
+        border-radius: 8px;
+    }
+
+    .idb-hero__actions .btn-glass:hover {
+        background: rgba(255,255,255,0.24);
+        color: #fff;
+    }
+
+    .idb-hero__deco {
+        position: absolute;
+        right: 2.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .idb-hero__star {
+        position: absolute;
+        color: rgba(255,255,255,0.10);
+    }
+
+    .idb-hero__star--lg { font-size: 7rem; right: 0;    top: -2rem; }
+    .idb-hero__star--md { font-size: 4rem; right: 5rem; top: 1.5rem; }
+    .idb-hero__star--sm { font-size: 2rem; right: 1rem; top: 4.5rem; }
+
+    .idb-stat {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        height: 100%;
+    }
+
+    .idb-stat__icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .idb-stat__icon--students { background: #e8f0fe; color: #1a73e8; }
+    .idb-stat__icon--courses  { background: #e6f4ea; color: #1e8e3e; }
+
+    .idb-stat__label {
+        font-size: 0.72rem;
+        color: #8a93a2;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.2rem;
+    }
+
+    .idb-stat__value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1;
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+    }
+
+    .idb-stat__badge {
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 20px;
+        background: #e6f4ea;
+        color: #1e8e3e;
+    }
+
+    .idb-stat__sub {
+        font-size: 0.78rem;
+        font-weight: 400;
+        color: #8a93a2;
+    }
+
+    .idb-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .idb-section-header__title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 0;
+        color: #0d1117;
+    }
+
+    .idb-section-header__link {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #1a73e8;
+        text-decoration: none;
+    }
+
+    .idb-section-header__link:hover { text-decoration: underline; }
+
+    .idb-create-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 220px;
+        height: 100%;
+        border: 2px dashed #ced4da;
+        border-radius: 14px;
+        background: #fafbfc;
+        text-decoration: none;
+        text-align: center;
+        padding: 1.5rem;
+        transition: border-color 0.2s, background 0.2s;
+        cursor: pointer;
+    }
+
+    .idb-create-card:hover {
+        border-color: #1a73e8;
+        background: #f0f5ff;
+    }
+
+    .idb-create-card__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #e8f0fe;
+        color: #1a73e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .idb-create-card__label {
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: #1a73e8;
+    }
+
+    .idb-create-card__sub {
+        font-size: 0.78rem;
+        color: #8a93a2;
+    }
+
+    .idb-skeleton {
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        min-height: 220px;
+    }
+
+    .idb-skeleton__thumb {
+        height: 140px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: idb-shimmer 1.4s infinite;
+    }
+
+    .idb-skeleton__body { padding: 0.875rem 1rem; }
+
+    .idb-skeleton__line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: idb-shimmer 1.4s infinite;
+        margin-bottom: 0.5rem;
+    }
+
+    .idb-skeleton__line--short { width: 40%; }
+
+    @@keyframes idb-shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+
+<div>
+
+    @* ── Hero Banner ── *@
+    <div class="idb-hero">
+        <div class="idb-hero__content">
+            <h2 class="idb-hero__title">Welcome back, @(CurrentUser.Name ?? CurrentUser.UserName ?? "Instructor").</h2>
+            <p class="idb-hero__subtitle">Manage your courses and track student progress.</p>
+            <div class="idb-hero__actions d-flex gap-2">
+                <a href="/account/manage" class="btn btn-glass btn-sm">
+                    <i class="fa fa-user me-1"></i> View Public Profile
+                </a>
+                <button class="btn btn-glass btn-sm">
+                    <i class="fa fa-calendar me-1"></i> Manage Schedule
+                </button>
+            </div>
+        </div>
+        <div class="idb-hero__deco">
+            <i class="fa fa-star idb-hero__star idb-hero__star--lg"></i>
+            <i class="fa fa-star idb-hero__star idb-hero__star--md"></i>
+            <i class="fa fa-star idb-hero__star idb-hero__star--sm"></i>
+        </div>
+    </div>
+
+    @* ── Summary Stats ── *@
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="idb-stat">
+                <div class="idb-stat__icon idb-stat__icon--students">
+                    <i class="fa fa-users"></i>
+                </div>
+                <div>
+                    <div class="idb-stat__label">Total Students</div>
+                    <div class="idb-stat__value">
+                        @if (_isLoadingStats)
+                        {
+                        <span class="placeholder col-5 rounded"></span>
+                        }
+                        else
+                        {
+                        @_totalStudents.ToString("N0")
+                        <span class="idb-stat__badge">+12%</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="idb-stat">
+                <div class="idb-stat__icon idb-stat__icon--courses">
+                    <i class="fa fa-book-open"></i>
+                </div>
+                <div>
+                    <div class="idb-stat__label">Total Courses</div>
+                    <div class="idb-stat__value">
+                        @if (_isLoadingStats)
+                        {
+                        <span class="placeholder col-3 rounded"></span>
+                        }
+                        else
+                        {
+                        @_totalCourses
+                        <span class="idb-stat__sub">Active</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ── My Courses ── *@
+    <div class="idb-section-header">
+        <h5 class="idb-section-header__title">My Courses</h5>
+        <a href="/courses" class="idb-section-header__link">
+            View All <i class="fa fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="row g-3">
+
+        @* Create New Course Card *@
+        <div class="col-12 col-md-6 col-xl-4">
+            <a href="/courses/create" class="idb-create-card">
+                <div class="idb-create-card__icon">
+                    <i class="fa fa-plus"></i>
+                </div>
+                <div class="idb-create-card__label">Create New Course</div>
+                <div class="idb-create-card__sub">Start designing your next digital experience</div>
+            </a>
+        </div>
+
+        @if (_isLoadingCourses)
+        {
+        @for (var i = 0; i < 5; i++)
+        {
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="idb-skeleton">
+                <div class="idb-skeleton__thumb"></div>
+                <div class="idb-skeleton__body">
+                    <div class="idb-skeleton__line"></div>
+                    <div class="idb-skeleton__line idb-skeleton__line--short"></div>
+                </div>
+            </div>
+        </div>
+        }
+        }
+        else
+        {
+        @foreach (var course in _courses)
+        {
+        <div class="col-12 col-md-6 col-xl-4">
+            <InstructorCourseCard Course="course" />
+        </div>
+        }
+        }
+
+    </div>
+
+</div>

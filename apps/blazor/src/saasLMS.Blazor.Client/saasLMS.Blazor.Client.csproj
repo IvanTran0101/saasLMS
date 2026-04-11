@@ -43,6 +43,7 @@
     <ProjectReference Include="..\..\..\..\services\administration\src\saasLMS.AdministrationService.HttpApi.Client\saasLMS.AdministrationService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\identity\src\saasLMS.IdentityService.HttpApi.Client\saasLMS.IdentityService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\saas\src\saasLMS.SaasService.HttpApi.Client\saasLMS.SaasService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\courseCatalog\src\saasLMS.CourseCatalogService.Blazor\saasLMS.CourseCatalogService.Blazor.csproj" />
   </ItemGroup>
   
 </Project>

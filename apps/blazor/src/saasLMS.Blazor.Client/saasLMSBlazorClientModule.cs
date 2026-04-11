@@ -35,6 +35,7 @@ using Volo.Payment.Admin.Blazor.WebAssembly;
 using Volo.Saas.Host;
 using Volo.Saas.Host.Blazor.WebAssembly;
 using Volo.Saas.Tenant.Blazor.WebAssembly;
+using saasLMS.CourseCatalogService.Blazor;
 
 namespace saasLMS.Blazor.Client;
 
@@ -57,7 +58,8 @@ namespace saasLMS.Blazor.Client;
     typeof(ProductServiceHttpApiClientModule),
     typeof(AdministrationServiceHttpApiClientModule),
     typeof(SaasServiceHttpApiClientModule),
-    typeof(IdentityServiceHttpApiClientModule)
+    typeof(IdentityServiceHttpApiClientModule),
+    typeof(CourseCatalogServiceBlazorModule) 
 )]
 public class saasLMSBlazorClientModule : AbpModule
 {
