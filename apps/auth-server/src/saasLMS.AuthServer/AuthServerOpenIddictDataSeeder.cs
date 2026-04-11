@@ -150,6 +150,7 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
 
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
 
@@ -210,6 +211,7 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
 
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
 

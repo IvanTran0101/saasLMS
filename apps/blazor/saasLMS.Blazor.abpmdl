@@ -1,7 +1,41 @@
 {
   "folders": {
     "items": {
-      "src": {}
+      "src": {},
+      "services": {
+        "items": {
+          "assessment": {
+            "items": {
+              "src": {}
+            }
+          },
+          "courseCatalog": {
+            "items": {
+              "src": {}
+            }
+          },
+          "enrollment": {
+            "items": {
+              "src": {}
+            }
+          },
+          "learningProgress": {
+            "items": {
+              "src": {}
+            }
+          },
+          "notification": {
+            "items": {
+              "src": {}
+            }
+          },
+          "reporting": {
+            "items": {
+              "src": {}
+            }
+          }
+        }
+      }
     }
   },
   "packages": {
@@ -12,6 +46,78 @@
     "saasLMS.Blazor": {
       "path": "src/saasLMS.Blazor/saasLMS.Blazor.abppkg",
       "folder": "src"
+    },
+    "saasLMS.AssessmentService.Application.Contracts": {
+      "path": "../../services/assessment/src/saasLMS.AssessmentService.Application.Contracts/saasLMS.AssessmentService.Application.Contracts.abppkg",
+      "folder": "services/assessment/src"
+    },
+    "saasLMS.AssessmentService.Domain.Shared": {
+      "path": "../../services/assessment/src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.abppkg",
+      "folder": "services/assessment/src"
+    },
+    "saasLMS.AssessmentService.HttpApi.Client": {
+      "path": "../../services/assessment/src/saasLMS.AssessmentService.HttpApi.Client/saasLMS.AssessmentService.HttpApi.Client.abppkg",
+      "folder": "services/assessment/src"
+    },
+    "saasLMS.CourseCatalogService.Application.Contracts": {
+      "path": "../../services/courseCatalog/src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.abppkg",
+      "folder": "services/courseCatalog/src"
+    },
+    "saasLMS.CourseCatalogService.Domain.Shared": {
+      "path": "../../services/courseCatalog/src/saasLMS.CourseCatalogService.Domain.Shared/saasLMS.CourseCatalogService.Domain.Shared.abppkg",
+      "folder": "services/courseCatalog/src"
+    },
+    "saasLMS.CourseCatalogService.HttpApi.Client": {
+      "path": "../../services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Client/saasLMS.CourseCatalogService.HttpApi.Client.abppkg",
+      "folder": "services/courseCatalog/src"
+    },
+    "saasLMS.EnrollmentService.Application.Contracts": {
+      "path": "../../services/enrollment/src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.abppkg",
+      "folder": "services/enrollment/src"
+    },
+    "saasLMS.EnrollmentService.Domain.Shared": {
+      "path": "../../services/enrollment/src/saasLMS.EnrollmentService.Domain.Shared/saasLMS.EnrollmentService.Domain.Shared.abppkg",
+      "folder": "services/enrollment/src"
+    },
+    "saasLMS.EnrollmentService.HttpApi.Client": {
+      "path": "../../services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Client/saasLMS.EnrollmentService.HttpApi.Client.abppkg",
+      "folder": "services/enrollment/src"
+    },
+    "saasLMS.LearningProgressService.Application.Contracts": {
+      "path": "../../services/learningProgress/src/saasLMS.LearningProgressService.Application.Contracts/saasLMS.LearningProgressService.Application.Contracts.abppkg",
+      "folder": "services/learningProgress/src"
+    },
+    "saasLMS.LearningProgressService.Domain.Shared": {
+      "path": "../../services/learningProgress/src/saasLMS.LearningProgressService.Domain.Shared/saasLMS.LearningProgressService.Domain.Shared.abppkg",
+      "folder": "services/learningProgress/src"
+    },
+    "saasLMS.LearningProgressService.HttpApi.Client": {
+      "path": "../../services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Client/saasLMS.LearningProgressService.HttpApi.Client.abppkg",
+      "folder": "services/learningProgress/src"
+    },
+    "saasLMS.NotificationService.Application.Contracts": {
+      "path": "../../services/notification/src/saasLMS.NotificationService.Application.Contracts/saasLMS.NotificationService.Application.Contracts.abppkg",
+      "folder": "services/notification/src"
+    },
+    "saasLMS.NotificationService.Domain.Shared": {
+      "path": "../../services/notification/src/saasLMS.NotificationService.Domain.Shared/saasLMS.NotificationService.Domain.Shared.abppkg",
+      "folder": "services/notification/src"
+    },
+    "saasLMS.NotificationService.HttpApi.Client": {
+      "path": "../../services/notification/src/saasLMS.NotificationService.HttpApi.Client/saasLMS.NotificationService.HttpApi.Client.abppkg",
+      "folder": "services/notification/src"
+    },
+    "saasLMS.ReportingService.Application.Contracts": {
+      "path": "../../services/reporting/src/saasLMS.ReportingService.Application.Contracts/saasLMS.ReportingService.Application.Contracts.abppkg",
+      "folder": "services/reporting/src"
+    },
+    "saasLMS.ReportingService.Domain.Shared": {
+      "path": "../../services/reporting/src/saasLMS.ReportingService.Domain.Shared/saasLMS.ReportingService.Domain.Shared.abppkg",
+      "folder": "services/reporting/src"
+    },
+    "saasLMS.ReportingService.HttpApi.Client": {
+      "path": "../../services/reporting/src/saasLMS.ReportingService.HttpApi.Client/saasLMS.ReportingService.HttpApi.Client.abppkg",
+      "folder": "services/reporting/src"
     }
   },
   "moduleId": "3a1a89f8-abc8-6358-56c1-067fb507a459"
