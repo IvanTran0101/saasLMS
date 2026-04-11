@@ -10,8 +10,8 @@ public class ReportingServicePermissionDefinitionProvider : PermissionDefinition
     {
         var myGroup = context.AddGroup(ReportingServicePermissions.GroupName, L("Permission:ReportingService"));
 
-        //Define your own permissions here. Example:
-        //myGroup.AddPermission(BookStorePermissions.MyPermission1, L("Permission:MyPermission1"));
+        myGroup.AddPermission(ReportingServicePermissions.Reports.View, L("Permission:Reports.View"));
+        myGroup.AddPermission(ReportingServicePermissions.Reports.StudentView, L("Permission:Reports.StudentView"));
     }
 
     private static LocalizableString L(string name)

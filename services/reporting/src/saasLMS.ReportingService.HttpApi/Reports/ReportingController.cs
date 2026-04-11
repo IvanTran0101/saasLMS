@@ -2,8 +2,10 @@ using System;
 using System.Threading.Tasks;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using saasLMS.ReportingService.Reports;
 using saasLMS.ReportingService.Reports.Dtos.Outputs;
+using saasLMS.ReportingService.Permissions;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 
@@ -23,6 +25,7 @@ public class ReportingController : ReportingServiceController
     }
 
     [HttpGet("student-course-progress")]
+    [Authorize(ReportingServicePermissions.Reports.StudentView)]
     public Task<StudentCourseProgressViewDto?> GetStudentCourseProgressAsync(
         Guid tenantId,
         Guid courseId,
@@ -32,6 +35,7 @@ public class ReportingController : ReportingServiceController
     }
 
     [HttpGet("class-progress")]
+    [Authorize(ReportingServicePermissions.Reports.View)]
     public Task<ClassProgressViewDto?> GetClassProgressAsync(
         Guid tenantId,
         Guid courseId)
@@ -40,6 +44,7 @@ public class ReportingController : ReportingServiceController
     }
 
     [HttpGet("course-outcome")]
+    [Authorize(ReportingServicePermissions.Reports.View)]
     public Task<CourseOutcomeReportViewDto?> GetCourseOutcomeReportAsync(
         Guid tenantId,
         Guid courseId)
@@ -48,6 +53,7 @@ public class ReportingController : ReportingServiceController
     }
 
     [HttpGet("tenant-summary")]
+    [Authorize(ReportingServicePermissions.Reports.View)]
     public Task<TenantSummaryReportViewDto?> GetTenantSummaryAsync(Guid tenantId)
     {
         return _reportingAppService.GetTenantSummaryAsync(tenantId);

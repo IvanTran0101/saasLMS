@@ -514,17 +514,17 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
             return;
         }
 
-        if (!HasSameRedirectUris(client, application))
-        {
-            client.RedirectUris = JsonSerializer.Serialize(application.RedirectUris.Select(q => q.ToString().TrimEnd('/')));
-            client.PostLogoutRedirectUris = JsonSerializer.Serialize(application.PostLogoutRedirectUris.Select(q => q.ToString().TrimEnd('/')));
-
-            await _applicationManager.UpdateAsync(client.ToModel());
-        }
+        var redirectUpdated = MergeRedirectUris(client, application);
+        var scopesUpdated = false;
 
         if (!HasSameScopes(client, application))
         {
             client.Permissions = JsonSerializer.Serialize(application.Permissions.Select(q => q.ToString()));
+            scopesUpdated = true;
+        }
+
+        if (redirectUpdated || scopesUpdated)
+        {
             await _applicationManager.UpdateAsync(client.ToModel());
         }
     }
@@ -537,5 +537,55 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
     private bool HasSameScopes(OpenIddictApplication existingClient, AbpApplicationDescriptor application)
     {
         return existingClient.Permissions == JsonSerializer.Serialize(application.Permissions.Select(q => q.ToString().TrimEnd('/')));
+    }
+
+    private static bool MergeRedirectUris(OpenIddictApplication existingClient, AbpApplicationDescriptor application)
+    {
+        var updated = false;
+
+        var existingRedirects = DeserializeUriList(existingClient.RedirectUris);
+        foreach (var uri in application.RedirectUris.Select(q => q.ToString().TrimEnd('/')))
+        {
+            if (!existingRedirects.Contains(uri, StringComparer.OrdinalIgnoreCase))
+            {
+                existingRedirects.Add(uri);
+                updated = true;
+            }
+        }
+
+        var existingPostLogout = DeserializeUriList(existingClient.PostLogoutRedirectUris);
+        foreach (var uri in application.PostLogoutRedirectUris.Select(q => q.ToString().TrimEnd('/')))
+        {
+            if (!existingPostLogout.Contains(uri, StringComparer.OrdinalIgnoreCase))
+            {
+                existingPostLogout.Add(uri);
+                updated = true;
+            }
+        }
+
+        if (updated)
+        {
+            existingClient.RedirectUris = JsonSerializer.Serialize(existingRedirects);
+            existingClient.PostLogoutRedirectUris = JsonSerializer.Serialize(existingPostLogout);
+        }
+
+        return updated;
+    }
+
+    private static List<string> DeserializeUriList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new List<string>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
     }
 }

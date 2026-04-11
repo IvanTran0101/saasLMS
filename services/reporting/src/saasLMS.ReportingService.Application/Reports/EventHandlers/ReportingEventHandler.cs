@@ -16,9 +16,11 @@ using Volo.Abp.Caching;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.Uow;
 
 namespace saasLMS.ReportingService.Reports.EventHandlers;
 
+[UnitOfWork]
 public class ReportingEventHandler :
     IDistributedEventHandler<StudentEnrolledEto>,
     IDistributedEventHandler<StudentUnenrolledEto>,
@@ -39,6 +41,7 @@ public class ReportingEventHandler :
     private readonly IDistributedCache<ClassProgressViewDto> _classCache;
     private readonly IDistributedCache<CourseOutcomeReportViewDto> _courseOutcomeCache;
     private readonly IDistributedCache<TenantSummaryReportViewDto> _tenantSummaryCache;
+    private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     public ReportingEventHandler(
         IRepository<StudentCourseProgressView, Guid> studentCourseRepo,
@@ -48,7 +51,8 @@ public class ReportingEventHandler :
         IDistributedCache<StudentCourseProgressViewDto> studentCache,
         IDistributedCache<ClassProgressViewDto> classCache,
         IDistributedCache<CourseOutcomeReportViewDto> courseOutcomeCache,
-        IDistributedCache<TenantSummaryReportViewDto> tenantSummaryCache)
+        IDistributedCache<TenantSummaryReportViewDto> tenantSummaryCache,
+        IUnitOfWorkManager unitOfWorkManager)
     {
         _studentCourseRepo = studentCourseRepo;
         _classProgressRepo = classProgressRepo;
@@ -58,168 +62,184 @@ public class ReportingEventHandler :
         _classCache = classCache;
         _courseOutcomeCache = courseOutcomeCache;
         _tenantSummaryCache = tenantSummaryCache;
+        _unitOfWorkManager = unitOfWorkManager;
     }
 
     public async Task HandleEventAsync(StudentEnrolledEto eventData)
     {
-        var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        if (!studentView.IsActiveEnrollment)
+        await ExecuteInUowAsync(async () =>
         {
-            studentView.IsActiveEnrollment = true;
-            studentView.LastUpdatedAt = DateTime.UtcNow;
-            await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
-        }
+            var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            if (!studentView.IsActiveEnrollment)
+            {
+                studentView.IsActiveEnrollment = true;
+                studentView.LastUpdatedAt = DateTime.UtcNow;
+                await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
+            }
 
-        var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
-        classView.ActiveEnrollmentCount += 1;
-        if (studentView.CompletedLessonsCount == 0 && studentView.TotalLessonsCount == 0)
-        {
-            classView.TotalStudents += 1;
-        }
-        classView.LastUpdatedAt = DateTime.UtcNow;
-        await _classProgressRepo.UpdateAsync(classView, autoSave: true);
+            var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
+            classView.ActiveEnrollmentCount += 1;
+            if (studentView.CompletedLessonsCount == 0 && studentView.TotalLessonsCount == 0)
+            {
+                classView.TotalStudents += 1;
+            }
+            classView.LastUpdatedAt = DateTime.UtcNow;
+            await _classProgressRepo.UpdateAsync(classView, autoSave: true);
 
-        await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
-        await InvalidateTenantCacheAsync(eventData.TenantId);
+            await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
+            await InvalidateTenantCacheAsync(eventData.TenantId);
+        });
     }
 
     public async Task HandleEventAsync(StudentUnenrolledEto eventData)
     {
-        var studentView = await _studentCourseRepo.FirstOrDefaultAsync(
-            x => x.TenantId == eventData.TenantId
-              && x.CourseId == eventData.CourseId
-              && x.StudentId == eventData.StudentId);
-        if (studentView == null)
+        await ExecuteInUowAsync(async () =>
         {
-            return;
-        }
+            var studentView = await _studentCourseRepo.FirstOrDefaultAsync(
+                x => x.TenantId == eventData.TenantId
+                  && x.CourseId == eventData.CourseId
+                  && x.StudentId == eventData.StudentId);
+            if (studentView == null)
+            {
+                return;
+            }
 
-        if (studentView.IsActiveEnrollment)
-        {
-            studentView.IsActiveEnrollment = false;
-            studentView.LastUpdatedAt = DateTime.UtcNow;
-            await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
-        }
+            if (studentView.IsActiveEnrollment)
+            {
+                studentView.IsActiveEnrollment = false;
+                studentView.LastUpdatedAt = DateTime.UtcNow;
+                await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
+            }
 
-        var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
-        classView.ActiveEnrollmentCount = Math.Max(0, classView.ActiveEnrollmentCount - 1);
-        classView.LastUpdatedAt = DateTime.UtcNow;
-        await _classProgressRepo.UpdateAsync(classView, autoSave: true);
+            var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
+            classView.ActiveEnrollmentCount = Math.Max(0, classView.ActiveEnrollmentCount - 1);
+            classView.LastUpdatedAt = DateTime.UtcNow;
+            await _classProgressRepo.UpdateAsync(classView, autoSave: true);
 
-        await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
-        await InvalidateTenantCacheAsync(eventData.TenantId);
+            await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
+            await InvalidateTenantCacheAsync(eventData.TenantId);
+        });
     }
 
     public Task HandleEventAsync(LessonCreatedEto eventData)
-        => UpdateTotalLessonsForCourseAsync(eventData.TenantId, eventData.CourseId, delta: 1);
+        => ExecuteInUowAsync(() => UpdateTotalLessonsForCourseAsync(eventData.TenantId, eventData.CourseId, delta: 1));
 
     public Task HandleEventAsync(LessonDeletedEto eventData)
-        => UpdateTotalLessonsForCourseAsync(eventData.TenantId, eventData.CourseId, delta: -1);
+        => ExecuteInUowAsync(() => UpdateTotalLessonsForCourseAsync(eventData.TenantId, eventData.CourseId, delta: -1));
 
     public async Task HandleEventAsync(CourseProgressUpdatedEto eventData)
     {
-        var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        var oldBucket = GetBucket(studentView.OverallProgress);
-        var oldStatus = studentView.Status;
-
-        studentView.Status = (int)eventData.Status;
-        studentView.CompletedLessonsCount = eventData.CompletedLessonsCount;
-        studentView.TotalLessonsCount = eventData.TotalLessonsCount;
-        studentView.LessonCompletionPercent = eventData.TotalLessonsCount == 0
-            ? 0
-            : Math.Round((decimal)eventData.CompletedLessonsCount / eventData.TotalLessonsCount * 100, 2);
-        studentView.LastAccessedLessonId = eventData.LastAccessedLessonId;
-        studentView.LastAccessedAt = eventData.LastAccessedAt;
-        studentView.OverallProgress = ComputeOverallProgress(studentView);
-        studentView.LastUpdatedAt = DateTime.UtcNow;
-        await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
-
-        var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
-        var newBucket = GetBucket(studentView.OverallProgress);
-        if (oldBucket != newBucket)
+        await ExecuteInUowAsync(async () =>
         {
-            ApplyBucketDelta(classView, oldBucket, -1);
-            ApplyBucketDelta(classView, newBucket, 1);
-        }
+            var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            var oldBucket = GetBucket(studentView.OverallProgress);
+            var oldStatus = studentView.Status;
 
-        if (oldStatus != studentView.Status)
-        {
-            UpdateStatusCounts(classView, oldStatus, studentView.Status);
-        }
+            studentView.Status = (int)eventData.Status;
+            studentView.CompletedLessonsCount = eventData.CompletedLessonsCount;
+            studentView.TotalLessonsCount = eventData.TotalLessonsCount;
+            studentView.LessonCompletionPercent = eventData.TotalLessonsCount == 0
+                ? 0
+                : Math.Round((decimal)eventData.CompletedLessonsCount / eventData.TotalLessonsCount * 100, 2);
+            studentView.LastAccessedLessonId = eventData.LastAccessedLessonId;
+            studentView.LastAccessedAt = eventData.LastAccessedAt;
+            studentView.OverallProgress = ComputeOverallProgress(studentView);
+            studentView.LastUpdatedAt = DateTime.UtcNow;
+            await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
 
-        classView.LastUpdatedAt = DateTime.UtcNow;
-        await _classProgressRepo.UpdateAsync(classView, autoSave: true);
+            var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
+            var newBucket = GetBucket(studentView.OverallProgress);
+            if (oldBucket != newBucket)
+            {
+                ApplyBucketDelta(classView, oldBucket, -1);
+                ApplyBucketDelta(classView, newBucket, 1);
+            }
 
-        await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
+            if (oldStatus != studentView.Status)
+            {
+                UpdateStatusCounts(classView, oldStatus, studentView.Status);
+            }
+
+            classView.LastUpdatedAt = DateTime.UtcNow;
+            await _classProgressRepo.UpdateAsync(classView, autoSave: true);
+
+            await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
+        });
     }
 
     public async Task HandleEventAsync(AssignmentCreatedEto eventData)
     {
-        await UpdateTotalAssignmentsForCourseAsync(eventData.TenantId, eventData.CourseId, delta: 1);
+        await ExecuteInUowAsync(() => UpdateTotalAssignmentsForCourseAsync(eventData.TenantId, eventData.CourseId, delta: 1));
     }
 
     public async Task HandleEventAsync(QuizCreatedEto eventData)
     {
-        await UpdateTotalQuizzesForCourseAsync(eventData.TenantId, eventData.CourseId, delta: 1);
+        await ExecuteInUowAsync(() => UpdateTotalQuizzesForCourseAsync(eventData.TenantId, eventData.CourseId, delta: 1));
     }
 
     public async Task HandleEventAsync(SubmissionGradedEto eventData)
     {
-        var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        studentView.AssignmentGradedCount += 1;
-        studentView.AssignmentScoreSum += eventData.Score;
-        studentView.AvgAssignmentScore = studentView.AssignmentGradedCount == 0
-            ? 0
-            : Math.Round(studentView.AssignmentScoreSum / studentView.AssignmentGradedCount, 2);
-        studentView.AssignmentCompletionPercent = studentView.TotalAssignmentsCount == 0
-            ? 0
-            : Math.Round((decimal)studentView.AssignmentGradedCount / studentView.TotalAssignmentsCount * 100, 2);
-        studentView.OverallProgress = ComputeOverallProgress(studentView);
-        studentView.LastUpdatedAt = DateTime.UtcNow;
-        await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
+        await ExecuteInUowAsync(async () =>
+        {
+            var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            studentView.AssignmentGradedCount += 1;
+            studentView.AssignmentScoreSum += eventData.Score;
+            studentView.AvgAssignmentScore = studentView.AssignmentGradedCount == 0
+                ? 0
+                : Math.Round(studentView.AssignmentScoreSum / studentView.AssignmentGradedCount, 2);
+            studentView.AssignmentCompletionPercent = studentView.TotalAssignmentsCount == 0
+                ? 0
+                : Math.Round((decimal)studentView.AssignmentGradedCount / studentView.TotalAssignmentsCount * 100, 2);
+            studentView.OverallProgress = ComputeOverallProgress(studentView);
+            studentView.LastUpdatedAt = DateTime.UtcNow;
+            await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
 
-        var courseOutcome = await GetOrCreateCourseOutcomeAsync(eventData.TenantId, eventData.CourseId);
-        courseOutcome.AssignmentGradedCount += 1;
-        courseOutcome.AssignmentScoreSum += eventData.Score;
-        courseOutcome.AvgAssignmentScore = courseOutcome.AssignmentGradedCount == 0
-            ? 0
-            : Math.Round(courseOutcome.AssignmentScoreSum / courseOutcome.AssignmentGradedCount, 2);
-        courseOutcome.LastUpdatedAt = DateTime.UtcNow;
-        await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+            var courseOutcome = await GetOrCreateCourseOutcomeAsync(eventData.TenantId, eventData.CourseId);
+            courseOutcome.AssignmentGradedCount += 1;
+            courseOutcome.AssignmentScoreSum += eventData.Score;
+            courseOutcome.AvgAssignmentScore = courseOutcome.AssignmentGradedCount == 0
+                ? 0
+                : Math.Round(courseOutcome.AssignmentScoreSum / courseOutcome.AssignmentGradedCount, 2);
+            courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+            await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
 
-        await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
+            await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
+        });
     }
 
     public async Task HandleEventAsync(QuizAttemptCompletedEto eventData)
     {
-        var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        studentView.QuizCompletedCount += 1;
-        studentView.QuizScoreSum += eventData.Score;
-        studentView.AvgQuizScore = studentView.QuizCompletedCount == 0
-            ? 0
-            : Math.Round(studentView.QuizScoreSum / studentView.QuizCompletedCount, 2);
-        studentView.QuizCompletionPercent = studentView.TotalQuizzesCount == 0
-            ? 0
-            : Math.Round((decimal)studentView.QuizCompletedCount / studentView.TotalQuizzesCount * 100, 2);
-        studentView.OverallProgress = ComputeOverallProgress(studentView);
-        studentView.LastUpdatedAt = DateTime.UtcNow;
-        await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
+        await ExecuteInUowAsync(async () =>
+        {
+            var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            studentView.QuizCompletedCount += 1;
+            studentView.QuizScoreSum += eventData.Score;
+            studentView.AvgQuizScore = studentView.QuizCompletedCount == 0
+                ? 0
+                : Math.Round(studentView.QuizScoreSum / studentView.QuizCompletedCount, 2);
+            studentView.QuizCompletionPercent = studentView.TotalQuizzesCount == 0
+                ? 0
+                : Math.Round((decimal)studentView.QuizCompletedCount / studentView.TotalQuizzesCount * 100, 2);
+            studentView.OverallProgress = ComputeOverallProgress(studentView);
+            studentView.LastUpdatedAt = DateTime.UtcNow;
+            await _studentCourseRepo.UpdateAsync(studentView, autoSave: true);
 
-        var courseOutcome = await GetOrCreateCourseOutcomeAsync(eventData.TenantId, eventData.CourseId);
-        courseOutcome.QuizCompletedCount += 1;
-        courseOutcome.QuizScoreSum += eventData.Score;
-        courseOutcome.AvgQuizScore = courseOutcome.QuizCompletedCount == 0
-            ? 0
-            : Math.Round(courseOutcome.QuizScoreSum / courseOutcome.QuizCompletedCount, 2);
-        courseOutcome.LastUpdatedAt = DateTime.UtcNow;
-        await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
+            var courseOutcome = await GetOrCreateCourseOutcomeAsync(eventData.TenantId, eventData.CourseId);
+            courseOutcome.QuizCompletedCount += 1;
+            courseOutcome.QuizScoreSum += eventData.Score;
+            courseOutcome.AvgQuizScore = courseOutcome.QuizCompletedCount == 0
+                ? 0
+                : Math.Round(courseOutcome.QuizScoreSum / courseOutcome.QuizCompletedCount, 2);
+            courseOutcome.LastUpdatedAt = DateTime.UtcNow;
+            await _courseOutcomeRepo.UpdateAsync(courseOutcome, autoSave: true);
 
-        await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
-        await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
+            await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
+            await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
+        });
     }
 
     private async Task<StudentCourseProgressView> GetOrCreateStudentViewAsync(Guid tenantId, Guid courseId, Guid studentId)
@@ -262,6 +282,13 @@ public class ReportingEventHandler :
         entity = new CourseOutcomeReportView(Guid.NewGuid(), tenantId, courseId);
         await _courseOutcomeRepo.InsertAsync(entity, autoSave: true);
         return entity;
+    }
+
+    private async Task ExecuteInUowAsync(Func<Task> action)
+    {
+        using var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: false);
+        await action();
+        await uow.CompleteAsync();
     }
 
     private async Task UpdateTotalLessonsForCourseAsync(Guid tenantId, Guid courseId, int delta)
