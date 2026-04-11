@@ -78,12 +78,14 @@ public class OpenIddictDataSeeder : ITransientDependency
         await CreateScopesAsync("AdministrationService");
         await CreateScopesAsync("SaasService");
         await CreateScopesAsync("ProductService");
+        await CreateScopesAsync("CourseCatalogService");
+        await CreateScopesAsync("EnrollmentService");
     }
 
     private async Task CreateWebGatewaySwaggerClientsAsync()
     {
         await CreateSwaggerClientAsync("WebGateway",
-            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService" });
+            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService", "CourseCatalogService", "EnrollmentService" });
     }
 
     private async Task CreateSwaggerClientAsync(string name, string[]? scopes = null)
@@ -182,7 +184,8 @@ public class OpenIddictDataSeeder : ITransientDependency
             secret: null,
             grantTypes: new List<string> { OpenIddictConstants.GrantTypes.AuthorizationCode },
             scopes: commonScopes.Union(new[] {
-                "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService"
+                "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService",
+                "CourseCatalogService", "EnrollmentService"
             }).ToList(),
             redirectUris: new List<string> { $"{blazorClientRootUrl}authentication/login-callback" },
             postLogoutRedirectUris: new List<string> { $"{blazorClientRootUrl}authentication/logout-callback" },
