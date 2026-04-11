@@ -43,10 +43,12 @@
     <ProjectReference Include="..\..\..\..\services\administration\src\saasLMS.AdministrationService.HttpApi.Client\saasLMS.AdministrationService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\identity\src\saasLMS.IdentityService.HttpApi.Client\saasLMS.IdentityService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\saas\src\saasLMS.SaasService.HttpApi.Client\saasLMS.SaasService.HttpApi.Client.csproj" />
-    <ProjectReference Include="..\..\..\..\services\courseCatalog\src\saasLMS.CourseCatalogService.Blazor\saasLMS.CourseCatalogService.Blazor.csproj" />
-    <ProjectReference Include="..\..\..\..\services\enrollment\src\saasLMS.EnrollmentService.Blazor\saasLMS.EnrollmentService.Blazor.csproj" />
-    <ProjectReference Include="..\..\..\..\services\enrollment\src\saasLMS.EnrollmentService.HttpApi.Client\saasLMS.EnrollmentService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\assessment\src\saasLMS.AssessmentService.HttpApi.Client\saasLMS.AssessmentService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\courseCatalog\src\saasLMS.CourseCatalogService.HttpApi.Client\saasLMS.CourseCatalogService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\enrollment\src\saasLMS.EnrollmentService.HttpApi.Client\saasLMS.EnrollmentService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\learningProgress\src\saasLMS.LearningProgressService.HttpApi.Client\saasLMS.LearningProgressService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\notification\src\saasLMS.NotificationService.HttpApi.Client\saasLMS.NotificationService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\reporting\src\saasLMS.ReportingService.HttpApi.Client\saasLMS.ReportingService.HttpApi.Client.csproj" />
   </ItemGroup>
   
 </Project>

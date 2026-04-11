@@ -35,10 +35,6 @@ using Volo.Payment.Admin.Blazor.WebAssembly;
 using Volo.Saas.Host;
 using Volo.Saas.Host.Blazor.WebAssembly;
 using Volo.Saas.Tenant.Blazor.WebAssembly;
-using saasLMS.CourseCatalogService;
-using saasLMS.CourseCatalogService.Blazor;
-using saasLMS.EnrollmentService;
-using saasLMS.EnrollmentService.Blazor;
 
 namespace saasLMS.Blazor.Client;
 
@@ -61,11 +57,7 @@ namespace saasLMS.Blazor.Client;
     typeof(ProductServiceHttpApiClientModule),
     typeof(AdministrationServiceHttpApiClientModule),
     typeof(SaasServiceHttpApiClientModule),
-    typeof(IdentityServiceHttpApiClientModule),
-    typeof(CourseCatalogServiceBlazorModule),
-    typeof(CourseCatalogServiceHttpApiClientModule),
-    typeof(EnrollmentServiceBlazorModule),
-    typeof(EnrollmentServiceHttpApiClientModule)
+    typeof(IdentityServiceHttpApiClientModule)
 )]
 public class saasLMSBlazorClientModule : AbpModule
 {
@@ -130,8 +122,12 @@ public class saasLMSBlazorClientModule : AbpModule
             options.ProviderOptions.DefaultScopes.Add("AdministrationService");
             options.ProviderOptions.DefaultScopes.Add("SaasService");
             options.ProviderOptions.DefaultScopes.Add("ProductService");
+            options.ProviderOptions.DefaultScopes.Add("AssessmentService");
             options.ProviderOptions.DefaultScopes.Add("CourseCatalogService");
             options.ProviderOptions.DefaultScopes.Add("EnrollmentService");
+            options.ProviderOptions.DefaultScopes.Add("LearningProgressService");
+            options.ProviderOptions.DefaultScopes.Add("NotificationService");
+            options.ProviderOptions.DefaultScopes.Add("ReportingService");
         });
     }
 
