@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using saasLMS.LearningProgressService.CourseProgresses;
+using saasLMS.LearningProgressService.CourseStructures;
+using saasLMS.LearningProgressService.Enrollments;
 using saasLMS.LearningProgressService.LessonProgresses;
 using Volo.Abp;
 using Volo.Abp.EntityFrameworkCore.Modeling;
@@ -48,6 +50,44 @@ public static class LearningProgressServiceDbContextModelCreatingExtensions
             b.HasIndex(x => x.LessonId);
             b.HasIndex(x => x.StudentId);
             b.HasIndex(x => new { x.TenantId, x.LessonId, x.StudentId }).IsUnique();
+        });
+
+        builder.Entity<EnrollmentProjection>(b =>
+        {
+            b.ToTable(LearningProgressServiceDbProperties.DbTablePrefix + "EnrollmentProjections", LearningProgressServiceDbProperties.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.TenantId).IsRequired();
+            b.Property(x => x.EnrollmentId).IsRequired();
+            b.Property(x => x.CourseId).IsRequired();
+            b.Property(x => x.StudentId).IsRequired();
+            b.Property(x => x.IsActive).IsRequired();
+            b.Property(x => x.EnrolledAt).IsRequired();
+            b.Property(x => x.CancelledAt);
+
+            b.HasIndex(x => x.TenantId);
+            b.HasIndex(x => x.CourseId);
+            b.HasIndex(x => x.StudentId);
+            b.HasIndex(x => new { x.TenantId, x.CourseId, x.StudentId }).IsUnique();
+        });
+
+        builder.Entity<LessonProjection>(b =>
+        {
+            b.ToTable(LearningProgressServiceDbProperties.DbTablePrefix + "LessonProjections", LearningProgressServiceDbProperties.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.TenantId).IsRequired();
+            b.Property(x => x.CourseId).IsRequired();
+            b.Property(x => x.ChapterId).IsRequired();
+            b.Property(x => x.LessonId).IsRequired();
+            b.Property(x => x.Title).IsRequired();
+            b.Property(x => x.SortOrder).IsRequired();
+            b.Property(x => x.IsActive).IsRequired();
+
+            b.HasIndex(x => x.TenantId);
+            b.HasIndex(x => x.CourseId);
+            b.HasIndex(x => x.LessonId).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.CourseId });
         });
     }
 }

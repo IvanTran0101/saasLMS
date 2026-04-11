@@ -17,6 +17,7 @@
     <Project Path="services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" />
     <Project Path="services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj" />
     <Project Path="services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj" />
+    <Project Path="services/reporting/src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.csproj" />
     <Project Path="services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj" />
 
   </Folder>

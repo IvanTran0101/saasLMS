@@ -29,4 +29,11 @@ public interface ILessonProgressRepository : IRepository<LessonProgress, Guid>
         Guid courseId,
         Guid studentId,
         CancellationToken cancellationToken = default);
+
+    Task<int> CountCompletedByCourseAndStudentAsync(
+        Guid tenantId,
+        Guid courseId,
+        Guid studentId,
+        IReadOnlyCollection<Guid> lessonIds,
+        CancellationToken cancellationToken = default);
 }

@@ -10,6 +10,7 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
 {
     public Guid TenantId { get; protected set; }
     public Guid QuizId { get; protected set; }
+    public Guid? FormResponseId { get; protected set; }
     public Guid StudentId { get; protected set; }
     public int AttemptNumber { get; protected set; }
     public DateTime StartedAt { get; protected set; }
@@ -77,6 +78,24 @@ public class QuizAttempt : FullAuditedAggregateRoot<Guid>
         
         return quizAttempt;
         
+    }
+
+    public void AttachFormResponse(Guid formResponseId)
+    {
+        if (formResponseId == Guid.Empty)
+        {
+            throw new ArgumentException("The form response id cannot be empty.", nameof(formResponseId));
+        }
+        FormResponseId = formResponseId;
+    }
+
+    public void EnsureFormResponseAttached()
+    {
+        if (!FormResponseId.HasValue || FormResponseId.Value == Guid.Empty)
+        {
+            throw new BusinessException("AssessmentService:QuizAttemptFormResponseNotAttached")
+                .WithData("QuizAttemptId", Id);
+        }
     }
 
     public void Complete(string submittedAnswersJson, decimal score, DateTime completedAt)

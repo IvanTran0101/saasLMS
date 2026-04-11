@@ -154,6 +154,9 @@ namespace saasLMS.AssessmentService.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
+                    b.Property<Guid?>("FormResponseId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -171,7 +174,7 @@ namespace saasLMS.AssessmentService.Migrations
                     b.Property<Guid>("QuizId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal?>("Score")
+                    b.Property<decimal>("Score")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("StartedAt")
@@ -182,6 +185,9 @@ namespace saasLMS.AssessmentService.Migrations
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SubmittedAnswersJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
@@ -242,6 +248,9 @@ namespace saasLMS.AssessmentService.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
+                    b.Property<Guid?>("FormId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -294,6 +303,39 @@ namespace saasLMS.AssessmentService.Migrations
                     b.ToTable("AssessmentService_Quizzes", (string)null);
                 });
 
+            modelBuilder.Entity("saasLMS.AssessmentService.Quizzes.QuizQuestionMap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FormQuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("QuestionIndex")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizId");
+
+                    b.HasIndex("TenantId", "QuizId", "FormQuestionId")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.HasIndex("TenantId", "QuizId", "QuestionIndex")
+                        .IsUnique()
+                        .HasFilter("[TenantId] IS NOT NULL");
+
+                    b.ToTable("AssessmentService_QuizQuestionMaps", (string)null);
+                });
+
             modelBuilder.Entity("saasLMS.AssessmentService.Submissions.Submission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -308,11 +350,6 @@ namespace saasLMS.AssessmentService.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
-
-                    b.Property<string>("StorageKey")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("ContentType")
                         .HasColumnType("int");
@@ -372,6 +409,11 @@ namespace saasLMS.AssessmentService.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
 
@@ -396,6 +438,15 @@ namespace saasLMS.AssessmentService.Migrations
                 });
 
             modelBuilder.Entity("saasLMS.AssessmentService.QuizAttempts.QuizAttempt", b =>
+                {
+                    b.HasOne("saasLMS.AssessmentService.Quizzes.Quiz", null)
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("saasLMS.AssessmentService.Quizzes.QuizQuestionMap", b =>
                 {
                     b.HasOne("saasLMS.AssessmentService.Quizzes.Quiz", null)
                         .WithMany()

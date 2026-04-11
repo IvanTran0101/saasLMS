@@ -11,10 +11,11 @@ namespace saasLMS.AssessmentService.EntityFrameworkCore;
 [ConnectionStringName(AssessmentServiceDbProperties.ConnectionStringName)]
 public class AssessmentServiceDbContext : AbpDbContext<AssessmentServiceDbContext>
 {
-    DbSet<Assignment> Assignments { get; set; }
-    DbSet<Submission>  Submissions { get; set; }
-    DbSet<Quiz>  Quizzes { get; set; }
-    DbSet<QuizAttempt>  QuizAttempts { get; set; }
+    public DbSet<Assignment> Assignments { get; set; }
+    public DbSet<Submission>  Submissions { get; set; }
+    public DbSet<Quiz>  Quizzes { get; set; }
+    public DbSet<QuizAttempt>  QuizAttempts { get; set; }
+    public DbSet<QuizQuestionMap> QuizQuestionMaps { get; set; }
 
     public AssessmentServiceDbContext(DbContextOptions<AssessmentServiceDbContext> options)
         : base(options)

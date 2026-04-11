@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\..\..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>saasLMS.ReportingService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.Ddd.Application" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Mapperly" Version="10.1.1" />
+    <ProjectReference Include="..\saasLMS.ReportingService.Application.Contracts\saasLMS.ReportingService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\saasLMS.ReportingService.Domain\saasLMS.ReportingService.Domain.csproj" />
+    <ProjectReference Include="..\..\..\enrollment\src\saasLMS.EnrollmentService.Domain.Shared\saasLMS.EnrollmentService.Domain.Shared.csproj" />
+    <ProjectReference Include="..\..\..\courseCatalog\src\saasLMS.CourseCatalogService.Domain.Shared\saasLMS.CourseCatalogService.Domain.Shared.csproj" />
+    <ProjectReference Include="..\..\..\learningProgress\src\saasLMS.LearningProgressService.Domain.Shared\saasLMS.LearningProgressService.Domain.Shared.csproj" />
+    <ProjectReference Include="..\..\..\assessment\src\saasLMS.AssessmentService.Application.Contracts\saasLMS.AssessmentService.Application.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

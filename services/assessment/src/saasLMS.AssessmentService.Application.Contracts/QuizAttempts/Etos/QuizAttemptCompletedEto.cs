@@ -8,6 +8,7 @@ public class QuizAttemptCompletedEto : IntegrationEventEtoBase
 {
     public Guid QuizAttemptId { get; set; }
     public Guid QuizId { get; set; }
+    public Guid CourseId { get; set; }
     public Guid StudentId { get; set; }
     public decimal Score { get; set; }
     public DateTime CompletedAt { get; set; }

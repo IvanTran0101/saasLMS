@@ -1,0 +1,23 @@
+﻿{
+  "selectedKubernetesProfile": null,
+  "solutionRunner": {
+    "selectedProfile": "Default",
+    "targetFrameworks": [],
+    "applicationsStartingWithoutBuild": [],
+    "applicationsWithoutAutoRefreshBrowserOnRestart": [],
+    "applicationBatchStartStates": [
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.AssessmentService.HttpApi.Host",
+        "value": 0
+      }
+    ],
+    "folderBatchStartStates": [
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.AssessmentService",
+        "value": 0
+      }
+    ]
+  }
+}

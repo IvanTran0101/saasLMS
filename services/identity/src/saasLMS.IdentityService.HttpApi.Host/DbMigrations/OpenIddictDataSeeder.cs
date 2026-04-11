@@ -80,12 +80,26 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
         await CreateScopesAsync("ProductService");
         await CreateScopesAsync("CourseCatalogService");
         await CreateScopesAsync("EnrollmentService");
+        await CreateScopesAsync("ReportingService");
+        await CreateScopesAsync("LearningProgressService");
+        await CreateScopesAsync("AssessmentService");
     }
 
     private async Task CreateWebGatewaySwaggerClientsAsync()
     {
         await CreateSwaggerClientAsync("WebGateway",
-            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService", "CourseCatalogService", "EnrollmentService" });
+            new[] {
+                "AccountService",
+                "IdentityService",
+                "AdministrationService",
+                "SaasService",
+                "ProductService",
+                "CourseCatalogService",
+                "EnrollmentService",
+                "LearningProgressService",
+                "AssessmentService",
+                "ReportingService"
+            });
     }
 
     private async Task CreateSwaggerClientAsync(string name, string[]? scopes = null)
@@ -113,6 +127,9 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
             var productServiceRootUrl = _configuration[$"OpenIddict:Resources:ProductService:RootUrl"]?.EnsureEndsWith('/');
             var courseCatalogServiceRootUrl = _configuration[$"OpenIddict:Resources:CourseCatalogService:RootUrl"]?.EnsureEndsWith('/');
             var enrollmentServiceRootUrl = _configuration[$"OpenIddict:Resources:EnrollmentService:RootUrl"]?.EnsureEndsWith('/');
+            var reportingServiceRootUrl = _configuration[$"OpenIddict:Resources:ReportingService:RootUrl"]?.EnsureEndsWith('/');
+            var learningProgressServiceRootUrl = _configuration[$"OpenIddict:Resources:LearningProgressService:RootUrl"]?.EnsureEndsWith('/');
+            var assessmentServiceRootUrl = _configuration[$"OpenIddict:Resources:AssessmentService:RootUrl"]?.EnsureEndsWith('/');
 
             await CreateApplicationAsync(
                 name: swaggerClientId!,
@@ -132,6 +149,9 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
                     $"{productServiceRootUrl}swagger/oauth2-redirect.html", // ProductService redirect uri
                     $"{courseCatalogServiceRootUrl}swagger/oauth2-redirect.html", // CourseCatalogService redirect uri
                     $"{enrollmentServiceRootUrl}swagger/oauth2-redirect.html", // EnrollmentService redirect uri
+                    $"{learningProgressServiceRootUrl}swagger/oauth2-redirect.html", // LearningProgressService redirect uri
+                    $"{assessmentServiceRootUrl}swagger/oauth2-redirect.html", // AssessmentService redirect uri
+                    $"{reportingServiceRootUrl}swagger/oauth2-redirect.html", // ReportingService redirect uri
                 }
             );
         }
@@ -494,17 +514,17 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
             return;
         }
 
-        if (!HasSameRedirectUris(client, application))
-        {
-            client.RedirectUris = JsonSerializer.Serialize(application.RedirectUris.Select(q => q.ToString().TrimEnd('/')));
-            client.PostLogoutRedirectUris = JsonSerializer.Serialize(application.PostLogoutRedirectUris.Select(q => q.ToString().TrimEnd('/')));
-
-            await _applicationManager.UpdateAsync(client.ToModel());
-        }
+        var redirectUpdated = MergeRedirectUris(client, application);
+        var scopesUpdated = false;
 
         if (!HasSameScopes(client, application))
         {
             client.Permissions = JsonSerializer.Serialize(application.Permissions.Select(q => q.ToString()));
+            scopesUpdated = true;
+        }
+
+        if (redirectUpdated || scopesUpdated)
+        {
             await _applicationManager.UpdateAsync(client.ToModel());
         }
     }
@@ -517,5 +537,55 @@ public class OpenIddictDataSeeder : IDataSeedContributor, ITransientDependency
     private bool HasSameScopes(OpenIddictApplication existingClient, AbpApplicationDescriptor application)
     {
         return existingClient.Permissions == JsonSerializer.Serialize(application.Permissions.Select(q => q.ToString().TrimEnd('/')));
+    }
+
+    private static bool MergeRedirectUris(OpenIddictApplication existingClient, AbpApplicationDescriptor application)
+    {
+        var updated = false;
+
+        var existingRedirects = DeserializeUriList(existingClient.RedirectUris);
+        foreach (var uri in application.RedirectUris.Select(q => q.ToString().TrimEnd('/')))
+        {
+            if (!existingRedirects.Contains(uri, StringComparer.OrdinalIgnoreCase))
+            {
+                existingRedirects.Add(uri);
+                updated = true;
+            }
+        }
+
+        var existingPostLogout = DeserializeUriList(existingClient.PostLogoutRedirectUris);
+        foreach (var uri in application.PostLogoutRedirectUris.Select(q => q.ToString().TrimEnd('/')))
+        {
+            if (!existingPostLogout.Contains(uri, StringComparer.OrdinalIgnoreCase))
+            {
+                existingPostLogout.Add(uri);
+                updated = true;
+            }
+        }
+
+        if (updated)
+        {
+            existingClient.RedirectUris = JsonSerializer.Serialize(existingRedirects);
+            existingClient.PostLogoutRedirectUris = JsonSerializer.Serialize(existingPostLogout);
+        }
+
+        return updated;
+    }
+
+    private static List<string> DeserializeUriList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new List<string>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
     }
 }

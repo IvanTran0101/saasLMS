@@ -103,6 +103,29 @@ public static class AssessmentServiceDbContextModelCreatingExtensions
                 .HasForeignKey(x => x.QuizId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        builder.Entity<QuizQuestionMap>(b =>
+        {
+            b.ToTable(AssessmentServiceConsts.DbTablePrefix + "QuizQuestionMaps", AssessmentServiceConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.QuizId).IsRequired();
+            b.Property(x => x.FormQuestionId).IsRequired();
+            b.Property(x => x.QuestionIndex).IsRequired();
+
+            b.HasIndex(x => x.QuizId);
+            b.HasIndex(x => new { x.TenantId, x.QuizId, x.FormQuestionId })
+                .IsUnique()
+                .HasFilter("[TenantId] IS NOT NULL");
+            b.HasIndex(x => new { x.TenantId, x.QuizId, x.QuestionIndex })
+                .IsUnique()
+                .HasFilter("[TenantId] IS NOT NULL");
+
+            b.HasOne<Quiz>()
+                .WithMany()
+                .HasForeignKey(x => x.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
         
     }
 }
