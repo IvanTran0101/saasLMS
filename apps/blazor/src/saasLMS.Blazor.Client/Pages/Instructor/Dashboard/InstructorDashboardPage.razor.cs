@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
+using saasLMS.EnrollmentService.Enrollments;
 using Volo.Abp.AspNetCore.Components;
 
 namespace saasLMS.Blazor.Client.Pages.Instructor.Dashboard;
@@ -16,16 +17,20 @@ public partial class InstructorDashboardPage : AbpComponentBase
     [Inject]
     private ICourseCatalogAppService CourseCatalogAppService { get; set; } = default!;
 
-    private bool _isLoadingStats = true;
+    [Inject]
+    private IEnrollmentAppService EnrollmentAppService { get; set; } = default!;
+
     private bool _isLoadingCourses = true;
+    private bool _isLoadingStats = true;
 
     private int _totalStudents;
     private int _totalCourses;
 
-    private List<CourseDto> _courses = new();
+    private List<CourseListItemDto> _courses = new();
 
     protected override async Task OnInitializedAsync()
     {
+        // Load courses trước, stats phụ thuộc vào danh sách courseId
         await LoadCoursesAsync();
         await LoadStatsAsync();
     }
@@ -36,13 +41,9 @@ public partial class InstructorDashboardPage : AbpComponentBase
         {
             _isLoadingCourses = true;
 
-            var result = await CourseCatalogAppService.GetMyCourseListAsync(new GetCourseListInput
-            {
-                MaxResultCount = 9
-            });
-
-            _courses = result.Items.ToList();
-            _totalCourses = (int)result.TotalCount;
+            var instructorId = CurrentUser.Id!.Value;
+            _courses = await CourseCatalogAppService.GetCoursesByInstructorAsync(instructorId);
+            _totalCourses = _courses.Count;
         }
         catch (Exception ex)
         {
@@ -60,8 +61,17 @@ public partial class InstructorDashboardPage : AbpComponentBase
         {
             _isLoadingStats = true;
 
-            // TODO: Replace with a dedicated aggregate stats query when available
-            _totalStudents = _courses.Sum(c => c.EnrolledStudentCount);
+            // Gọi EnrollmentService để đếm số student active cho từng course,
+            // chạy song song bằng Task.WhenAll để tối ưu performance
+            var countTasks = _courses
+                .Select(course => EnrollmentAppService.GetEnrollmentsByCourseAsync(course.CourseId));
+
+            var results = await Task.WhenAll(countTasks);
+
+            // Chỉ đếm enrollment có Status = Active
+            _totalStudents = results
+                .SelectMany(enrollments => enrollments)
+                .Count(e => e.Status == EnrollmentStatus.Active);
         }
         catch (Exception ex)
         {

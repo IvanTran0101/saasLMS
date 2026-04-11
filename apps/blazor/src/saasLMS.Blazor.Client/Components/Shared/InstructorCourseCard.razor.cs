@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
 
@@ -11,7 +10,7 @@ public partial class InstructorCourseCard : ComponentBase
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Parameter, EditorRequired]
-    public CourseDto Course { get; set; } = default!;
+    public CourseListItemDto Course { get; set; } = default!;  // ✅ Đổi từ CourseDto → CourseListItemDto
 
     private string _statusCssClass => Course.Status switch
     {
@@ -29,6 +28,6 @@ public partial class InstructorCourseCard : ComponentBase
 
     private void NavigateToCourse()
     {
-        NavigationManager.NavigateTo($"/courses/{Course.Id}/edit");
+        NavigationManager.NavigateTo($"/courses/{Course.CourseId}/edit"); // ✅ CourseListItemDto dùng CourseId, không phải Id
     }
 }
