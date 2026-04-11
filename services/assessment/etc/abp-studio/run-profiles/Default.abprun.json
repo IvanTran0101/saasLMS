@@ -1,0 +1,16 @@
+{
+  "folders": {
+    "items": {
+      "saasLMS.AssessmentService": {}
+    }
+  },
+  "applications": {
+    "saasLMS.AssessmentService.HttpApi.Host": {
+      "type": "dotnet-project",
+      "path": "../../../src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj",
+      "launchUrl": "https://localhost:45209",
+      "folder": "saasLMS.AssessmentService",
+      "runnable": true
+    }
+  }
+}

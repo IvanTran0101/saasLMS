@@ -17,11 +17,11 @@ public partial class LessonProgressToLessonProgressDtoMapper : MapperBase<Lesson
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 public partial class LessonProgressToResumeResultDtoMapper : MapperBase<LessonProgress, ResumeResultDto>
 {
-    [MapperIgnoreTarget(nameof(ResumeResultDto.CourseId))]
+    [MapProperty(nameof(LessonProgress.CourseId), nameof(ResumeResultDto.CourseId))]
     [MapProperty(nameof(LessonProgress.LessonId), nameof(ResumeResultDto.LessonId))]
     [MapProperty(nameof(LessonProgress.Status), nameof(ResumeResultDto.LessonStatus))]
     public override partial ResumeResultDto Map(LessonProgress source);
-    [MapperIgnoreTarget(nameof(ResumeResultDto.CourseId))]
+    [MapProperty(nameof(LessonProgress.CourseId), nameof(ResumeResultDto.CourseId))]
     [MapProperty(nameof(LessonProgress.LessonId), nameof(ResumeResultDto.LessonId))]
     [MapProperty(nameof(LessonProgress.Status), nameof(ResumeResultDto.LessonStatus))]
     public override partial void Map(LessonProgress source, ResumeResultDto destination);

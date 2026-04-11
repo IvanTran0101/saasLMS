@@ -1,0 +1,18 @@
+{
+  "id": "03e107d9-b0da-45aa-8ebc-709084b1c502",
+  "template": "empty",
+  "modules": {
+    "saasLMS.AssessmentService": {
+      "path": "saasLMS.AssessmentService.abpmdl"
+    }
+  },
+  "runProfiles": {
+    "Default": {
+      "path": "etc/abp-studio/run-profiles/Default.abprun.json"
+    }
+  },
+  "versions": {
+    "AbpFramework": "10.2.0",
+    "AbpCommercial": "10.2.0"
+  }
+}

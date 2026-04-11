@@ -13,6 +13,8 @@ Instructor
 | GET | `/api/quizzes/{id}` | Get quiz (instructor view) | `AssessmentService.Quizzes.View` |
 | GET | `/api/quizzes/by-course/{courseId}` | List quizzes by course | `AssessmentService.Quizzes.View` |
 | GET | `/api/quizzes/by-lesson/{lessonId}` | List quizzes by lesson | `AssessmentService.Quizzes.View` |
+| POST | `/api/assessment/quiz/upload-csv` | Create quiz from CSV | `AssessmentService.Quizzes.Create` |
+| GET | `/api/assessment/quiz/{id}/form-schema` | Get quiz form schema for WASM | `AssessmentService.Quizzes.ViewPublished` |
 
 Student
 | Method | Path | Description | Permission |
@@ -65,6 +67,26 @@ Student
 | Method | Path | Description | Permission |
 | --- | --- | --- | --- |
 | POST | `/api/quiz-attempts/start` | Start quiz attempt | `AssessmentService.QuizAttempts.Start` |
-| POST | `/api/quiz-attempts/{quizId}/submit` | Submit attempt | `AssessmentService.QuizAttempts.Submit` |
+| POST | `/api/quiz-attempts/{quizId}/submit` | Submit attempt (legacy/JSON, deprecated) | `AssessmentService.QuizAttempts.Submit` |
+| POST | `/api/assessment/quiz-attempts/{quizId}/submit` | Submit attempt (Forms payload) | `AssessmentService.QuizAttempts.Submit` |
 | POST | `/api/quiz-attempts/{quizId}/timeout` | Timeout attempt | `AssessmentService.QuizAttempts.Submit` |
 | GET | `/api/quiz-attempts/{quizId}/mine` | Get my attempt by quiz | `AssessmentService.QuizAttempts.ViewOwn` |
+
+Submit attempt (Forms payload) body:
+```json
+{
+  "answers": [
+    {
+      "questionId": "00000000-0000-0000-0000-000000000000",
+      "choiceId": "00000000-0000-0000-0000-000000000000",
+      "value": null
+    }
+  ]
+}
+```
+Notes:
+- `questionId` and `choiceId` come from `/api/assessment/quiz/{id}/form-schema`.
+- `value` is used for text questions (if any).
+
+Legacy endpoint note:
+- `/api/quiz-attempts/{quizId}/submit` is deprecated and will be removed after WASM migration is complete.

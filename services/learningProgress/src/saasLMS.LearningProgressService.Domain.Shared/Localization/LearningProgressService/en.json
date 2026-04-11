@@ -1,5 +1,6 @@
 {
   "culture": "en",
   "texts": {
+    "LearningProgressService:LessonNotFound": "Lesson is not available in this course."
   }
 }

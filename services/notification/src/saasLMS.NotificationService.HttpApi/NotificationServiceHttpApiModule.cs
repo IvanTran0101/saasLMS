@@ -28,7 +28,11 @@ public class NotificationServiceHttpApiModule : AbpModule
         {
             options.ConventionalControllers.Create(
                 typeof(NotificationServiceApplicationModule).Assembly,
-                opts => { opts.RootPath = "notification"; });
+                opts =>
+                {
+                    opts.RootPath = "notification";
+                    opts.RemoteServiceName = NotificationServiceRemoteServiceConsts.RemoteServiceName;
+                });
         });
 
         Configure<AbpLocalizationOptions>(options =>

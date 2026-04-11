@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 
 namespace saasLMS.AssessmentService.Quizzes;
 
@@ -17,5 +18,7 @@ public interface IQuizAppService : IApplicationService
     Task<List<QuizListItemDto>> GetListByLessonAsync(Guid lessonId);
     Task<List<QuizListItemDto>> GetListByLessonStudentAsync(Guid lessonId);
     Task<List<QuizListItemDto>> GetListByCourseStudentAsync(Guid lessonId);
+    Task<QuizDto> CreateFromCsvAsync(CreateQuizFromCsvDto input, IRemoteStreamContent file);
+    Task<QuizFormSchemaDto> GetFormSchemaAsync(Guid quizId);
 
 }

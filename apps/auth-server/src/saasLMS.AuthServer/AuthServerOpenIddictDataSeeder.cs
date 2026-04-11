@@ -25,7 +25,8 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
         "CourseCatalogService",
         "EnrollmentService",
         "LearningProgressService",
-        "NotificationService"
+        "NotificationService",
+        "ReportingService"
     ];
 
     private readonly ICurrentTenant _currentTenant;
@@ -155,7 +156,8 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
             "https://localhost:44445",
             "https://localhost:44854",
             "https://localhost:45256",
-            "https://localhost:44664"
+            "https://localhost:44664",
+            "https://localhost:44929"
         };
 
         foreach (var baseUrl in baseUrls)

@@ -33,7 +33,16 @@ public class saasLMSWebGatewayModule : AbpModule
                 authority: configuration["AuthServer:Authority"]!,
                 scopes: new[] {
                     /* Requested scopes for authorization code request and descriptions for swagger UI only */
-                    "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService"
+                    "AccountService",
+                    "IdentityService",
+                    "AdministrationService",
+                    "SaasService",
+                    "ProductService",
+                    "CourseCatalogService",
+                    "EnrollmentService",
+                    "LearningProgressService",
+                    "AssessmentService",
+                    "ReportingService"
                 },
                 apiTitle: "Web Gateway API"
             );
@@ -99,7 +108,12 @@ public class saasLMSWebGatewayModule : AbpModule
             "AccountService",
             "IdentityService",
             "SaasService",
-            "ProductService"
+            "ProductService",
+            "CourseCatalogService",
+            "EnrollmentService",
+            "LearningProgressService",
+            "AssessmentService",
+            "ReportingService"
         );
     }
 

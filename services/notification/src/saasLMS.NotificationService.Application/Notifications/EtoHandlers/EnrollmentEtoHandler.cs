@@ -7,7 +7,8 @@ using Volo.Abp.EventBus.Distributed;
 namespace saasLMS.NotificationService.Notifications.EtoHandlers;
 
 public class EnrollmentEtoHandler
-    : IDistributedEventHandler<StudentEnrolledEto>,
+    : IDistributedEventHandler<StudentEnrolledEto>, 
+        IDistributedEventHandler<StudentUnenrolledEto>,
         ITransientDependency
 {
     private readonly INotificationAppService _notificationAppService;
@@ -21,7 +22,6 @@ public class EnrollmentEtoHandler
     {
         await _notificationAppService.SendNotificationAsync(new SendNotificationInput
         {
-            // EventId từ ETO — AppService dùng để idempotency check
             EventId         = eventData.EventId,
             TenantId        = eventData.TenantId,
             RecipientUserId = eventData.StudentId,
@@ -29,6 +29,22 @@ public class EnrollmentEtoHandler
             Message         = "Bạn đã đăng ký khóa học thành công. Chúc bạn học tốt!",
             Type            = NotificationType.Enrollment,
             ReferenceType   = nameof(StudentEnrolledEto),
+            ReferenceId     = eventData.EnrollmentId.ToString()
+            
+        });
+    }
+    
+    public async Task HandleEventAsync(StudentUnenrolledEto eventData)
+    {
+        await _notificationAppService.SendNotificationAsync(new SendNotificationInput
+        {
+            EventId         = eventData.EventId,
+            TenantId        = eventData.TenantId,
+            RecipientUserId = eventData.StudentId,
+            Title           = "Huỷ đăng ký khóa học thành công",
+            Message         = "Bạn đã huỷ đăng ký khóa học thành công.",
+            Type            = NotificationType.Enrollment,
+            ReferenceType   = nameof(StudentUnenrolledEto),
             ReferenceId     = eventData.EnrollmentId.ToString()
         });
     }
