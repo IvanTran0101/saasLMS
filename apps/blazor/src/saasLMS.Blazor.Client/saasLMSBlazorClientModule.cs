@@ -122,6 +122,12 @@ public class saasLMSBlazorClientModule : AbpModule
             options.ProviderOptions.DefaultScopes.Add("AdministrationService");
             options.ProviderOptions.DefaultScopes.Add("SaasService");
             options.ProviderOptions.DefaultScopes.Add("ProductService");
+            options.ProviderOptions.DefaultScopes.Add("AssessmentService");
+            options.ProviderOptions.DefaultScopes.Add("CourseCatalogService");
+            options.ProviderOptions.DefaultScopes.Add("EnrollmentService");
+            options.ProviderOptions.DefaultScopes.Add("LearningProgressService");
+            options.ProviderOptions.DefaultScopes.Add("NotificationService");
+            options.ProviderOptions.DefaultScopes.Add("ReportingService");
         });
     }
 

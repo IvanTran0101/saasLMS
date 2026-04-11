@@ -210,6 +210,21 @@
         "Transforms": [
           { "PathRemovePrefix": "/swagger-json/Notification" }
         ]
+      },
+      "Reporting": {
+        "ClusterId": "Reporting",
+        "Match": {
+          "Path": "/api/reporting/{**catch-all}"
+        }
+      },
+      "ReportingSwagger": {
+        "ClusterId": "Reporting",
+        "Match": {
+          "Path": "/swagger-json/Reporting/swagger/v1/swagger.json"
+        },
+        "Transforms": [
+          { "PathRemovePrefix": "/swagger-json/Reporting" }
+        ]
       }
     },
     "Clusters": {
@@ -280,6 +295,13 @@
         "Destinations": {
           "Notification": {
             "Address": "https://localhost:44664/"
+          }
+        }
+      },
+      "Reporting": {
+        "Destinations": {
+          "Reporting": {
+            "Address": "https://localhost:44929/"
           }
         }
       }
