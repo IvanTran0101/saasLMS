@@ -30,6 +30,8 @@ using Volo.Abp.Identity.Pro.Blazor.Server.WebAssembly;
 using Volo.Abp.Modularity;
 using Volo.Abp.UI.Navigation;
 using OpenIddict.Abstractions;
+using saasLMS.CourseCatalogService.Blazor;
+using saasLMS.EnrollmentService.Blazor;
 using Volo.Abp.AspNetCore.Components.Web.LeptonXTheme.Components;
 using Volo.Abp.AspNetCore.Components.WebAssembly.LeptonXTheme;
 using Volo.Abp.AspNetCore.Components.WebAssembly.Theming;
@@ -64,7 +66,10 @@ namespace saasLMS.Blazor.Client;
     typeof(AdministrationServiceHttpApiClientModule),
     typeof(SaasServiceHttpApiClientModule),
     typeof(IdentityServiceHttpApiClientModule),
-    typeof(CourseCatalogServiceHttpApiClientModule),
+    typeof(CourseCatalogServiceBlazorModule),
+    typeof(CourseCatalogServiceHttpApiClientModule), 
+    typeof(EnrollmentServiceBlazorModule),
+    typeof(EnrollmentServiceHttpApiClientModule), 
     typeof(AssessmentServiceHttpApiClientModule),
     typeof(EnrollmentServiceHttpApiClientModule),
     typeof(LearningProgressServiceHttpApiClientModule),

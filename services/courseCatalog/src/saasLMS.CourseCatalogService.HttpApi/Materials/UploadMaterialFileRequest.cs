@@ -9,5 +9,6 @@ public class UploadMaterialFileRequest
     public Guid ChapterId { get; set; }
     public Guid LessonId { get; set; }
     public Guid MaterialId { get; set; }
+    public string? Title { get; set; }
     public IFormFile? File { get; set; }
 }

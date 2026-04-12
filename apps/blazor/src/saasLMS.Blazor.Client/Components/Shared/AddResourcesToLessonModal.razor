@@ -1,0 +1,455 @@
+﻿@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+@using saasLMS.CourseCatalogService.Courses
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (_isVisible)
+{
+    <div class="arm-backdrop" @onclick="Close"></div>
+
+    <div class="arm-modal" role="dialog" aria-modal="true" aria-labelledby="arm-title">
+
+        @* ── Header ── *@
+        <div class="arm-modal__header">
+            <div>
+                <h5 class="arm-modal__title" id="arm-title">Add Resource to Lesson</h5>
+                <p class="arm-modal__subtitle">@_lessonTitle</p>
+            </div>
+            <button class="arm-modal__close" @onclick="Close" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        @* ── Tabs ── *@
+        <div class="arm-tabs">
+            <button class="arm-tab @(_activeTab == MaterialTabType.FileUpload ? "arm-tab--active" : "")"
+                    @onclick='() => SelectTab(MaterialTabType.FileUpload)'>
+                <i class="fa fa-upload me-1"></i> File Upload
+            </button>
+            <button class="arm-tab @(_activeTab == MaterialTabType.VideoLink ? "arm-tab--active" : "")"
+                    @onclick='() => SelectTab(MaterialTabType.VideoLink)'>
+                <i class="fa fa-play-circle me-1"></i> Video Link
+            </button>
+            <button class="arm-tab @(_activeTab == MaterialTabType.Text ? "arm-tab--active" : "")"
+                    @onclick='() => SelectTab(MaterialTabType.Text)'>
+                <i class="fa fa-align-left me-1"></i> Text
+            </button>
+        </div>
+
+        @* ── Body ── *@
+        <div class="arm-modal__body">
+
+            @* Resource Title — chung cho tất cả tab *@
+            <div class="arm-field @(_titleError != null ? "arm-field--error" : "")">
+                <label class="arm-field__label" for="arm-res-title">
+                    Resource Title <span class="arm-field__required">*</span>
+                </label>
+                <input id="arm-res-title"
+                       type="text"
+                       class="arm-field__input"
+                       placeholder="@GetTitlePlaceholder()"
+                       @bind="_resourceTitle"
+                       @bind:event="oninput"
+                       maxlength="200"
+                       disabled="@_isSaving" />
+                @if (_titleError != null)
+                {
+                    <span class="arm-field__error-msg">
+                        <i class="fa fa-exclamation-circle me-1"></i>@_titleError
+                    </span>
+                }
+            </div>
+
+            @* ── Tab: File Upload ── *@
+            @if (_activeTab == MaterialTabType.FileUpload)
+            {
+                <div class="arm-section">
+                    <label class="arm-field__label">File Selection</label>
+                    <div class="arm-dropzone @(_fileError != null ? "arm-dropzone--error" : "")">
+                        <div class="arm-dropzone__icon">
+                            <i class="fa fa-cloud-upload-alt"></i>
+                        </div>
+                        @if (_selectedFile is null)
+                        {
+                            <p class="arm-dropzone__hint">Drag and drop your file here</p>
+                            <p class="arm-dropzone__hint arm-dropzone__hint--sub">or click to browse</p>
+                        }
+                        else
+                        {
+                            <p class="arm-dropzone__file-name">@_selectedFile.Name</p>
+                            <p class="arm-dropzone__file-size">@FormatFileSize(_selectedFile.Size)</p>
+                        }
+                        <InputFile OnChange="OnFileSelected"
+                                   class="arm-dropzone__input"
+                                   accept=".pdf,.pptx,.docx,.zip"
+                                   disabled="@_isSaving" />
+                    </div>
+                    @if (_fileError != null)
+                    {
+                        <span class="arm-field__error-msg mt-1">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_fileError
+                        </span>
+                    }
+                    <div class="arm-formats mt-2">
+                        <span class="arm-field__label">Supported Formats</span>
+                        <div class="arm-formats__badges">
+                            <span class="arm-format-badge arm-format-badge--pdf">PDF</span>
+                            <span class="arm-format-badge arm-format-badge--pptx">PPTX</span>
+                            <span class="arm-format-badge arm-format-badge--docx">DOCX</span>
+                            <span class="arm-format-badge arm-format-badge--zip">ZIP</span>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* ── Tab: Video Link ── *@
+            @if (_activeTab == MaterialTabType.VideoLink)
+            {
+                <div class="arm-section">
+                    <div class="arm-field @(_videoUrlError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-video-url">
+                            Video URL <span class="arm-field__required">*</span>
+                        </label>
+                        <div class="arm-input-icon-wrap">
+                            <i class="fa fa-play arm-input-icon"></i>
+                            <input id="arm-video-url"
+                                   type="url"
+                                   class="arm-field__input arm-field__input--with-icon"
+                                   placeholder="Paste YouTube or Vimeo link"
+                                   @bind="_videoUrl"
+                                   @bind:event="oninput"
+                                   disabled="@_isSaving" />
+                        </div>
+                        @if (_videoUrlError != null)
+                        {
+                            <span class="arm-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_videoUrlError
+                            </span>
+                        }
+                    </div>
+
+                    <div class="arm-field mt-3">
+                        <label class="arm-field__label" for="arm-video-notes">
+                            Instructor Notes <span class="arm-field__optional">(optional)</span>
+                        </label>
+                        <textarea id="arm-video-notes"
+                                  class="arm-field__input arm-field__textarea"
+                                  placeholder="Briefly explain how students should use this resource..."
+                                  rows="3"
+                                  @bind="_videoNotes"
+                                  @bind:event="oninput"
+                                  disabled="@_isSaving"></textarea>
+                    </div>
+
+                    <div class="arm-preview-placeholder mt-3">
+                        <div class="arm-preview-placeholder__icon">
+                            <i class="fa fa-image"></i>
+                        </div>
+                        <div>
+                            <p class="arm-preview-placeholder__title">Preview not available</p>
+                            <p class="arm-preview-placeholder__sub">The video player will be embedded in the lesson</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* ── Tab: Text ── *@
+            @if (_activeTab == MaterialTabType.Text)
+            {
+                <div class="arm-section">
+                    <div class="arm-field @(_textError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-text-content">
+                            Content <span class="arm-field__required">*</span>
+                        </label>
+                        <div class="arm-editor">
+                            <div class="arm-editor__toolbar">
+                                <button type="button" class="arm-editor__tool" title="Bold"><strong>B</strong></button>
+                                <button type="button" class="arm-editor__tool" title="Italic"><em>I</em></button>
+                                <button type="button" class="arm-editor__tool" title="List"><i class="fa fa-list-ul"></i></button>
+                                <button type="button" class="arm-editor__tool" title="Link"><i class="fa fa-link"></i></button>
+                                <button type="button" class="arm-editor__tool" title="Quote"><i class="fa fa-quote-right"></i></button>
+                            </div>
+                            <textarea id="arm-text-content"
+                                      class="arm-editor__content"
+                                      placeholder="Start typing your course notes here..."
+                                      rows="6"
+                                      @bind="_textContent"
+                                      @bind:event="oninput"
+                                      disabled="@_isSaving"></textarea>
+                        </div>
+                        @if (_textError != null)
+                        {
+                            <span class="arm-field__error-msg mt-1">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_textError
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+
+        </div>
+
+        @* ── Footer ── *@
+        <div class="arm-modal__footer">
+            <button class="arm-btn arm-btn--ghost" @onclick="Close" disabled="@_isSaving">Cancel</button>
+            <button class="arm-btn arm-btn--primary" @onclick="AddResourceAsync" disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Saving...</span>
+                }
+                else
+                {
+                    <i class="fa fa-plus me-2"></i>
+                    <span>Add Resource</span>
+                }
+            </button>
+        </div>
+
+    </div>
+}
+
+@code {
+    private string GetTitlePlaceholder() => _activeTab switch
+    {
+        MaterialTabType.FileUpload => "e.g. Syllabus - Advanced Pedagogy",
+        MaterialTabType.VideoLink  => "e.g. Expert Interview on Cognitive Load",
+        MaterialTabType.Text       => "e.g. Key Concept Summary",
+        _                          => "Resource title"
+    };
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}
+
+<style>
+    .arm-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 39, 68, 0.5);
+        backdrop-filter: blur(2px);
+        z-index: 1040;
+    }
+
+    .arm-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        width: min(560px, 96vw);
+        max-height: 90vh;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 24px 64px rgba(15, 39, 68, 0.22);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .arm-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.4rem 1.6rem 0.9rem;
+        border-bottom: 1px solid #eef0f3;
+        flex-shrink: 0;
+    }
+    .arm-modal__title { font-size: 1.1rem; font-weight: 700; color: #0f2744; margin: 0 0 0.2rem; }
+    .arm-modal__subtitle { font-size: 0.82rem; color: #8494a9; margin: 0; }
+    .arm-modal__close {
+        background: none;
+        border: none;
+        color: #8494a9;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.2rem;
+        transition: color 0.15s;
+    }
+    .arm-modal__close:hover { color: #0f2744; }
+
+    .arm-tabs {
+        display: flex;
+        padding: 0 1.6rem;
+        border-bottom: 1px solid #eef0f3;
+        flex-shrink: 0;
+    }
+    .arm-tab {
+        background: none;
+        border: none;
+        border-bottom: 2.5px solid transparent;
+        padding: 0.7rem 1rem;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: #8494a9;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+        margin-bottom: -1px;
+    }
+    .arm-tab:hover { color: #0f2744; }
+    .arm-tab--active { color: #0f2744; border-bottom-color: #1a6db5; }
+
+    .arm-modal__body { padding: 1.25rem 1.6rem; flex: 1; overflow-y: auto; }
+    .arm-section { margin-top: 1rem; }
+
+    .arm-field { display: flex; flex-direction: column; }
+    .arm-field__label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #4a5568;
+        margin-bottom: 0.4rem;
+    }
+    .arm-field__required { color: #e53e3e; margin-left: 2px; }
+    .arm-field__optional { font-weight: 400; color: #a0aec0; text-transform: none; letter-spacing: 0; }
+    .arm-field__input {
+        border: 1.5px solid #d1d9e0;
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.9rem;
+        color: #1a202c;
+        background: #f8fafc;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+        resize: vertical;
+    }
+    .arm-field__input:focus {
+        border-color: #1a6db5;
+        box-shadow: 0 0 0 3px rgba(26, 109, 181, 0.12);
+        background: #fff;
+    }
+    .arm-field__textarea { min-height: 80px; }
+    .arm-field--error .arm-field__input { border-color: #e53e3e; }
+    .arm-field__error-msg { font-size: 0.8rem; color: #e53e3e; margin-top: 0.3rem; }
+
+    .arm-input-icon-wrap { position: relative; }
+    .arm-input-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        pointer-events: none;
+    }
+    .arm-field__input--with-icon { padding-left: 2.2rem; }
+
+    .arm-dropzone {
+        position: relative;
+        border: 2px dashed #d1d9e0;
+        border-radius: 10px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        overflow: hidden;
+    }
+    .arm-dropzone:hover { border-color: #1a6db5; background: #edf4fd; }
+    .arm-dropzone--error { border-color: #e53e3e; }
+    .arm-dropzone__icon { font-size: 2rem; color: #1a6db5; opacity: 0.7; margin-bottom: 0.5rem; }
+    .arm-dropzone__hint { font-size: 0.88rem; color: #4a5568; font-weight: 600; margin: 0; }
+    .arm-dropzone__hint--sub { font-size: 0.8rem; color: #a0aec0; font-weight: 400; margin-top: 0.2rem; }
+    .arm-dropzone__file-name { font-size: 0.9rem; font-weight: 600; color: #0f2744; margin: 0; }
+    .arm-dropzone__file-size { font-size: 0.8rem; color: #8494a9; margin: 0.2rem 0 0; }
+    .arm-dropzone__input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .arm-formats__badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
+    .arm-format-badge { padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.76rem; font-weight: 700; }
+    .arm-format-badge--pdf  { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+    .arm-format-badge--pptx { background: #fff4ec; color: #d35400; border: 1px solid #fad7be; }
+    .arm-format-badge--docx { background: #edf4fd; color: #1a6db5; border: 1px solid #bdd6f0; }
+    .arm-format-badge--zip  { background: #f5f0fd; color: #6b46c1; border: 1px solid #d6c8f7; }
+
+    .arm-preview-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #f5f7fa;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+    }
+    .arm-preview-placeholder__icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .arm-preview-placeholder__title { font-size: 0.88rem; font-weight: 600; color: #2d3748; margin: 0; }
+    .arm-preview-placeholder__sub { font-size: 0.78rem; color: #a0aec0; margin: 0.15rem 0 0; }
+
+    .arm-editor { border: 1.5px solid #d1d9e0; border-radius: 8px; overflow: hidden; background: #f8fafc; }
+    .arm-editor__toolbar {
+        display: flex;
+        gap: 0.1rem;
+        padding: 0.4rem 0.5rem;
+        background: #f1f5f9;
+        border-bottom: 1px solid #d1d9e0;
+    }
+    .arm-editor__tool {
+        background: none;
+        border: none;
+        padding: 0.25rem 0.45rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        color: #4a5568;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+    .arm-editor__tool:hover { background: #e2e8f0; }
+    .arm-editor__content {
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: 0.7rem 0.85rem;
+        font-size: 0.9rem;
+        color: #1a202c;
+        resize: none;
+        outline: none;
+    }
+    .arm-editor__content:focus { background: #fff; }
+
+    .arm-modal__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.6rem 1.4rem;
+        border-top: 1px solid #eef0f3;
+        flex-shrink: 0;
+    }
+
+    .arm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s, opacity 0.15s;
+    }
+    .arm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .arm-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .arm-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
+    .arm-btn--primary { background: #0f2744; color: #fff; }
+    .arm-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+</style>

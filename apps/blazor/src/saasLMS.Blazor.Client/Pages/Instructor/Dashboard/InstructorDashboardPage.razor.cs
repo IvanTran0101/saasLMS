@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using saasLMS.Blazor.Client.Components.Shared;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
 using saasLMS.EnrollmentService.Enrollments;
@@ -19,6 +20,11 @@ public partial class InstructorDashboardPage : AbpComponentBase
 
     [Inject]
     private IEnrollmentAppService EnrollmentAppService { get; set; } = default!;
+    
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+    
+    private CreateCourseModal _createCourseModal = default!;
 
     private bool _isLoadingCourses = true;
     private bool _isLoadingStats = true;
@@ -82,4 +88,9 @@ public partial class InstructorDashboardPage : AbpComponentBase
             _isLoadingStats = false;
         }
     }
+    
+    private void OpenCreateCourseModal() => _createCourseModal.Show();
+
+    private void OnCourseCreated(CourseDto course)
+        => NavigationManager.NavigateTo($"/courses/{course.Id}/edit");
 }

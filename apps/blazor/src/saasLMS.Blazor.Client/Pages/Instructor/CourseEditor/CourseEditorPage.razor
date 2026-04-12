@@ -1,0 +1,596 @@
+﻿@page "/courses/{CourseId:guid}/edit"
+@inherits AbpComponentBase
+@using saasLMS.Blazor.Client.Components.Shared
+@using saasLMS.CourseCatalogService.Courses
+@using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Materials.Dtos.Outputs
+
+<PageTitle>Course Editor</PageTitle>
+
+<AddResourcesToLessonModal @ref="_addResourceModal" OnMaterialAdded="OnMaterialAddedAsync" />
+
+@if (_isLoading)
+{
+    <div class="cep-loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="cep-loading__text">Loading course editor...</p>
+    </div>
+}
+else if (_course is null)
+{
+    <div class="cep-empty">
+        <i class="fa fa-exclamation-triangle cep-empty__icon"></i>
+        <p>Course not found.</p>
+        <a href="/courses" class="cep-btn cep-btn--ghost">Back to My Courses</a>
+    </div>
+}
+else
+{
+    @* ── Breadcrumb ── *@
+    <nav class="cep-breadcrumb" aria-label="breadcrumb">
+        <a href="/courses" class="cep-breadcrumb__link">Courses</a>
+        <i class="fa fa-chevron-right cep-breadcrumb__sep"></i>
+        <span class="cep-breadcrumb__current">Curriculum Builder</span>
+    </nav>
+
+    @* ── Course Header ── *@
+    <div class="cep-course-header">
+        <div class="cep-course-header__main">
+
+            @if (_isEditingCourseInfo)
+            {
+                <div class="cep-course-info-edit">
+                    <div class="cep-field @(_titleError != null ? "cep-field--error" : "")">
+                        <input type="text"
+                               class="cep-course-info-edit__title-input"
+                               placeholder="Course Title"
+                               @bind="_editTitle"
+                               @bind:event="oninput"
+                               maxlength="200" />
+                        @if (_titleError != null)
+                        {
+                            <span class="cep-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_titleError
+                            </span>
+                        }
+                    </div>
+                    <textarea class="cep-course-info-edit__desc-input"
+                              placeholder="Course description..."
+                              rows="2"
+                              @bind="_editDescription"
+                              @bind:event="oninput"
+                              maxlength="2000"></textarea>
+                    <div class="cep-course-info-edit__actions">
+                        <button class="cep-btn-sm cep-btn-sm--ghost" @onclick="CancelEditCourseInfo">Cancel</button>
+                        <button class="cep-btn-sm cep-btn-sm--primary" @onclick="SaveCourseInfoAsync">
+                            <i class="fa fa-check me-1"></i>Save
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="cep-course-header__title-row">
+                    <h1 class="cep-course-header__title">@_course.Title</h1>
+                    <span class="cep-status-badge @GetStatusBadgeCss(_course.Status)">
+                        @GetStatusLabel(_course.Status)
+                    </span>
+                    <button class="cep-icon-btn" title="Edit course info" @onclick="BeginEditCourseInfo">
+                        <i class="fa fa-pencil-alt"></i>
+                    </button>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_course.Description))
+                {
+                    <p class="cep-course-header__description">@_course.Description</p>
+                }
+            }
+        </div>
+
+        <div class="cep-course-header__actions">
+            <button class="cep-btn cep-btn--ghost" @onclick="SaveDraftAsync" disabled="@_isSavingDraft">
+                @if (_isSavingDraft)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                }
+                else
+                {
+                    <i class="fa fa-save me-1"></i>
+                }
+                Save Draft
+            </button>
+
+            @if (_course.Status == CourseStatus.Published)
+            {
+                <button class="cep-btn cep-btn--success" disabled>
+                    <i class="fa fa-check-circle me-1"></i> Published
+                </button>
+            }
+            else
+            {
+                <button class="cep-btn cep-btn--publish"
+                        @onclick="PublishCourseAsync"
+                        disabled="@(!CanPublish || _isPublishing)">
+                    @if (_isPublishing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    else
+                    {
+                        <i class="fa fa-rocket me-1"></i>
+                    }
+                    Publish Course
+                </button>
+            }
+        </div>
+    </div>
+
+    @* ── Chapter List ── *@
+    <div class="cep-structure">
+
+        @foreach (var chapter in _course.Chapters.OrderBy(c => c.OrderNo))
+        {
+            var isCollapsed = IsChapterCollapsed(chapter.Id);
+
+            <div class="cep-chapter">
+                <div class="cep-chapter__header">
+                    <button class="cep-chapter__toggle" @onclick="() => ToggleChapter(chapter.Id)">
+                        <i class="fa @(isCollapsed ? "fa-chevron-right" : "fa-chevron-down")"></i>
+                    </button>
+
+                    <div class="cep-chapter__meta">
+                        <span class="cep-chapter__label">Chapter @chapter.OrderNo.ToString("D2")</span>
+
+                        @if (_editingChapterId == chapter.Id)
+                        {
+                            <div class="cep-inline-edit">
+                                <input type="text"
+                                       class="cep-inline-edit__input"
+                                       @bind="_editingChapterTitle"
+                                       @bind:event="oninput"
+                                       @onkeydown='async e => { if (e.Key == "Enter") await SaveChapterTitleAsync(chapter); if (e.Key == "Escape") CancelEditChapter(); }'
+                                       maxlength="200" />
+                                <button class="cep-icon-btn cep-icon-btn--success"
+                                        @onclick="() => SaveChapterTitleAsync(chapter)">
+                                    <i class="fa fa-check"></i>
+                                </button>
+                                <button class="cep-icon-btn" @onclick="CancelEditChapter">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="cep-chapter__title">@chapter.Title</span>
+                        }
+                    </div>
+
+                    <div class="cep-chapter__actions">
+                        @if (_editingChapterId != chapter.Id)
+                        {
+                            <button class="cep-icon-btn" title="Rename"
+                                    @onclick="() => BeginEditChapter(chapter)">
+                                <i class="fa fa-pencil-alt"></i>
+                            </button>
+                            <button class="cep-icon-btn cep-icon-btn--danger" title="Remove"
+                                    @onclick="() => RemoveChapterAsync(chapter)">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                @if (!isCollapsed)
+                {
+                    <div class="cep-lessons">
+
+                        @foreach (var lesson in chapter.Lessons.OrderBy(l => l.SortOrder))
+                        {
+                            <div class="cep-lesson">
+                                <div class="cep-lesson__header">
+                                    <i class="fa fa-book-open cep-lesson__icon"></i>
+
+                                    @if (_editingLessonId == lesson.Id)
+                                    {
+                                        <div class="cep-inline-edit">
+                                            <input type="text"
+                                                   class="cep-inline-edit__input"
+                                                   @bind="_editingLessonTitle"
+                                                   @bind:event="oninput"
+                                                   @onkeydown='async e => { if (e.Key == "Enter") await SaveLessonTitleAsync(lesson, chapter); if (e.Key == "Escape") CancelEditLesson(); }'
+                                                   maxlength="200" />
+                                            <button class="cep-icon-btn cep-icon-btn--success"
+                                                    @onclick="() => SaveLessonTitleAsync(lesson, chapter)">
+                                                <i class="fa fa-check"></i>
+                                            </button>
+                                            <button class="cep-icon-btn" @onclick="CancelEditLesson">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="cep-lesson__label">Lesson @lesson.SortOrder</span>
+                                        <span class="cep-lesson__title">@lesson.Title</span>
+                                    }
+
+                                    <div class="cep-lesson__actions ms-auto">
+                                        @if (_editingLessonId != lesson.Id)
+                                        {
+                                            @if (lesson.ContentState == LessonContentState.HasContent)
+                                            {
+                                                <span class="cep-lesson__content-badge">
+                                                    <i class="fa fa-check-circle me-1"></i>Has Content
+                                                </span>
+                                            }
+                                            <button class="cep-icon-btn" title="Rename"
+                                                    @onclick="() => BeginEditLesson(lesson)">
+                                                <i class="fa fa-pencil-alt"></i>
+                                            </button>
+                                            <button class="cep-icon-btn cep-icon-btn--danger" title="Remove"
+                                                    @onclick="() => RemoveLessonAsync(lesson, chapter)">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (lesson.Materials.Count > 0)
+                                {
+                                    <div class="cep-materials">
+                                        @foreach (var material in lesson.Materials.OrderBy(m => m.SortOrder))
+                                        {
+                                            <div class="cep-material">
+                                                <i class="@GetMaterialIcon(material.Type) cep-material__icon"></i>
+                                                <div class="cep-material__info">
+                                                    <span class="cep-material__title">@material.Title</span>
+                                                    <span class="cep-material__meta">
+                                                        @GetMaterialTypeLabel(material.Type)
+                                                        @if (material.Type == MaterialType.File && material.FileSize.HasValue)
+                                                        {
+                                                            <span> &bull; @FormatFileSize(material.FileSize.Value)</span>
+                                                        }
+                                                    </span>
+                                                </div>
+                                                @* FIX: gọi overload nhận MaterialInLessonDto — defined in code-behind *@
+                                                <button class="cep-icon-btn cep-icon-btn--danger ms-auto"
+                                                        title="Remove resource"
+                                                        @onclick="() => RemoveMaterialAsync(material, lesson, chapter)">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                <button class="cep-add-resource-btn"
+                                        @onclick="() => OpenAddResourceModal(lesson, chapter)">
+                                    <i class="fa fa-plus-circle me-1"></i> Add Resource to Lesson
+                                </button>
+                            </div>
+                        }
+
+                        <button class="cep-add-lesson-btn" @onclick="() => AddLessonAsync(chapter)">
+                            <i class="fa fa-plus me-1"></i> Add New Lesson to Chapter @chapter.OrderNo.ToString("D2")
+                        </button>
+
+                    </div>
+                }
+            </div>
+        }
+
+        @if (_course.Chapters.Count == 0)
+        {
+            <div class="cep-empty-state">
+                <div class="cep-empty-state__icon"><i class="fa fa-plus-circle"></i></div>
+                <h6 class="cep-empty-state__title">Build Your First Chapter</h6>
+                <p class="cep-empty-state__sub">Start organizing your course by adding a chapter.</p>
+                <button class="cep-btn cep-btn--primary" @onclick="AddChapterAsync">
+                    <i class="fa fa-plus me-1"></i> Add First Chapter
+                </button>
+            </div>
+        }
+
+        <button class="cep-insert-chapter-btn" @onclick="AddChapterAsync">
+            <i class="fa fa-folder-plus me-1"></i> Insert New Chapter
+        </button>
+
+    </div>
+}
+
+@code {
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}
+
+<style>
+    .cep-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 320px;
+        gap: 1rem;
+    }
+    .cep-loading__text { color: #8494a9; font-size: 0.9rem; }
+
+    .cep-empty { text-align: center; padding: 3rem 1rem; color: #8494a9; }
+    .cep-empty__icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+
+    .cep-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.82rem;
+        color: #8494a9;
+        margin-bottom: 1.25rem;
+    }
+    .cep-breadcrumb__link { color: #8494a9; text-decoration: none; font-weight: 500; }
+    .cep-breadcrumb__link:hover { color: #0f2744; }
+    .cep-breadcrumb__sep { font-size: 0.65rem; }
+    .cep-breadcrumb__current {
+        color: #0f2744;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.76rem;
+    }
+
+    .cep-course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .cep-course-header__main { flex: 1; min-width: 0; }
+    .cep-course-header__title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .cep-course-header__title { font-size: 1.6rem; font-weight: 700; color: #0f2744; margin: 0; line-height: 1.2; }
+    .cep-course-header__description { color: #4a5568; font-size: 0.9rem; margin: 0.4rem 0 0; max-width: 700px; }
+    .cep-course-header__actions { display: flex; gap: 0.75rem; align-items: center; flex-shrink: 0; }
+
+    .cep-course-info-edit { display: flex; flex-direction: column; gap: 0.5rem; }
+    .cep-course-info-edit__title-input {
+        font-size: 1.4rem;
+        font-weight: 700;
+        border: 2px solid #1a6db5;
+        border-radius: 8px;
+        padding: 0.4rem 0.75rem;
+        color: #0f2744;
+        background: #fff;
+        outline: none;
+        width: 100%;
+        max-width: 600px;
+    }
+    .cep-course-info-edit__desc-input {
+        border: 1.5px solid #d1d9e0;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        color: #4a5568;
+        background: #f8fafc;
+        outline: none;
+        resize: none;
+        width: 100%;
+        max-width: 600px;
+    }
+    .cep-course-info-edit__desc-input:focus { border-color: #1a6db5; background: #fff; }
+    .cep-course-info-edit__actions { display: flex; gap: 0.5rem; }
+
+    .cep-status-badge {
+        display: inline-block;
+        padding: 0.2rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .badge-draft     { background: #fff8e1; color: #b7791f; border: 1px solid #f6e05e; }
+    .badge-published { background: #e6fffa; color: #276749; border: 1px solid #9ae6b4; }
+    .badge-hidden    { background: #f0f0f0; color: #4a5568; border: 1px solid #cbd5e0; }
+
+    .cep-structure { display: flex; flex-direction: column; gap: 1rem; }
+
+    .cep-chapter { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .cep-chapter__header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .cep-chapter__toggle {
+        background: #e2e8f0;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: #4a5568;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background 0.15s;
+    }
+    .cep-chapter__toggle:hover { background: #cbd5e0; }
+    .cep-chapter__meta { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+    .cep-chapter__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #8494a9;
+        flex-shrink: 0;
+    }
+    .cep-chapter__title { font-size: 0.98rem; font-weight: 600; color: #1a202c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cep-chapter__actions { display: flex; gap: 0.25rem; margin-left: auto; flex-shrink: 0; }
+
+    .cep-lessons { padding: 0.5rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+
+    .cep-lesson { border: 1px solid #eef0f3; border-radius: 8px; overflow: hidden; background: #fff; }
+    .cep-lesson__header { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.85rem; }
+    .cep-lesson__icon { color: #1a6db5; font-size: 0.9rem; flex-shrink: 0; }
+    .cep-lesson__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #a0aec0; font-weight: 600; flex-shrink: 0; }
+    .cep-lesson__title { font-size: 0.9rem; font-weight: 500; color: #2d3748; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cep-lesson__actions { display: flex; align-items: center; gap: 0.35rem; }
+    .cep-lesson__content-badge {
+        font-size: 0.72rem;
+        color: #276749;
+        background: #e6fffa;
+        border: 1px solid #9ae6b4;
+        border-radius: 20px;
+        padding: 0.15rem 0.5rem;
+        font-weight: 600;
+    }
+
+    .cep-materials { border-top: 1px solid #eef0f3; padding: 0.4rem 0.85rem; display: flex; flex-direction: column; gap: 0.2rem; }
+    .cep-material { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.5rem; border-radius: 6px; transition: background 0.12s; }
+    .cep-material:hover { background: #f8fafc; }
+    .cep-material__icon { color: #8494a9; font-size: 0.88rem; flex-shrink: 0; }
+    .cep-material__info { display: flex; flex-direction: column; min-width: 0; }
+    .cep-material__title { font-size: 0.85rem; font-weight: 500; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cep-material__meta { font-size: 0.75rem; color: #a0aec0; }
+
+    .cep-add-resource-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border: none;
+        background: none;
+        color: #1a6db5;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-top: 1px dashed #bdd6f0;
+        transition: background 0.15s;
+    }
+    .cep-add-resource-btn:hover { background: #edf4fd; }
+
+    .cep-add-lesson-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border: 1.5px dashed #d1d9e0;
+        border-radius: 8px;
+        background: none;
+        color: #8494a9;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.55rem;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    .cep-add-lesson-btn:hover { border-color: #1a6db5; color: #1a6db5; }
+
+    .cep-insert-chapter-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border: 2px dashed #d1d9e0;
+        border-radius: 12px;
+        background: none;
+        color: #8494a9;
+        font-size: 0.88rem;
+        font-weight: 600;
+        padding: 1rem;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    .cep-insert-chapter-btn:hover { border-color: #0f2744; color: #0f2744; }
+
+    .cep-empty-state { text-align: center; padding: 3rem 1.5rem; border: 2px dashed #d1d9e0; border-radius: 12px; background: #fafbfc; }
+    .cep-empty-state__icon { font-size: 2.5rem; color: #1a6db5; opacity: 0.5; margin-bottom: 0.75rem; }
+    .cep-empty-state__title { font-size: 1rem; font-weight: 700; color: #0f2744; margin-bottom: 0.35rem; }
+    .cep-empty-state__sub { font-size: 0.85rem; color: #8494a9; margin-bottom: 1.25rem; }
+
+    .cep-inline-edit { display: flex; align-items: center; gap: 0.35rem; flex: 1; }
+    .cep-inline-edit__input {
+        flex: 1;
+        border: 1.5px solid #1a6db5;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0f2744;
+        background: #fff;
+        outline: none;
+    }
+
+    .cep-icon-btn {
+        background: none;
+        border: none;
+        color: #a0aec0;
+        font-size: 0.85rem;
+        padding: 0.25rem 0.35rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: color 0.15s, background 0.15s;
+        line-height: 1;
+    }
+    .cep-icon-btn:hover { color: #0f2744; background: #eef0f3; }
+    .cep-icon-btn--danger:hover { color: #e53e3e; background: #fff5f5; }
+    .cep-icon-btn--success:hover { color: #276749; background: #e6fffa; }
+
+    .cep-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1.1rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s, opacity 0.15s;
+        text-decoration: none;
+    }
+    .cep-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .cep-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .cep-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
+    .cep-btn--primary { background: #0f2744; color: #fff; }
+    .cep-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+    .cep-btn--publish { background: #1a6db5; color: #fff; }
+    .cep-btn--publish:hover:not(:disabled) { background: #155a96; }
+    .cep-btn--success { background: #276749; color: #fff; cursor: default; }
+
+    .cep-btn-sm {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.3rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s;
+    }
+    .cep-btn-sm--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .cep-btn-sm--ghost:hover { background: #f1f5f9; }
+    .cep-btn-sm--primary { background: #0f2744; color: #fff; }
+    .cep-btn-sm--primary:hover { background: #1a3a5c; }
+
+    .cep-field { display: flex; flex-direction: column; }
+    .cep-field--error .cep-course-info-edit__title-input { border-color: #e53e3e; }
+    .cep-field__error-msg { font-size: 0.78rem; color: #e53e3e; margin-top: 0.25rem; }
+</style>
