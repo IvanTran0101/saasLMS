@@ -1,6 +1,7 @@
 ﻿@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
 @using saasLMS.CourseCatalogService.Courses
 @using Microsoft.AspNetCore.Components.Forms
+@using saasLMS.AssessmentService.Assignments
 
 @if (_isVisible)
 {
@@ -32,6 +33,10 @@
             <button class="arm-tab @(_activeTab == MaterialTabType.Text ? "arm-tab--active" : "")"
                     @onclick='() => SelectTab(MaterialTabType.Text)'>
                 <i class="fa fa-align-left me-1"></i> Text
+            </button>
+            <button class="arm-tab @(_activeTab == MaterialTabType.Assignment ? "arm-tab--active" : "")"
+                    @onclick='() => SelectTab(MaterialTabType.Assignment)'>
+                <i class="fa fa-tasks me-1"></i> Assignment
             </button>
         </div>
 
@@ -185,6 +190,72 @@
                     </div>
                 </div>
             }
+            
+            @* ── Tab: Assignment ── *@
+        @if (_activeTab == MaterialTabType.Assignment)
+        {
+            <div class="arm-section">
+
+                @* Description *@
+                <div class="arm-field mt-3">
+                    <label class="arm-field__label" for="arm-asgn-desc">
+                        Description <span class="arm-field__optional">(optional)</span>
+                    </label>
+                    <textarea id="arm-asgn-desc"
+                              class="arm-field__input arm-field__textarea"
+                              placeholder="Describe the assignment requirements..."
+                              rows="4"
+                              @bind="_assignmentDescription"
+                              @bind:event="oninput"
+                              disabled="@_isSaving"></textarea>
+                </div>
+
+                <div class="arm-field-row mt-3">
+
+                    @* Deadline *@
+                    <div class="arm-field arm-field--half @(_assignmentDeadlineError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-asgn-deadline">
+                            Deadline <span class="arm-field__optional">(optional)</span>
+                        </label>
+                        <input id="arm-asgn-deadline"
+                               type="datetime-local"
+                               class="arm-field__input"
+                               @bind="_assignmentDeadline"
+                               disabled="@_isSaving" />
+                        @if (_assignmentDeadlineError != null)
+                        {
+                            <span class="arm-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_assignmentDeadlineError
+                            </span>
+                        }
+                    </div>
+
+                    @* Max Score *@
+                    <div class="arm-field arm-field--half @(_assignmentMaxScoreError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-asgn-score">
+                            Max Score <span class="arm-field__required">*</span>
+                        </label>
+                        <input id="arm-asgn-score"
+                               type="number"
+                               class="arm-field__input"
+                               placeholder="e.g. 100"
+                               min="0"
+                               step="0.5"
+                               @bind="_assignmentMaxScore"
+                               @bind:event="oninput"
+                               disabled="@_isSaving" />
+                        @if (_assignmentMaxScoreError != null)
+                        {
+                            <span class="arm-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_assignmentMaxScoreError
+                            </span>
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        }
 
         </div>
 
@@ -200,7 +271,7 @@
                 else
                 {
                     <i class="fa fa-plus me-2"></i>
-                    <span>Add Resource</span>
+                    <span>@(_activeTab == MaterialTabType.Assignment ? "Add to Lesson" : "Add Resource")</span>
                 }
             </button>
         </div>
@@ -452,4 +523,10 @@
     .arm-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
     .arm-btn--primary { background: #0f2744; color: #fff; }
     .arm-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+
+    .arm-field-row {
+        display: flex;
+        gap: 1rem;
+    }
+    .arm-field--half { flex: 1; min-width: 0; }
 </style>

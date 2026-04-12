@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
+using saasLMS.AssessmentService.Assignments;
 using saasLMS.Blazor.Client.Components.Shared;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs;
@@ -32,6 +34,9 @@ public partial class CourseEditorPage : AbpComponentBase
     private ICourseCatalogAppService CourseCatalogAppService { get; set; } = default!;
 
     [Inject]
+    private IAssignmentAppService AssignmentAppService { get; set; } = default!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
     // ── Child Component References ────────────────────────────────────────────────
@@ -45,6 +50,9 @@ public partial class CourseEditorPage : AbpComponentBase
     private bool _isPublishing;
 
     private CourseDetailDto? _course;
+
+    /// <summary>Key = LessonId, Value = assignments thuộc lesson đó (từ AssessmentService).</summary>
+    private Dictionary<Guid, List<AssignmentListItemDto>> _assignmentsByLesson = new();
 
     // ── Inline Edit: Course Info ──────────────────────────────────────────────────
 
@@ -82,10 +90,24 @@ public partial class CourseEditorPage : AbpComponentBase
         try
         {
             _isLoading = true;
-            _course    = await CourseCatalogAppService.GetCourseDetailAsync(CourseId);
 
+            _course          = await CourseCatalogAppService.GetCourseDetailAsync(CourseId);
             _editTitle       = _course.Title;
             _editDescription = _course.Description ?? string.Empty;
+
+            // Assignment thuộc AssessmentService riêng — gọi độc lập, lỗi server-side
+            // route thì chỉ silent empty, không ảnh hưởng việc load course.
+            try
+            {
+                var assignments = await AssignmentAppService.GetListByCourseAsync(CourseId);
+                _assignmentsByLesson = assignments
+                    .GroupBy(a => a.LessonId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+            catch (Exception ex)
+            {
+                _assignmentsByLesson = new Dictionary<Guid, List<AssignmentListItemDto>>();
+            }
         }
         catch (Exception ex)
         {
@@ -360,8 +382,33 @@ public partial class CourseEditorPage : AbpComponentBase
 
     private async Task OnMaterialAddedAsync(MaterialDto material)
     {
-        // Reload toàn bộ để đảm bảo đồng bộ với server state sau upload
         await LoadCourseAsync();
+    }
+    
+    private Task OnAssignmentAddedAsync(AssignmentDto assignment)
+    {
+        // Assignment không thuộc CourseDetail nên không cần reload toàn bộ.
+        // Chỉ thêm vào local dict để render ngay.
+        var item = new AssignmentListItemDto
+        {
+            Id        = assignment.Id,
+            CourseId  = assignment.CourseId,
+            LessonId  = assignment.LessonId,
+            Title     = assignment.Title,
+            Deadline  = assignment.Deadline,
+            MaxScore  = assignment.MaxScore,
+            Status    = assignment.Status
+        };
+
+        if (!_assignmentsByLesson.TryGetValue(item.LessonId, out var list))
+        {
+            list = new List<AssignmentListItemDto>();
+            _assignmentsByLesson[item.LessonId] = list;
+        }
+
+        list.Add(item);
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private async Task RemoveMaterialAsync(
@@ -387,6 +434,18 @@ public partial class CourseEditorPage : AbpComponentBase
             await HandleErrorAsync(ex);
         }
     }
+
+    // ── Assignment Helpers ────────────────────────────────────────────────────────
+
+    private IReadOnlyList<AssignmentListItemDto> GetLessonAssignments(Guid lessonId) =>
+        _assignmentsByLesson.TryGetValue(lessonId, out var list) ? list : Array.Empty<AssignmentListItemDto>();
+
+    private static string GetAssignmentStatusLabel(AssignmentStatus status) => status switch
+    {
+        AssignmentStatus.Published => "Published",
+        AssignmentStatus.Closed    => "Closed",
+        _                          => "Draft"
+    };
 
     // ── Helpers ───────────────────────────────────────────────────────────────────
 

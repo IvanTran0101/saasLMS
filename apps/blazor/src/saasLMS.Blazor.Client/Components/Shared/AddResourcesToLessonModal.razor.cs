@@ -11,23 +11,25 @@ using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
 using Volo.Abp.AspNetCore.Components;
+using saasLMS.AssessmentService.Assignments;
 
 namespace saasLMS.Blazor.Client.Components.Shared;
 
-/// <summary>Phân loại tab trong modal Add Resource to Lesson.</summary>
 public enum MaterialTabType
 {
     FileUpload,
     VideoLink,
-    Text
+    Text,
+    Assignment  
 }
 
 public partial class AddResourcesToLessonModal : AbpComponentBase
 {
-    // ── Dependencies ──────────────────────────────────────────────────────────────
-
     [Inject]
     private ICourseCatalogAppService CourseCatalogAppService { get; set; } = default!;
+
+    [Inject]
+    private IAssignmentAppService AssignmentAppService { get; set; } = default!;
 
     [Inject]
     private IHttpClientFactory HttpClientFactory { get; set; } = default!;
@@ -42,6 +44,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     [Parameter]
     public EventCallback<MaterialDto> OnMaterialAdded { get; set; }
+    
+    [Parameter]
+    public EventCallback<AssignmentDto> OnAssignmentAdded { get; set; }
 
     // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -78,6 +83,14 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private string _textContent = string.Empty;
     private string? _textError;
+    
+    // ── Fields: Assignment ────────────────────────────────────────────────────────
+
+    private string?   _assignmentDescription;
+    private DateTime? _assignmentDeadline;
+    private decimal   _assignmentMaxScore;
+    private string?   _assignmentDeadlineError;
+    private string?   _assignmentMaxScoreError;
 
     // ── Public API ────────────────────────────────────────────────────────────────
 
@@ -112,6 +125,12 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
         _textContent = string.Empty;
         _textError   = null;
+        
+        _assignmentDescription   = null;
+        _assignmentDeadline      = null;
+        _assignmentMaxScore      = 100m;
+        _assignmentDeadlineError = null;
+        _assignmentMaxScoreError = null;
     }
 
     private void SelectTab(MaterialTabType tab)
@@ -121,6 +140,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _fileError     = null;
         _videoUrlError = null;
         _textError     = null;
+        
+        _assignmentDeadlineError = null;
+        _assignmentMaxScoreError = null;
     }
 
     private void Close() => _isVisible = false;
@@ -157,18 +179,25 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
         try
         {
-            _isSaving = true;
-
-            MaterialDto result = _activeTab switch
+            if (_activeTab == MaterialTabType.Assignment)
             {
-                MaterialTabType.FileUpload => await AddFileMaterialAsync(),
-                MaterialTabType.VideoLink  => await AddVideoLinkMaterialAsync(),
-                MaterialTabType.Text       => await AddTextMaterialAsync(),
-                _                          => throw new InvalidOperationException("Unknown tab type.")
-            };
+                var assignment = await AddAssignmentAsync();
+                _isVisible = false;
+                await OnAssignmentAdded.InvokeAsync(assignment);
+            }
+            else
+            {
+                MaterialDto material = _activeTab switch
+                {
+                    MaterialTabType.FileUpload => await AddFileMaterialAsync(),
+                    MaterialTabType.VideoLink  => await AddVideoLinkMaterialAsync(),
+                    MaterialTabType.Text       => await AddTextMaterialAsync(),
+                    _                          => throw new InvalidOperationException("Unknown tab type.")
+                };
 
-            _isVisible = false;
-            await OnMaterialAdded.InvokeAsync(result);
+                _isVisible = false;
+                await OnMaterialAdded.InvokeAsync(material);
+            }
         }
         catch (Exception ex)
         {
@@ -278,5 +307,37 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         };
 
         return await CourseCatalogAppService.CreateTextMaterialAsync(input);
+    }
+    
+    private async Task<AssignmentDto> AddAssignmentAsync()
+    {
+        _assignmentDeadlineError = null;
+        _assignmentMaxScoreError = null;
+
+        if (_assignmentMaxScore <= 0)
+        {
+            _assignmentMaxScoreError = "Max score must be greater than 0.";
+            throw new InvalidOperationException(_assignmentMaxScoreError);
+        }
+
+        if (_assignmentDeadline.HasValue && _assignmentDeadline.Value <= DateTime.Now)
+        {
+            _assignmentDeadlineError = "Deadline must be a future date and time.";
+            throw new InvalidOperationException(_assignmentDeadlineError);
+        }
+
+        var input = new CreateAssignmentDto
+        {
+            CourseId    = _courseId,
+            LessonId    = _lessonId,
+            Title       = _resourceTitle.Trim(),
+            Description = string.IsNullOrWhiteSpace(_assignmentDescription)
+                ? null
+                : _assignmentDescription.Trim(),
+            Deadline    = _assignmentDeadline,
+            MaxScore    = _assignmentMaxScore
+        };
+
+        return await AssignmentAppService.CreateAsync(input);
     }
 }

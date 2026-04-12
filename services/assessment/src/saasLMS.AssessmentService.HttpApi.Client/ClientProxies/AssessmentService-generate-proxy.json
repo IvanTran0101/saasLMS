@@ -419,6 +419,206 @@
               "implementFrom": "saasLMS.AssessmentService.SubmissionFileController"
             }
           }
+        },
+        "saasLMS.AssessmentService.AssignmentAppService": {
+          "controllerName": "Assignment",
+          "controllerGroupName": "Assignment",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.AssessmentService.AssignmentAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.AssessmentService.Assignments.IAssignmentAppService",
+              "name": "IAssignmentAppService",
+              "methods": [
+                { "name": "CreateAsync", "parametersOnMethod": [{ "name": "input", "typeAsString": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" } },
+                { "name": "UpdateAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }, { "name": "input", "typeAsString": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" } },
+                { "name": "PublishAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": null, "typeSimple": null } },
+                { "name": "CloseAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": null, "typeSimple": null } },
+                { "name": "GetAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" } },
+                { "name": "GetStudentAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" } },
+                { "name": "GetListByCourseAsync", "parametersOnMethod": [{ "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" } },
+                { "name": "GetListByLessonAsync", "parametersOnMethod": [{ "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" } },
+                { "name": "GetListByCourseStudentAsync", "parametersOnMethod": [{ "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" } },
+                { "name": "GetListByLessonStudentAsync", "parametersOnMethod": [{ "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" } }
+              ]
+            }
+          ],
+          "actions": {
+            "CreateAsyncByInput": {
+              "uniqueName": "CreateAsyncByInput",
+              "name": "CreateAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/assignment",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.CreateAssignmentDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "UpdateAsyncByIdAndInput": {
+              "uniqueName": "UpdateAsyncByIdAndInput",
+              "name": "UpdateAsync",
+              "httpMethod": "PUT",
+              "url": "api/assessment/assignment/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null },
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" },
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.UpdateAssignmentDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "PublishAsyncById": {
+              "uniqueName": "PublishAsyncById",
+              "name": "PublishAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/assignment/{id}/publish",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": null, "typeSimple": null },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "CloseAsyncById": {
+              "uniqueName": "CloseAsyncById",
+              "name": "CloseAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/assignment/{id}/close",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": null, "typeSimple": null },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "GetAsyncById": {
+              "uniqueName": "GetAsyncById",
+              "name": "GetAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/assignment/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "GetStudentAsyncById": {
+              "uniqueName": "GetStudentAsyncById",
+              "name": "GetStudentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/assignment/{id}/student",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Assignments.AssignmentDto", "typeSimple": "saasLMS.AssessmentService.Assignments.AssignmentDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "GetListByCourseAsyncByCourseId": {
+              "uniqueName": "GetListByCourseAsyncByCourseId",
+              "name": "GetListByCourseAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/assignment/by-course/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "courseId", "name": "courseId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "GetListByLessonAsyncByLessonId": {
+              "uniqueName": "GetListByLessonAsyncByLessonId",
+              "name": "GetListByLessonAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/assignment/by-lesson/{lessonId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "lessonId", "name": "lessonId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "GetListByCourseStudentAsyncByCourseId": {
+              "uniqueName": "GetListByCourseStudentAsyncByCourseId",
+              "name": "GetListByCourseStudentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/assignment/by-course/{courseId}/student",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "courseId", "name": "courseId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            },
+            "GetListByLessonStudentAsyncByLessonId": {
+              "uniqueName": "GetListByLessonStudentAsyncByLessonId",
+              "name": "GetListByLessonStudentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/assignment/by-lesson/{lessonId}/student",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "lessonId", "name": "lessonId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Assignments.AssignmentListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Assignments.AssignmentListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
+            }
+          }
         }
       }
     }
