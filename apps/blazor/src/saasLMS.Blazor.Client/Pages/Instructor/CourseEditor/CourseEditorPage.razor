@@ -11,7 +11,9 @@
 
 <AddResourcesToLessonModal @ref="_addResourceModal"
                            OnMaterialAdded="OnMaterialAddedAsync"
-                           OnAssignmentAdded="OnAssignmentAddedAsync" />
+                           OnMaterialUpdated="OnMaterialUpdatedAsync"
+                           OnAssignmentAdded="OnAssignmentAddedAsync"
+                           OnAssignmentUpdated="OnAssignmentUpdatedAsync" />
 
 @if (_isLoading)
 {
@@ -107,12 +109,47 @@ else
 
             @if (_course.Status == CourseStatus.Published)
             {
+                @* Published: badge disabled + Hide available *@
                 <button class="cep-btn cep-btn--success" disabled>
                     <i class="fa fa-check-circle me-1"></i> Published
+                </button>
+                <button class="cep-btn cep-btn--hide"
+                        @onclick="HideCourseAsync"
+                        disabled="@_isHiding">
+                    @if (_isHiding)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    else
+                    {
+                        <i class="fa fa-eye-slash me-1"></i>
+                    }
+                    Hide Course
+                </button>
+            }
+            else if (_course.Status == CourseStatus.Hidden)
+            {
+                @* Hidden: Publish available (calls Reopen) + Hide blocked *@
+                <button class="cep-btn cep-btn--publish"
+                        @onclick="ReopenCourseAsync"
+                        disabled="@(!CanReopen || _isPublishing)">
+                    @if (_isPublishing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    else
+                    {
+                        <i class="fa fa-rocket me-1"></i>
+                    }
+                    Publish Course
+                </button>
+                <button class="cep-btn cep-btn--hide" disabled>
+                    <i class="fa fa-eye-slash me-1"></i> Hide Course
                 </button>
             }
             else
             {
+                @* Draft: Publish available, no Hide *@
                 <button class="cep-btn cep-btn--publish"
                         @onclick="PublishCourseAsync"
                         disabled="@(!CanPublish || _isPublishing)">
@@ -261,28 +298,81 @@ else
                                                         }
                                                     </span>
                                                 </div>
-                                                @* FIX: gọi overload nhận MaterialInLessonDto — defined in code-behind *@
-                                                <button class="cep-icon-btn cep-icon-btn--danger ms-auto"
-                                                        title="Remove resource"
-                                                        @onclick="() => RemoveMaterialAsync(material, lesson, chapter)">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
+                                                <div class="ms-auto d-flex gap-1">
+                                                    <button class="cep-icon-btn" title="Edit resource"
+                                                            @onclick="() => OpenEditMaterialModal(material, lesson, chapter)">
+                                                        <i class="fa fa-pencil-alt"></i>
+                                                    </button>
+                                                    <button class="cep-icon-btn cep-icon-btn--danger" title="Remove resource"
+                                                            @onclick="() => RemoveMaterialAsync(material, lesson, chapter)">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         }
 
                                         @foreach (var asgn in lessonAssignments)
                                         {
+                                            var isProcessing  = _processingAssignmentId == asgn.Id;
+                                            var isLoadingEdit = _loadingEditAssignmentId == asgn.Id;
+                                            var isAnyBusy     = isProcessing || isLoadingEdit;
                                             <div class="cep-material">
                                                 <i class="fa fa-tasks cep-material__icon cep-material__icon--assignment"></i>
                                                 <div class="cep-material__info">
                                                     <span class="cep-material__title">@asgn.Title</span>
                                                     <span class="cep-material__meta">
-                                                        Assignment &bull; @GetAssignmentStatusLabel(asgn.Status)
+                                                        <span class="cep-asgn-badge @GetAssignmentBadgeCss(asgn.Status)">
+                                                            @GetAssignmentStatusLabel(asgn.Status)
+                                                        </span>
                                                         @if (asgn.Deadline.HasValue)
                                                         {
-                                                            <span> &bull; Due @asgn.Deadline.Value.ToString("MMM dd, yyyy")</span>
+                                                            <span class="ms-1">&bull; Due @asgn.Deadline.Value.ToString("MMM dd, yyyy")</span>
                                                         }
                                                     </span>
+                                                </div>
+                                                <div class="ms-auto d-flex align-items-center gap-1">
+                                                    @* Publish *@
+                                                    <button class="cep-asgn-action-btn cep-asgn-action-btn--publish"
+                                                            title="Publish"
+                                                            disabled="@(asgn.Status != AssignmentStatus.Draft || isAnyBusy)"
+                                                            @onclick="() => PublishAssignmentAsync(asgn)">
+                                                        @if (isProcessing && asgn.Status == AssignmentStatus.Draft)
+                                                        {
+                                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa fa-rocket"></i>
+                                                        }
+                                                    </button>
+                                                    @* Close *@
+                                                    <button class="cep-asgn-action-btn cep-asgn-action-btn--close"
+                                                            title="Close"
+                                                            disabled="@(asgn.Status != AssignmentStatus.Published || isAnyBusy)"
+                                                            @onclick="() => CloseAssignmentAsync(asgn)">
+                                                        @if (isProcessing && asgn.Status == AssignmentStatus.Published)
+                                                        {
+                                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa fa-lock"></i>
+                                                        }
+                                                    </button>
+                                                    @* Edit *@
+                                                    <button class="cep-icon-btn"
+                                                            title="Edit assignment"
+                                                            disabled="@isAnyBusy"
+                                                            @onclick="() => OpenEditAssignmentModalAsync(asgn, lesson, chapter)">
+                                                        @if (isLoadingEdit)
+                                                        {
+                                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa fa-pencil-alt"></i>
+                                                        }
+                                                    </button>
                                                 </div>
                                             </div>
                                         }
@@ -598,6 +688,40 @@ else
     .cep-btn--publish { background: #1a6db5; color: #fff; }
     .cep-btn--publish:hover:not(:disabled) { background: #155a96; }
     .cep-btn--success { background: #276749; color: #fff; cursor: default; }
+    .cep-btn--hide { background: transparent; border: 1.5px solid #a0aec0; color: #4a5568; }
+    .cep-btn--hide:hover:not(:disabled) { background: #fff5f5; border-color: #e53e3e; color: #e53e3e; }
+
+    .cep-asgn-badge {
+        display: inline-block;
+        padding: 0.1rem 0.45rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+    .cep-asgn-badge--draft     { background: #fff8e1; color: #b7791f; border: 1px solid #f6e05e; }
+    .cep-asgn-badge--published { background: #e6fffa; color: #276749; border: 1px solid #9ae6b4; }
+    .cep-asgn-badge--closed    { background: #f0f0f0; color: #718096; border: 1px solid #cbd5e0; }
+
+    .cep-asgn-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1.5px solid transparent;
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        background: transparent;
+    }
+    .cep-asgn-action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .cep-asgn-action-btn--publish { color: #1a6db5; border-color: #bdd6f0; }
+    .cep-asgn-action-btn--publish:hover:not(:disabled) { background: #edf4fd; border-color: #1a6db5; }
+    .cep-asgn-action-btn--close { color: #c05621; border-color: #fbd38d; }
+    .cep-asgn-action-btn--close:hover:not(:disabled) { background: #fffaf0; border-color: #c05621; }
 
     .cep-btn-sm {
         display: inline-flex;

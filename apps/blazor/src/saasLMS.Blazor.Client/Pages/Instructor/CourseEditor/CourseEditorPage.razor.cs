@@ -48,6 +48,12 @@ public partial class CourseEditorPage : AbpComponentBase
     private bool _isLoading;
     private bool _isSavingDraft;
     private bool _isPublishing;
+    private bool _isHiding;
+
+    /// <summary>ID của assignment đang trong quá trình Publish/Close (tránh double-click).</summary>
+    private Guid? _processingAssignmentId;
+    /// <summary>ID của assignment đang load full data để mở edit modal.</summary>
+    private Guid? _loadingEditAssignmentId;
 
     private CourseDetailDto? _course;
 
@@ -185,6 +191,44 @@ public partial class CourseEditorPage : AbpComponentBase
             _isPublishing = true;
             await CourseCatalogAppService.PublishCourseAsync(
                 new PublishCourseInput { CourseId = CourseId });
+            NavigationManager.NavigateTo("/instructor/dashboard");
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _isPublishing = false;
+        }
+    }
+
+    private async Task HideCourseAsync()
+    {
+        try
+        {
+            _isHiding = true;
+            await CourseCatalogAppService.HideCourseAsync(
+                new HideCourseInput { CourseId = CourseId });
+            _course!.Status = CourseStatus.Hidden;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _isHiding = false;
+        }
+    }
+
+    private async Task ReopenCourseAsync()
+    {
+        try
+        {
+            _isPublishing = true;
+            await CourseCatalogAppService.ReopenCourseAsync(
+                new ReopenCourseInput { CourseId = CourseId });
             NavigationManager.NavigateTo("/instructor/dashboard");
         }
         catch (Exception ex)
@@ -380,15 +424,23 @@ public partial class CourseEditorPage : AbpComponentBase
         _addResourceModal.Show(_course!.CourseId, chapter.Id, lesson.Id, lesson.Title);
     }
 
+    private void OpenEditMaterialModal(MaterialInLessonDto material, LessonInChapterDto lesson, ChapterDto chapter)
+    {
+        _addResourceModal.ShowEdit(_course!.CourseId, chapter.Id, lesson.Id, lesson.Title, material);
+    }
+
     private async Task OnMaterialAddedAsync(MaterialDto material)
+    {
+        await LoadCourseAsync();
+    }
+
+    private async Task OnMaterialUpdatedAsync(MaterialDto material)
     {
         await LoadCourseAsync();
     }
     
     private Task OnAssignmentAddedAsync(AssignmentDto assignment)
     {
-        // Assignment không thuộc CourseDetail nên không cần reload toàn bộ.
-        // Chỉ thêm vào local dict để render ngay.
         var item = new AssignmentListItemDto
         {
             Id        = assignment.Id,
@@ -409,6 +461,82 @@ public partial class CourseEditorPage : AbpComponentBase
         list.Add(item);
         StateHasChanged();
         return Task.CompletedTask;
+    }
+
+    private Task OnAssignmentUpdatedAsync(AssignmentDto assignment)
+    {
+        if (_assignmentsByLesson.TryGetValue(assignment.LessonId, out var list))
+        {
+            var item = list.FirstOrDefault(a => a.Id == assignment.Id);
+            if (item != null)
+            {
+                item.Title       = assignment.Title;
+                item.Deadline    = assignment.Deadline;
+                item.MaxScore    = assignment.MaxScore;
+                item.Status      = assignment.Status;
+                item.PublishedAt = assignment.PublishedAt;
+                item.ClosedAt    = assignment.ClosedAt;
+            }
+        }
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task PublishAssignmentAsync(AssignmentListItemDto asgn)
+    {
+        try
+        {
+            _processingAssignmentId = asgn.Id;
+            await AssignmentAppService.PublishAsync(asgn.Id);
+            asgn.Status      = AssignmentStatus.Published;
+            asgn.PublishedAt = DateTime.Now;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _processingAssignmentId = null;
+        }
+    }
+
+    private async Task CloseAssignmentAsync(AssignmentListItemDto asgn)
+    {
+        try
+        {
+            _processingAssignmentId = asgn.Id;
+            await AssignmentAppService.CloseAsync(asgn.Id);
+            asgn.Status   = AssignmentStatus.Closed;
+            asgn.ClosedAt = DateTime.Now;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _processingAssignmentId = null;
+        }
+    }
+
+    private async Task OpenEditAssignmentModalAsync(AssignmentListItemDto asgn, LessonInChapterDto lesson, ChapterDto chapter)
+    {
+        try
+        {
+            _loadingEditAssignmentId = asgn.Id;
+            StateHasChanged();
+            var full = await AssignmentAppService.GetAsync(asgn.Id);
+            _addResourceModal.ShowEditAssignment(_course!.CourseId, chapter.Id, lesson.Id, lesson.Title, full);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _loadingEditAssignmentId = null;
+        }
     }
 
     private async Task RemoveMaterialAsync(
@@ -447,6 +575,13 @@ public partial class CourseEditorPage : AbpComponentBase
         _                          => "Draft"
     };
 
+    private static string GetAssignmentBadgeCss(AssignmentStatus status) => status switch
+    {
+        AssignmentStatus.Published => "cep-asgn-badge cep-asgn-badge--published",
+        AssignmentStatus.Closed    => "cep-asgn-badge cep-asgn-badge--closed",
+        _                          => "cep-asgn-badge cep-asgn-badge--draft"
+    };
+
     // ── Helpers ───────────────────────────────────────────────────────────────────
 
     private static string GetMaterialIcon(MaterialType type) => type switch
@@ -482,11 +617,16 @@ public partial class CourseEditorPage : AbpComponentBase
     /// <summary>
     /// Theo Publish rule (CourseReadyToPublish):
     /// cần Title + Description + ít nhất 1 Chapter chứa ít nhất 1 Lesson.
+    /// Chỉ áp dụng khi Status == Draft.
     /// </summary>
     private bool CanPublish =>
         _course is not null
-        && _course.Status != CourseStatus.Published
+        && _course.Status == CourseStatus.Draft
         && !string.IsNullOrWhiteSpace(_course.Title)
         && !string.IsNullOrWhiteSpace(_course.Description)
         && _course.Chapters.Any(c => c.Lessons.Count > 0);
+
+    /// <summary>Course đang Hidden → cho phép Reopen (gọi lại Published).</summary>
+    private bool CanReopen =>
+        _course is not null && _course.Status == CourseStatus.Hidden;
 }

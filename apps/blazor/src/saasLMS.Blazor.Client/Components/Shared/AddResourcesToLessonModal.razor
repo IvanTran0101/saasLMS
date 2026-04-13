@@ -12,7 +12,9 @@
         @* ── Header ── *@
         <div class="arm-modal__header">
             <div>
-                <h5 class="arm-modal__title" id="arm-title">Add Resource to Lesson</h5>
+                <h5 class="arm-modal__title" id="arm-title">
+                    @(_isEditAssignmentMode ? "Edit Assignment" : _isEditMode ? "Edit Resource" : "Add Resource to Lesson")
+                </h5>
                 <p class="arm-modal__subtitle">@_lessonTitle</p>
             </div>
             <button class="arm-modal__close" @onclick="Close" aria-label="Close">
@@ -22,22 +24,33 @@
 
         @* ── Tabs ── *@
         <div class="arm-tabs">
-            <button class="arm-tab @(_activeTab == MaterialTabType.FileUpload ? "arm-tab--active" : "")"
-                    @onclick='() => SelectTab(MaterialTabType.FileUpload)'>
-                <i class="fa fa-upload me-1"></i> File Upload
-            </button>
-            <button class="arm-tab @(_activeTab == MaterialTabType.VideoLink ? "arm-tab--active" : "")"
-                    @onclick='() => SelectTab(MaterialTabType.VideoLink)'>
-                <i class="fa fa-play-circle me-1"></i> Video Link
-            </button>
-            <button class="arm-tab @(_activeTab == MaterialTabType.Text ? "arm-tab--active" : "")"
-                    @onclick='() => SelectTab(MaterialTabType.Text)'>
-                <i class="fa fa-align-left me-1"></i> Text
-            </button>
-            <button class="arm-tab @(_activeTab == MaterialTabType.Assignment ? "arm-tab--active" : "")"
-                    @onclick='() => SelectTab(MaterialTabType.Assignment)'>
-                <i class="fa fa-tasks me-1"></i> Assignment
-            </button>
+            @* Material tabs: ẩn khi đang edit assignment *@
+            @if (!_isEditAssignmentMode)
+            {
+                <button class="arm-tab @(_activeTab == MaterialTabType.FileUpload ? "arm-tab--active" : "") @(_isEditMode && _activeTab != MaterialTabType.FileUpload ? "arm-tab--locked" : "")"
+                        @onclick='() => { if (!_isEditMode) SelectTab(MaterialTabType.FileUpload); }'
+                        disabled="@(_isEditMode && _activeTab != MaterialTabType.FileUpload)">
+                    <i class="fa fa-upload me-1"></i> File Upload
+                </button>
+                <button class="arm-tab @(_activeTab == MaterialTabType.VideoLink ? "arm-tab--active" : "") @(_isEditMode && _activeTab != MaterialTabType.VideoLink ? "arm-tab--locked" : "")"
+                        @onclick='() => { if (!_isEditMode) SelectTab(MaterialTabType.VideoLink); }'
+                        disabled="@(_isEditMode && _activeTab != MaterialTabType.VideoLink)">
+                    <i class="fa fa-play-circle me-1"></i> Video Link
+                </button>
+                <button class="arm-tab @(_activeTab == MaterialTabType.Text ? "arm-tab--active" : "") @(_isEditMode && _activeTab != MaterialTabType.Text ? "arm-tab--locked" : "")"
+                        @onclick='() => { if (!_isEditMode) SelectTab(MaterialTabType.Text); }'
+                        disabled="@(_isEditMode && _activeTab != MaterialTabType.Text)">
+                    <i class="fa fa-align-left me-1"></i> Text
+                </button>
+            }
+            @* Assignment tab: ẩn khi đang edit material *@
+            @if (!_isEditMode)
+            {
+                <button class="arm-tab @(_activeTab == MaterialTabType.Assignment ? "arm-tab--active" : "")"
+                        @onclick='() => { if (!_isEditAssignmentMode) SelectTab(MaterialTabType.Assignment); }'>
+                    <i class="fa fa-tasks me-1"></i> Assignment
+                </button>
+            }
         </div>
 
         @* ── Body ── *@
@@ -68,7 +81,19 @@
             @if (_activeTab == MaterialTabType.FileUpload)
             {
                 <div class="arm-section">
-                    <label class="arm-field__label">File Selection</label>
+                    @if (_isEditMode && !string.IsNullOrEmpty(_existingFileName))
+                    {
+                        <div class="arm-current-file">
+                            <i class="fa fa-file-alt arm-current-file__icon"></i>
+                            <div>
+                                <span class="arm-current-file__label">Current file</span>
+                                <span class="arm-current-file__name">@_existingFileName</span>
+                            </div>
+                        </div>
+                    }
+                    <label class="arm-field__label">
+                        @(_isEditMode ? "Replace File (optional)" : "File Selection")
+                    </label>
                     <div class="arm-dropzone @(_fileError != null ? "arm-dropzone--error" : "")">
                         <div class="arm-dropzone__icon">
                             <i class="fa fa-cloud-upload-alt"></i>
@@ -268,6 +293,11 @@
                     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     <span>Saving...</span>
                 }
+                else if (_isEditMode || _isEditAssignmentMode)
+                {
+                    <i class="fa fa-save me-2"></i>
+                    <span>Save Changes</span>
+                }
                 else
                 {
                     <i class="fa fa-plus me-2"></i>
@@ -362,6 +392,22 @@
     }
     .arm-tab:hover { color: #0f2744; }
     .arm-tab--active { color: #0f2744; border-bottom-color: #1a6db5; }
+    .arm-tab--locked { opacity: 0.35; cursor: not-allowed; }
+    .arm-tab:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    .arm-current-file {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: #f0f7ff;
+        border: 1px solid #bdd6f0;
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+    .arm-current-file__icon { color: #1a6db5; font-size: 1rem; flex-shrink: 0; }
+    .arm-current-file__label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #8494a9; }
+    .arm-current-file__name { display: block; font-size: 0.88rem; font-weight: 500; color: #0f2744; }
 
     .arm-modal__body { padding: 1.25rem 1.6rem; flex: 1; overflow-y: auto; }
     .arm-section { margin-top: 1rem; }

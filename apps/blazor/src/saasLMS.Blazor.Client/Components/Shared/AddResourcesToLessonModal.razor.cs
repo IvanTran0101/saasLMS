@@ -44,9 +44,15 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     [Parameter]
     public EventCallback<MaterialDto> OnMaterialAdded { get; set; }
-    
+
+    [Parameter]
+    public EventCallback<MaterialDto> OnMaterialUpdated { get; set; }
+
     [Parameter]
     public EventCallback<AssignmentDto> OnAssignmentAdded { get; set; }
+
+    [Parameter]
+    public EventCallback<AssignmentDto> OnAssignmentUpdated { get; set; }
 
     // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -61,6 +67,20 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     // Tab đang active
     private MaterialTabType _activeTab = MaterialTabType.FileUpload;
+
+    // ── Edit Mode: Material ───────────────────────────────────────────────────────
+
+    private bool _isEditMode;
+    private Guid _editingMaterialId;
+    private MaterialType _editingMaterialType;
+    private string _originalTitle = string.Empty;
+    /// <summary>Filename hiển thị trong edit mode File (chỉ để UI reference).</summary>
+    private string _existingFileName = string.Empty;
+
+    // ── Edit Mode: Assignment ─────────────────────────────────────────────────────
+
+    private bool _isEditAssignmentMode;
+    private Guid _editingAssignmentId;
 
     // ── Fields chung ──────────────────────────────────────────────────────────────
 
@@ -92,8 +112,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     private string?   _assignmentDeadlineError;
     private string?   _assignmentMaxScoreError;
 
-    // ── Public API ────────────────────────────────────────────────────────────────
-
     /// <summary>Mở modal trong context của một lesson cụ thể.</summary>
     public void Show(Guid courseId, Guid chapterId, Guid lessonId, string lessonTitle)
     {
@@ -107,6 +125,70 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         StateHasChanged();
     }
 
+    // ── Public API ────────────────────────────────────────────────────────────────
+
+    /// <summary>Mở modal ở chế độ Edit — load sẵn dữ liệu của material hiện có.</summary>
+    public void ShowEdit(Guid courseId, Guid chapterId, Guid lessonId, string lessonTitle, MaterialInLessonDto material)
+    {
+        _courseId    = courseId;
+        _chapterId   = chapterId;
+        _lessonId    = lessonId;
+        _lessonTitle = lessonTitle;
+
+        ResetForm();
+
+        _isEditMode          = true;
+        _editingMaterialId   = material.Id;
+        _editingMaterialType = material.Type;
+        _originalTitle       = material.Title;
+        _resourceTitle       = material.Title;
+
+        _activeTab = material.Type switch
+        {
+            MaterialType.VideoLink => MaterialTabType.VideoLink,
+            MaterialType.Text      => MaterialTabType.Text,
+            _                      => MaterialTabType.FileUpload
+        };
+
+        switch (material.Type)
+        {
+            case MaterialType.VideoLink:
+                _videoUrl = material.ExternalUrl ?? string.Empty;
+                break;
+            case MaterialType.Text:
+                _textContent = material.Content ?? string.Empty;
+                break;
+            case MaterialType.File:
+                _existingFileName = material.FileName ?? string.Empty;
+                break;
+        }
+
+        _isVisible = true;
+        StateHasChanged();
+    }
+
+    /// <summary>Mở modal ở chế độ Edit Assignment — load sẵn dữ liệu assignment.</summary>
+    public void ShowEditAssignment(Guid courseId, Guid chapterId, Guid lessonId, string lessonTitle, AssignmentDto assignment)
+    {
+        _courseId    = courseId;
+        _chapterId   = chapterId;
+        _lessonId    = lessonId;
+        _lessonTitle = lessonTitle;
+
+        ResetForm();
+
+        _isEditAssignmentMode    = true;
+        _editingAssignmentId     = assignment.Id;
+        _activeTab               = MaterialTabType.Assignment;
+        _resourceTitle           = assignment.Title;
+        _assignmentDescription   = assignment.Description;
+        _assignmentDeadline      = assignment.Deadline;
+        _assignmentMaxScore      = assignment.MaxScore;
+
+        _isVisible = true;
+        StateHasChanged();
+    }
+
     // ── Private Methods ───────────────────────────────────────────────────────────
 
     private void ResetForm()
@@ -116,8 +198,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _titleError    = null;
         _isSaving      = false;
 
-        _selectedFile = null;
-        _fileError    = null;
+        _selectedFile     = null;
+        _fileError        = null;
+        _existingFileName = string.Empty;
 
         _videoUrl      = string.Empty;
         _videoNotes    = string.Empty;
@@ -125,12 +208,20 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
         _textContent = string.Empty;
         _textError   = null;
-        
+
         _assignmentDescription   = null;
         _assignmentDeadline      = null;
         _assignmentMaxScore      = 100m;
         _assignmentDeadlineError = null;
         _assignmentMaxScoreError = null;
+
+        _isEditMode          = false;
+        _editingMaterialId   = Guid.Empty;
+        _editingMaterialType = default;
+        _originalTitle       = string.Empty;
+
+        _isEditAssignmentMode = false;
+        _editingAssignmentId  = Guid.Empty;
     }
 
     private void SelectTab(MaterialTabType tab)
@@ -172,14 +263,20 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task AddResourceAsync()
     {
-        if (!ValidateCommonFields())
-        {
-            return;
-        }
+        if (!ValidateCommonFields()) return;
 
+        _isSaving = true;
         try
         {
-            if (_activeTab == MaterialTabType.Assignment)
+            if (_isEditAssignmentMode)
+            {
+                await SaveEditAssignmentAsync();
+            }
+            else if (_isEditMode)
+            {
+                await SaveEditAsync();
+            }
+            else if (_activeTab == MaterialTabType.Assignment)
             {
                 var assignment = await AddAssignmentAsync();
                 _isVisible = false;
@@ -207,6 +304,137 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         {
             _isSaving = false;
         }
+    }
+
+    private async Task SaveEditAsync()
+    {
+        bool titleChanged = _resourceTitle.Trim() != _originalTitle;
+        MaterialDto? result = null;
+
+        // 1. Rename nếu title thay đổi
+        if (titleChanged)
+        {
+            result = await CourseCatalogAppService.RenameMaterialAsync(new RenameMaterialInput
+            {
+                CourseId   = _courseId,
+                ChapterId  = _chapterId,
+                LessonId   = _lessonId,
+                MaterialId = _editingMaterialId,
+                NewTitle   = _resourceTitle.Trim()
+            });
+        }
+
+        // 2. Cập nhật nội dung theo type
+        switch (_editingMaterialType)
+        {
+            case MaterialType.VideoLink:
+                _videoUrlError = null;
+                if (string.IsNullOrWhiteSpace(_videoUrl))
+                {
+                    _videoUrlError = "Video URL is required.";
+                    throw new InvalidOperationException(_videoUrlError);
+                }
+                result = await CourseCatalogAppService.UpdateVideoLinkMaterialAsync(
+                    new UpdateVideoLinkMaterialInput
+                    {
+                        CourseId    = _courseId,
+                        ChapterId   = _chapterId,
+                        LessonId    = _lessonId,
+                        MaterialId  = _editingMaterialId,
+                        ExternalUrl = _videoUrl.Trim()
+                    });
+                break;
+
+            case MaterialType.Text:
+                _textError = null;
+                if (string.IsNullOrWhiteSpace(_textContent))
+                {
+                    _textError = "Content cannot be empty.";
+                    throw new InvalidOperationException(_textError);
+                }
+                result = await CourseCatalogAppService.UpdateTextMaterialAsync(
+                    new UpdateTextMaterialInput
+                    {
+                        CourseId   = _courseId,
+                        ChapterId  = _chapterId,
+                        LessonId   = _lessonId,
+                        MaterialId = _editingMaterialId,
+                        Content    = _textContent.Trim(),
+                        Format     = TextFormat.Plain
+                    });
+                break;
+
+            case MaterialType.File:
+                // Nếu user chọn file mới → re-upload; không thì chỉ rename (đã xử lý ở trên)
+                if (_selectedFile != null)
+                    result = await ReplaceFileMaterialAsync();
+                break;
+        }
+
+        _isVisible = false;
+        if (result != null)
+            await OnMaterialUpdated.InvokeAsync(result);
+    }
+
+    /// <summary>Re-upload file cho material đã có (dùng existing MaterialId).</summary>
+    private async Task<MaterialDto> ReplaceFileMaterialAsync()
+    {
+        var tokenResult = await AccessTokenProvider.RequestAccessToken();
+        if (!tokenResult.TryGetToken(out var token))
+            throw new InvalidOperationException("Could not obtain access token for file upload.");
+
+        var baseUrl = (Configuration["RemoteServices:course-catalog:BaseUrl"]
+                       ?? Configuration["RemoteServices:Default:BaseUrl"]!)
+                      .TrimEnd('/');
+
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(_courseId.ToString()),            "CourseId");
+        form.Add(new StringContent(_chapterId.ToString()),           "ChapterId");
+        form.Add(new StringContent(_lessonId.ToString()),            "LessonId");
+        form.Add(new StringContent(_editingMaterialId.ToString()),   "MaterialId");
+        form.Add(new StringContent(_resourceTitle.Trim()),           "Title");
+
+        await using var stream = _selectedFile!.OpenReadStream(MaxFileSizeBytes);
+        var fileContent = new StreamContent(stream);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(
+            string.IsNullOrEmpty(_selectedFile.ContentType) ? "application/octet-stream" : _selectedFile.ContentType);
+        form.Add(fileContent, "File", _selectedFile.Name);
+
+        var httpClient = HttpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token.Value);
+
+        var response = await httpClient.PostAsync(
+            $"{baseUrl}/api/course-catalog/course-catalog/upload-material-file", form);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<MaterialDto>(
+            json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+    }
+
+    private async Task SaveEditAssignmentAsync()
+    {
+        _assignmentDeadlineError = null;
+        _assignmentMaxScoreError = null;
+
+        if (_assignmentMaxScore <= 0)
+        {
+            _assignmentMaxScoreError = "Max score must be greater than 0.";
+            throw new InvalidOperationException(_assignmentMaxScoreError);
+        }
+
+        var input = new UpdateAssignmentDto
+        {
+            Title       = _resourceTitle.Trim(),
+            Description = string.IsNullOrWhiteSpace(_assignmentDescription) ? null : _assignmentDescription.Trim(),
+            Deadline    = _assignmentDeadline,
+            MaxScore    = _assignmentMaxScore
+        };
+
+        var result = await AssignmentAppService.UpdateAsync(_editingAssignmentId, input);
+        _isVisible = false;
+        await OnAssignmentUpdated.InvokeAsync(result);
     }
 
     private async Task<MaterialDto> AddFileMaterialAsync()
