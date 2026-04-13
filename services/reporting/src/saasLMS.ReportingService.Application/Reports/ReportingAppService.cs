@@ -250,7 +250,6 @@ public class ReportingAppService : ApplicationService, IReportingAppService
             TenantId = e.TenantId,
             TotalStudents = e.TotalStudents,
             ActiveStudents = e.ActiveStudents,
-            TotalInstructors = e.TotalInstructors,
             TotalCourses = e.TotalCourses,
             ActiveCourses = e.ActiveCourses,
             LastUpdatedAt = e.LastUpdatedAt

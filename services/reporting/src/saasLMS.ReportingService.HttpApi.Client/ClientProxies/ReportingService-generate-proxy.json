@@ -913,19 +913,6 @@
           "isNullable": false
         },
         {
-          "name": "TotalInstructors",
-          "jsonName": null,
-          "type": "System.Int32",
-          "typeSimple": "number",
-          "isRequired": false,
-          "minLength": null,
-          "maxLength": null,
-          "minimum": null,
-          "maximum": null,
-          "regex": null,
-          "isNullable": false
-        },
-        {
           "name": "TotalCourses",
           "jsonName": null,
           "type": "System.Int32",
