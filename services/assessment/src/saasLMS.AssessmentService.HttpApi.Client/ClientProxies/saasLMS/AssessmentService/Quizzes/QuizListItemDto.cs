@@ -16,6 +16,8 @@ public class QuizListItemDto
 
     public Guid CourseId { get; set; }
 
+    public Guid LessonId { get; set; }
+
     public string Title { get; set; }
 
     public int? TimeLimitMinutes { get; set; }
@@ -23,6 +25,8 @@ public class QuizListItemDto
     public Decimal MaxScore { get; set; }
 
     public AttemptPolicy AttemptPolicy { get; set; }
+
+    public QuizStatus Status { get; set; }
 
     public DateTime? PublishedAt { get; set; }
 

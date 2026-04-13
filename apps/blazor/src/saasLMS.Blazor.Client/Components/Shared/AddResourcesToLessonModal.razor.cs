@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -12,6 +13,9 @@ using saasLMS.CourseCatalogService.Materials.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Materials.Dtos.Outputs;
 using Volo.Abp.AspNetCore.Components;
 using saasLMS.AssessmentService.Assignments;
+using saasLMS.AssessmentService.Quizzes;
+using saasLMS.AssessmentService.Shared;
+using Volo.Abp.Content;
 
 namespace saasLMS.Blazor.Client.Components.Shared;
 
@@ -20,7 +24,8 @@ public enum MaterialTabType
     FileUpload,
     VideoLink,
     Text,
-    Assignment  
+    Assignment,
+    Quiz
 }
 
 public partial class AddResourcesToLessonModal : AbpComponentBase
@@ -53,6 +58,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     [Parameter]
     public EventCallback<AssignmentDto> OnAssignmentUpdated { get; set; }
+
+    [Parameter]
+    public EventCallback<QuizDto> OnQuizAdded { get; set; }
 
     // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -111,6 +119,26 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     private decimal   _assignmentMaxScore;
     private string?   _assignmentDeadlineError;
     private string?   _assignmentMaxScoreError;
+
+    // ── Fields: Quiz CSV Upload ───────────────────────────────────────────────────
+
+    private IBrowserFile?              _quizCsvFile;
+    private string?                    _quizCsvFileError;
+    private bool                       _isQuizPreviewVisible;
+    private QuizDto?                   _uploadedQuizDto;
+    private List<QuizQuestionPreview>? _quizPreviewQuestions;
+
+    private sealed class QuizQuestionPreview
+    {
+        public string Text    { get; set; } = string.Empty;
+        public List<QuizAnswerPreview> Answers { get; set; } = new();
+    }
+
+    private sealed class QuizAnswerPreview
+    {
+        public string Text      { get; set; } = string.Empty;
+        public bool   IsCorrect { get; set; }
+    }
 
     /// <summary>Mở modal trong context của một lesson cụ thể.</summary>
     public void Show(Guid courseId, Guid chapterId, Guid lessonId, string lessonTitle)
@@ -215,6 +243,12 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _assignmentDeadlineError = null;
         _assignmentMaxScoreError = null;
 
+        _quizCsvFile          = null;
+        _quizCsvFileError     = null;
+        _isQuizPreviewVisible = false;
+        _uploadedQuizDto      = null;
+        _quizPreviewQuestions = null;
+
         _isEditMode          = false;
         _editingMaterialId   = Guid.Empty;
         _editingMaterialType = default;
@@ -234,6 +268,8 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         
         _assignmentDeadlineError = null;
         _assignmentMaxScoreError = null;
+
+        _quizCsvFileError = null;
     }
 
     private void Close() => _isVisible = false;
@@ -252,6 +288,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private bool ValidateCommonFields()
     {
+        // Quiz tab derives title from the CSV filename — no UI title field needed.
+        if (_activeTab == MaterialTabType.Quiz) return true;
+
         _titleError = null;
         if (string.IsNullOrWhiteSpace(_resourceTitle))
         {
@@ -281,6 +320,11 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
                 var assignment = await AddAssignmentAsync();
                 _isVisible = false;
                 await OnAssignmentAdded.InvokeAsync(assignment);
+            }
+            else if (_activeTab == MaterialTabType.Quiz)
+            {
+                await UploadQuizCsvAsync();
+                // Modal visibility is managed inside UploadQuizCsvAsync.
             }
             else
             {
@@ -567,5 +611,95 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         };
 
         return await AssignmentAppService.CreateAsync(input);
+    }
+
+    // ── Quiz CSV Upload ───────────────────────────────────────────────────────────
+
+    private void OnQuizCsvFileSelected(InputFileChangeEventArgs e)
+    {
+        _quizCsvFileError = null;
+        _quizCsvFile      = e.File;
+
+        if (_quizCsvFile.Size > MaxFileSizeBytes)
+        {
+            _quizCsvFileError = "File size exceeds the 50 MB limit.";
+            _quizCsvFile      = null;
+        }
+    }
+
+    private async Task UploadQuizCsvAsync()
+    {
+        _quizCsvFileError = null;
+
+        if (_quizCsvFile is null)
+        {
+            _quizCsvFileError = "Please select a CSV file.";
+            return;
+        }
+
+        var tokenResult = await AccessTokenProvider.RequestAccessToken();
+        if (!tokenResult.TryGetToken(out var token))
+            throw new InvalidOperationException("Could not obtain access token for quiz upload.");
+
+        var baseUrl = (Configuration["RemoteServices:AssessmentService:BaseUrl"]
+                       ?? Configuration["RemoteServices:Default:BaseUrl"]!)
+                      .TrimEnd('/');
+
+        var title = System.IO.Path.GetFileNameWithoutExtension(_quizCsvFile.Name);
+        if (string.IsNullOrWhiteSpace(title)) title = "Quiz";
+
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(_courseId.ToString()), "CourseId");
+        form.Add(new StringContent(_lessonId.ToString()), "LessonId");
+        form.Add(new StringContent(title),                "Title");
+        form.Add(new StringContent("100"),                "MaxScore");
+        form.Add(new StringContent("0"),                  "AttemptPolicy"); // OneTime
+
+        await using var stream = _quizCsvFile.OpenReadStream(MaxFileSizeBytes);
+        var fileContent = new StreamContent(stream);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
+        form.Add(fileContent, "File", _quizCsvFile.Name);
+
+        var httpClient = HttpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token.Value);
+
+        var response = await httpClient.PostAsync(
+            $"{baseUrl}/api/assessment/quiz/upload-csv", form);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        _uploadedQuizDto = JsonSerializer.Deserialize<QuizDto>(
+            json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+
+        // Parse QuestionsJson for preview display (quiz is Draft, GetFormSchema requires Published)
+        _quizPreviewQuestions = JsonSerializer.Deserialize<List<QuizQuestionPreview>>(
+            _uploadedQuizDto.QuestionsJson,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+
+        _isVisible            = false;
+        _isQuizPreviewVisible = true;
+    }
+
+    /// <summary>Cancel từ preview → quay lại modal chính để upload CSV khác.</summary>
+    private void CloseQuizPreview()
+    {
+        _isQuizPreviewVisible = false;
+        _quizCsvFile          = null;
+        _quizCsvFileError     = null;
+        _uploadedQuizDto      = null;
+        _quizPreviewQuestions = null;
+        _isVisible            = true;
+    }
+
+    /// <summary>Confirm từ preview → đóng hoàn toàn, bắn callback.</summary>
+    private async Task ConfirmQuizAsync()
+    {
+        var dto = _uploadedQuizDto;
+        _isQuizPreviewVisible = false;
+        _isVisible            = false;
+        ResetForm();
+        if (dto != null)
+            await OnQuizAdded.InvokeAsync(dto);
     }
 }

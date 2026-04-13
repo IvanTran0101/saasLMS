@@ -2,6 +2,7 @@
 @using saasLMS.CourseCatalogService.Courses
 @using Microsoft.AspNetCore.Components.Forms
 @using saasLMS.AssessmentService.Assignments
+@using saasLMS.AssessmentService.Quizzes
 
 @if (_isVisible)
 {
@@ -50,32 +51,39 @@
                         @onclick='() => { if (!_isEditAssignmentMode) SelectTab(MaterialTabType.Assignment); }'>
                     <i class="fa fa-tasks me-1"></i> Assignment
                 </button>
+                <button class="arm-tab @(_activeTab == MaterialTabType.Quiz ? "arm-tab--active" : "")"
+                        @onclick='() => { if (!_isEditAssignmentMode) SelectTab(MaterialTabType.Quiz); }'>
+                    <i class="fa fa-question-circle me-1"></i> Quiz
+                </button>
             }
         </div>
 
         @* ── Body ── *@
         <div class="arm-modal__body">
 
-            @* Resource Title — chung cho tất cả tab *@
-            <div class="arm-field @(_titleError != null ? "arm-field--error" : "")">
-                <label class="arm-field__label" for="arm-res-title">
-                    Resource Title <span class="arm-field__required">*</span>
-                </label>
-                <input id="arm-res-title"
-                       type="text"
-                       class="arm-field__input"
-                       placeholder="@GetTitlePlaceholder()"
-                       @bind="_resourceTitle"
-                       @bind:event="oninput"
-                       maxlength="200"
-                       disabled="@_isSaving" />
-                @if (_titleError != null)
-                {
-                    <span class="arm-field__error-msg">
-                        <i class="fa fa-exclamation-circle me-1"></i>@_titleError
-                    </span>
-                }
-            </div>
+            @* Resource Title — ẩn cho Quiz tab (title lấy tự động từ tên file CSV) *@
+            @if (_activeTab != MaterialTabType.Quiz)
+            {
+                <div class="arm-field @(_titleError != null ? "arm-field--error" : "")">
+                    <label class="arm-field__label" for="arm-res-title">
+                        Resource Title <span class="arm-field__required">*</span>
+                    </label>
+                    <input id="arm-res-title"
+                           type="text"
+                           class="arm-field__input"
+                           placeholder="@GetTitlePlaceholder()"
+                           @bind="_resourceTitle"
+                           @bind:event="oninput"
+                           maxlength="200"
+                           disabled="@_isSaving" />
+                    @if (_titleError != null)
+                    {
+                        <span class="arm-field__error-msg">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_titleError
+                        </span>
+                    }
+                </div>
+            }
 
             @* ── Tab: File Upload ── *@
             @if (_activeTab == MaterialTabType.FileUpload)
@@ -282,6 +290,46 @@
             </div>
         }
 
+        @* ── Tab: Quiz ── *@
+        @if (_activeTab == MaterialTabType.Quiz)
+        {
+            <div class="arm-section">
+                <label class="arm-field__label">CSV File <span class="arm-field__required">*</span></label>
+                <p class="arm-quiz-hint">The quiz title, questions, and answer choices are all read from the CSV file.</p>
+                <div class="arm-dropzone @(_quizCsvFileError != null ? "arm-dropzone--error" : "")">
+                    <div class="arm-dropzone__icon">
+                        <i class="fa fa-file-csv"></i>
+                    </div>
+                    @if (_quizCsvFile is null)
+                    {
+                        <p class="arm-dropzone__hint">Drag and drop your CSV file here</p>
+                        <p class="arm-dropzone__hint arm-dropzone__hint--sub">or click to browse</p>
+                    }
+                    else
+                    {
+                        <p class="arm-dropzone__file-name">@_quizCsvFile.Name</p>
+                        <p class="arm-dropzone__file-size">@FormatFileSize(_quizCsvFile.Size)</p>
+                    }
+                    <InputFile OnChange="OnQuizCsvFileSelected"
+                               class="arm-dropzone__input"
+                               accept=".csv"
+                               disabled="@_isSaving" />
+                </div>
+                @if (_quizCsvFileError != null)
+                {
+                    <span class="arm-field__error-msg mt-1">
+                        <i class="fa fa-exclamation-circle me-1"></i>@_quizCsvFileError
+                    </span>
+                }
+                <div class="arm-formats mt-2">
+                    <span class="arm-field__label">Supported Formats</span>
+                    <div class="arm-formats__badges">
+                        <span class="arm-format-badge arm-format-badge--csv">CSV</span>
+                    </div>
+                </div>
+            </div>
+        }
+
         </div>
 
         @* ── Footer ── *@
@@ -301,8 +349,72 @@
                 else
                 {
                     <i class="fa fa-plus me-2"></i>
-                    <span>@(_activeTab == MaterialTabType.Assignment ? "Add to Lesson" : "Add Resource")</span>
+                    <span>@(_activeTab == MaterialTabType.Assignment ? "Add to Lesson"
+                              : _activeTab == MaterialTabType.Quiz ? "Upload CSV"
+                              : "Add Resource")</span>
                 }
+            </button>
+        </div>
+
+    </div>
+}
+
+@* ── Quiz Preview Modal ── *@
+@if (_isQuizPreviewVisible && _uploadedQuizDto != null)
+{
+    <div class="arm-backdrop" @onclick="CloseQuizPreview"></div>
+
+    <div class="arm-modal arm-modal--wide" role="dialog" aria-modal="true" aria-labelledby="qp-title">
+
+        <div class="arm-modal__header">
+            <div>
+                <h5 class="arm-modal__title" id="qp-title">
+                    <i class="fa fa-question-circle me-2" style="color:#1a6db5;"></i>Quiz Preview
+                </h5>
+                <p class="arm-modal__subtitle">@_uploadedQuizDto.Title &nbsp;·&nbsp; @(_quizPreviewQuestions?.Count ?? 0) question(s)</p>
+            </div>
+            <button class="arm-modal__close" @onclick="CloseQuizPreview" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <div class="arm-modal__body">
+            @if (_quizPreviewQuestions != null && _quizPreviewQuestions.Count > 0)
+            {
+                <ol class="qp-question-list">
+                    @foreach (var (q, qi) in _quizPreviewQuestions.Select((q, i) => (q, i)))
+                    {
+                        <li class="qp-question">
+                            <p class="qp-question__text">@q.Text</p>
+                            <ul class="qp-choices">
+                                @foreach (var (a, ai) in q.Answers.Select((a, i) => (a, i)))
+                                {
+                                    <li class="qp-choice @(a.IsCorrect ? "qp-choice--correct" : "")">
+                                        <span class="qp-choice__letter">@((char)('A' + ai))</span>
+                                        <span class="qp-choice__text">@a.Text</span>
+                                        @if (a.IsCorrect)
+                                        {
+                                            <i class="fa fa-check-circle qp-choice__check"></i>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                </ol>
+            }
+            else
+            {
+                <p class="text-muted text-center py-3">No questions found.</p>
+            }
+        </div>
+
+        <div class="arm-modal__footer">
+            <button class="arm-btn arm-btn--ghost" @onclick="CloseQuizPreview">
+                <i class="fa fa-arrow-left me-2"></i>Cancel
+            </button>
+            <button class="arm-btn arm-btn--primary" @onclick="ConfirmQuizAsync">
+                <i class="fa fa-check me-2"></i>Confirm &amp; Add to Lesson
             </button>
         </div>
 
@@ -575,4 +687,59 @@
         gap: 1rem;
     }
     .arm-field--half { flex: 1; min-width: 0; }
+
+    /* ── Quiz tab ── */
+    .arm-quiz-hint { font-size: 0.82rem; color: #8494a9; margin: 0 0 0.75rem; }
+    .arm-format-badge--csv { background: #e6fff2; color: #276749; border: 1px solid #9ae6b4; }
+
+    /* ── Wide modal for preview ── */
+    .arm-modal--wide { width: min(700px, 96vw); }
+
+    /* ── Quiz preview question list ── */
+    .qp-question-list { padding: 0; margin: 0; list-style: none; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .qp-question {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+    }
+    .qp-question__text { font-size: 0.92rem; font-weight: 600; color: #0f2744; margin: 0 0 0.65rem; }
+
+    .qp-choices { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .qp-choice {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
+        font-size: 0.87rem;
+        color: #2d3748;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        transition: background 0.12s;
+    }
+    .qp-choice--correct {
+        background: #e6fff2;
+        border-color: #9ae6b4;
+        color: #22543d;
+        font-weight: 600;
+    }
+    .qp-choice__letter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        color: #4a5568;
+    }
+    .qp-choice--correct .qp-choice__letter { background: #9ae6b4; color: #22543d; }
+    .qp-choice__text { flex: 1; }
+    .qp-choice__check { color: #38a169; font-size: 0.95rem; flex-shrink: 0; }
 </style>
