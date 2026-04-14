@@ -4,5 +4,8 @@ public class saasLMSMenus
 {
     private const string Prefix = "saasLMS";
 
-    public const string Home = Prefix + ".Home";
+    public const string Home                = Prefix + ".Home";
+    public const string InstructorDashboard = Prefix + ".InstructorDashboard";
+    public const string StudentDashboard    = Prefix + ".StudentDashboard";
+    public const string Logout              = Prefix + ".Logout";
 }

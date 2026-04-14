@@ -1,6 +1,11 @@
-﻿@page "/LessonViewerPage"
+@page "/student/learn/{courseId:guid}/{lessonId:guid}"
+@inherits AbpComponentBase
+
+<PageTitle>Lesson</PageTitle>
+
 <h3>LessonViewerPage</h3>
 
 @code {
-    
+    [Parameter] public Guid CourseId { get; set; }
+    [Parameter] public Guid LessonId { get; set; }
 }

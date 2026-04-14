@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using saasLMS.Blazor.Client.Authorization;
 using saasLMS.Blazor.Client.Components.Shared;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
@@ -12,7 +13,7 @@ using Volo.Abp.AspNetCore.Components;
 
 namespace saasLMS.Blazor.Client.Pages.Instructor.Dashboard;
 
-[Authorize]
+[Authorize(Roles = LmsRoles.Instructor)]
 public partial class InstructorDashboardPage : AbpComponentBase
 {
     [Inject]
@@ -36,6 +37,13 @@ public partial class InstructorDashboardPage : AbpComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        // Role guard: CurrentUser.IsInRole reads locally from claims — no remote call.
+        if (!CurrentUser.IsInRole(LmsRoles.Instructor))
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
         // Load courses trước, stats phụ thuộc vào danh sách courseId
         await LoadCoursesAsync();
         await LoadStatsAsync();

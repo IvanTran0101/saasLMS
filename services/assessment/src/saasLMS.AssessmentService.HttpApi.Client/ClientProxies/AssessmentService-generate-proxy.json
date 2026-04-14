@@ -619,6 +619,224 @@
               "implementFrom": "saasLMS.AssessmentService.Assignments.IAssignmentAppService"
             }
           }
+        },
+        "saasLMS.AssessmentService.QuizAppService": {
+          "controllerName": "Quiz",
+          "controllerGroupName": "Quiz",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.AssessmentService.QuizAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.AssessmentService.Quizzes.IQuizAppService",
+              "name": "IQuizAppService",
+              "methods": [
+                { "name": "CreateAsync", "parametersOnMethod": [{ "name": "input", "typeAsString": "saasLMS.AssessmentService.Quizzes.CreateQuizDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Quizzes.CreateQuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.CreateQuizDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" } },
+                { "name": "UpdateAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }, { "name": "input", "typeAsString": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" } },
+                { "name": "PublishAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": null, "typeSimple": null } },
+                { "name": "CloseAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": null, "typeSimple": null } },
+                { "name": "GetAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" } },
+                { "name": "GetStudentAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" } },
+                { "name": "GetListByCourseAsync", "parametersOnMethod": [{ "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" } },
+                { "name": "GetListByLessonAsync", "parametersOnMethod": [{ "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" } },
+                { "name": "GetListByCourseStudentAsync", "parametersOnMethod": [{ "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" } },
+                { "name": "GetListByLessonStudentAsync", "parametersOnMethod": [{ "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" } },
+                { "name": "GetFormSchemaAsync", "parametersOnMethod": [{ "name": "quizId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizFormSchemaDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizFormSchemaDto" } }
+              ]
+            }
+          ],
+          "actions": {
+            "CreateAsyncByInput": {
+              "uniqueName": "CreateAsyncByInput",
+              "name": "CreateAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/quiz",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Quizzes.CreateQuizDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Quizzes.CreateQuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.CreateQuizDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Quizzes.CreateQuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.CreateQuizDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "UpdateAsyncByIdAndInput": {
+              "uniqueName": "UpdateAsyncByIdAndInput",
+              "name": "UpdateAsync",
+              "httpMethod": "PUT",
+              "url": "api/assessment/quiz/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null },
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" },
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.UpdateQuizDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "PublishAsyncById": {
+              "uniqueName": "PublishAsyncById",
+              "name": "PublishAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/quiz/{id}/publish",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": null, "typeSimple": null },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "CloseAsyncById": {
+              "uniqueName": "CloseAsyncById",
+              "name": "CloseAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/quiz/{id}/close",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": null, "typeSimple": null },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetAsyncById": {
+              "uniqueName": "GetAsyncById",
+              "name": "GetAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetStudentAsyncById": {
+              "uniqueName": "GetStudentAsyncById",
+              "name": "GetStudentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/{id}/student",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetListByCourseAsyncByCourseId": {
+              "uniqueName": "GetListByCourseAsyncByCourseId",
+              "name": "GetListByCourseAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/by-course/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "courseId", "name": "courseId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetListByLessonAsyncByLessonId": {
+              "uniqueName": "GetListByLessonAsyncByLessonId",
+              "name": "GetListByLessonAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/by-lesson/{lessonId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "lessonId", "name": "lessonId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetListByCourseStudentAsyncByLessonId": {
+              "uniqueName": "GetListByCourseStudentAsyncByLessonId",
+              "name": "GetListByCourseStudentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/by-course/{lessonId}/student",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "lessonId", "name": "lessonId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetListByLessonStudentAsyncByLessonId": {
+              "uniqueName": "GetListByLessonStudentAsyncByLessonId",
+              "name": "GetListByLessonStudentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/by-lesson/{lessonId}/student",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "lessonId", "name": "lessonId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Quizzes.QuizListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Quizzes.QuizListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            },
+            "GetFormSchemaAsyncByQuizId": {
+              "uniqueName": "GetFormSchemaAsyncByQuizId",
+              "name": "GetFormSchemaAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz/{quizId}/form-schema",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "quizId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "quizId", "name": "quizId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Quizzes.QuizFormSchemaDto", "typeSimple": "saasLMS.AssessmentService.Quizzes.QuizFormSchemaDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Quizzes.IQuizAppService"
+            }
+          }
         }
       }
     }

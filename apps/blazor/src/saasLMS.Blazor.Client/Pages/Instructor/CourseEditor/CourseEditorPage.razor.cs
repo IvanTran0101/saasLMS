@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using saasLMS.Blazor.Client.Authorization;
 using Microsoft.Extensions.Logging;
 using saasLMS.AssessmentService.Assignments;
+using saasLMS.AssessmentService.Quizzes;
 using saasLMS.Blazor.Client.Components.Shared;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Inputs;
 using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs;
@@ -37,6 +39,9 @@ public partial class CourseEditorPage : AbpComponentBase
     private IAssignmentAppService AssignmentAppService { get; set; } = default!;
 
     [Inject]
+    private IQuizAppService QuizAppService { get; set; } = default!;
+
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
     // ── Child Component References ────────────────────────────────────────────────
@@ -59,6 +64,9 @@ public partial class CourseEditorPage : AbpComponentBase
 
     /// <summary>Key = LessonId, Value = assignments thuộc lesson đó (từ AssessmentService).</summary>
     private Dictionary<Guid, List<AssignmentListItemDto>> _assignmentsByLesson = new();
+
+    /// <summary>Key = LessonId, Value = quizzes thuộc lesson đó (từ AssessmentService).</summary>
+    private Dictionary<Guid, List<QuizListItemDto>> _quizzesByLesson = new();
 
     // ── Inline Edit: Course Info ──────────────────────────────────────────────────
 
@@ -86,6 +94,7 @@ public partial class CourseEditorPage : AbpComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+
         await LoadCourseAsync();
     }
 
@@ -101,7 +110,7 @@ public partial class CourseEditorPage : AbpComponentBase
             _editTitle       = _course.Title;
             _editDescription = _course.Description ?? string.Empty;
 
-            // Assignment thuộc AssessmentService riêng — gọi độc lập, lỗi server-side
+            // Assignment và Quiz thuộc AssessmentService riêng — gọi độc lập, lỗi server-side
             // route thì chỉ silent empty, không ảnh hưởng việc load course.
             try
             {
@@ -110,9 +119,21 @@ public partial class CourseEditorPage : AbpComponentBase
                     .GroupBy(a => a.LessonId)
                     .ToDictionary(g => g.Key, g => g.ToList());
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _assignmentsByLesson = new Dictionary<Guid, List<AssignmentListItemDto>>();
+            }
+
+            try
+            {
+                var quizzes = await QuizAppService.GetListByCourseAsync(CourseId);
+                _quizzesByLesson = quizzes
+                    .GroupBy(q => q.LessonId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+            catch (Exception)
+            {
+                _quizzesByLesson = new Dictionary<Guid, List<QuizListItemDto>>();
             }
         }
         catch (Exception ex)
@@ -463,6 +484,31 @@ public partial class CourseEditorPage : AbpComponentBase
         return Task.CompletedTask;
     }
 
+    private Task OnQuizAddedAsync(QuizDto quiz)
+    {
+        var item = new QuizListItemDto
+        {
+            Id               = quiz.Id,
+            CourseId         = quiz.CourseId,
+            LessonId         = quiz.LessonId,
+            Title            = quiz.Title,
+            TimeLimitMinutes = quiz.TimeLimitMinutes,
+            MaxScore         = quiz.MaxScore,
+            AttemptPolicy    = quiz.AttemptPolicy,
+            Status           = quiz.Status
+        };
+
+        if (!_quizzesByLesson.TryGetValue(item.LessonId, out var list))
+        {
+            list = new List<QuizListItemDto>();
+            _quizzesByLesson[item.LessonId] = list;
+        }
+
+        list.Add(item);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
     private Task OnAssignmentUpdatedAsync(AssignmentDto assignment)
     {
         if (_assignmentsByLesson.TryGetValue(assignment.LessonId, out var list))
@@ -517,6 +563,36 @@ public partial class CourseEditorPage : AbpComponentBase
         finally
         {
             _processingAssignmentId = null;
+        }
+    }
+
+    private async Task PublishQuizAsync(QuizListItemDto quiz)
+    {
+        try
+        {
+            await QuizAppService.PublishAsync(quiz.Id);
+            quiz.Status      = QuizStatus.Published;
+            quiz.PublishedAt = DateTime.Now;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task CloseQuizAsync(QuizListItemDto quiz)
+    {
+        try
+        {
+            await QuizAppService.CloseAsync(quiz.Id);
+            quiz.Status   = QuizStatus.Closed;
+            quiz.ClosedAt = DateTime.Now;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
         }
     }
 
@@ -580,6 +656,25 @@ public partial class CourseEditorPage : AbpComponentBase
         AssignmentStatus.Published => "cep-asgn-badge cep-asgn-badge--published",
         AssignmentStatus.Closed    => "cep-asgn-badge cep-asgn-badge--closed",
         _                          => "cep-asgn-badge cep-asgn-badge--draft"
+    };
+
+    // ── Quiz Helpers ──────────────────────────────────────────────────────────
+
+    private IReadOnlyList<QuizListItemDto> GetLessonQuizzes(Guid lessonId) =>
+        _quizzesByLesson.TryGetValue(lessonId, out var list) ? list : Array.Empty<QuizListItemDto>();
+
+    private static string GetQuizStatusLabel(QuizStatus status) => status switch
+    {
+        QuizStatus.Published => "Published",
+        QuizStatus.Closed    => "Closed",
+        _                    => "Draft"
+    };
+
+    private static string GetQuizBadgeCss(QuizStatus status) => status switch
+    {
+        QuizStatus.Published => "cep-asgn-badge cep-asgn-badge--published",
+        QuizStatus.Closed    => "cep-asgn-badge cep-asgn-badge--closed",
+        _                    => "cep-asgn-badge cep-asgn-badge--draft"
     };
 
     // ── Helpers ───────────────────────────────────────────────────────────────────

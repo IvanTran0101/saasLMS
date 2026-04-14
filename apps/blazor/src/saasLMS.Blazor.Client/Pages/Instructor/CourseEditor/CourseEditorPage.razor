@@ -6,6 +6,7 @@
 @using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs
 @using saasLMS.CourseCatalogService.Materials.Dtos.Outputs
 @using saasLMS.AssessmentService.Assignments
+@using saasLMS.AssessmentService.Quizzes
 
 <PageTitle>Course Editor</PageTitle>
 
@@ -13,7 +14,8 @@
                            OnMaterialAdded="OnMaterialAddedAsync"
                            OnMaterialUpdated="OnMaterialUpdatedAsync"
                            OnAssignmentAdded="OnAssignmentAddedAsync"
-                           OnAssignmentUpdated="OnAssignmentUpdatedAsync" />
+                           OnAssignmentUpdated="OnAssignmentUpdatedAsync"
+                           OnQuizAdded="OnQuizAddedAsync" />
 
 @if (_isLoading)
 {
@@ -279,9 +281,10 @@ else
 
                                 @{
                                     var lessonAssignments = GetLessonAssignments(lesson.Id);
+                                    var lessonQuizzes     = GetLessonQuizzes(lesson.Id);
                                 }
 
-                                @if (lesson.Materials.Count > 0 || lessonAssignments.Count > 0)
+                                @if (lesson.Materials.Count > 0 || lessonAssignments.Count > 0 || lessonQuizzes.Count > 0)
                                 {
                                     <div class="cep-materials">
                                         @foreach (var material in lesson.Materials.OrderBy(m => m.SortOrder))
@@ -372,6 +375,42 @@ else
                                                         {
                                                             <i class="fa fa-pencil-alt"></i>
                                                         }
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @foreach (var quiz in lessonQuizzes)
+                                        {
+                                            <div class="cep-material">
+                                                <i class="fa fa-question-circle cep-material__icon cep-material__icon--quiz"></i>
+                                                <div class="cep-material__info">
+                                                    <span class="cep-material__title">@quiz.Title</span>
+                                                    <span class="cep-material__meta">
+                                                        <span class="cep-asgn-badge @GetQuizBadgeCss(quiz.Status)">
+                                                            @GetQuizStatusLabel(quiz.Status)
+                                                        </span>
+                                                        @if (quiz.TimeLimitMinutes.HasValue)
+                                                        {
+                                                            <span class="ms-1">&bull; @quiz.TimeLimitMinutes min</span>
+                                                        }
+                                                        <span class="ms-1">&bull; @quiz.MaxScore pts</span>
+                                                    </span>
+                                                </div>
+                                                <div class="ms-auto d-flex align-items-center gap-1">
+                                                    @* Publish *@
+                                                    <button class="cep-asgn-action-btn cep-asgn-action-btn--publish"
+                                                            title="Publish"
+                                                            disabled="@(quiz.Status != QuizStatus.Draft)"
+                                                            @onclick="() => PublishQuizAsync(quiz)">
+                                                        <i class="fa fa-rocket"></i>
+                                                    </button>
+                                                    @* Close *@
+                                                    <button class="cep-asgn-action-btn cep-asgn-action-btn--close"
+                                                            title="Close"
+                                                            disabled="@(quiz.Status != QuizStatus.Published)"
+                                                            @onclick="() => CloseQuizAsync(quiz)">
+                                                        <i class="fa fa-lock"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -578,6 +617,7 @@ else
     .cep-material:hover { background: #f8fafc; }
     .cep-material__icon { color: #8494a9; font-size: 0.88rem; flex-shrink: 0; }
     .cep-material__icon--assignment { color: #6b46c1; }
+    .cep-material__icon--quiz { color: #2b6cb0; }
     .cep-material__info { display: flex; flex-direction: column; min-width: 0; }
     .cep-material__title { font-size: 0.85rem; font-weight: 500; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cep-material__meta { font-size: 0.75rem; color: #a0aec0; }

@@ -1,6 +1,13 @@
-﻿@page "/StudentDashboardPage"
-<h3>StudentDashboardPage</h3>
+@page "/student/dashboard"
+@inherits AbpComponentBase
 
-@code {
-    
-}
+<PageTitle>My Learning</PageTitle>
+
+<div class="sdp-header">
+    <h1 class="sdp-header__title">
+        <i class="fa fa-graduation-cap me-2"></i>My Learning
+    </h1>
+    <p class="sdp-header__sub">Welcome back, @CurrentUser.Name!</p>
+</div>
+
+<p class="text-muted">Student dashboard is coming soon.</p>

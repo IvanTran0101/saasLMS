@@ -3,6 +3,9 @@
   "texts": {
     "AppName": "saasLMS",
     "Menu:Home": "Home",
+    "Menu:InstructorDashboard": "My Courses",
+    "Menu:StudentDashboard": "My Learning",
+    "Menu:Logout": "Log Out",
     "Login": "Login",
     "Menu:Dashboard": "Dashboard",
     "Welcome": "Welcome to saasLMS!",

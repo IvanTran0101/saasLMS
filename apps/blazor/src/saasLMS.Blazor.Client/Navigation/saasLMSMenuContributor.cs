@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using saasLMS.Blazor.Client.Authorization;
 using saasLMS.Localization;
 using saasLMS.ProductService.Blazor.Menus;
 using Volo.Abp.Account.Localization;
@@ -12,6 +14,7 @@ using Volo.Abp.TextTemplateManagement.Blazor.Menus;
 using Volo.Abp.UI.Navigation;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.OpenIddict.Pro.Blazor.Menus;
+using Volo.Abp.Users;
 using Volo.Saas.Host.Blazor.Navigation;
 
 namespace saasLMS.Blazor.Client.Navigation;
@@ -41,6 +44,7 @@ public class saasLMSMenuContributor : IMenuContributor
     private static async Task ConfigureMainMenuAsync(MenuConfigurationContext context)
     {
         var l = context.GetLocalizer<saasLMSResource>();
+        var currentUser = context.ServiceProvider.GetRequiredService<ICurrentUser>();
 
         context.Menu.AddItem(new ApplicationMenuItem(
             saasLMSMenus.Home,
@@ -49,6 +53,40 @@ public class saasLMSMenuContributor : IMenuContributor
             icon: "fas fa-home",
             order: 0
         ));
+
+        // ── Role-based LMS Navigation ──────────────────────────────────────────
+        if (currentUser.IsAuthenticated)
+        {
+            if (currentUser.IsInRole(LmsRoles.Instructor))
+            {
+                context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.InstructorDashboard,
+                    l["Menu:InstructorDashboard"],
+                    "/instructor/dashboard",
+                    icon: "fa fa-chalkboard-teacher",
+                    order: 1
+                ));
+            }
+
+            if (currentUser.IsInRole(LmsRoles.Student))
+            {
+                context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.StudentDashboard,
+                    l["Menu:StudentDashboard"],
+                    "/student/dashboard",
+                    icon: "fa fa-graduation-cap",
+                    order: 1
+                ));
+            }
+
+            context.Menu.AddItem(new ApplicationMenuItem(
+                saasLMSMenus.Logout,
+                l["Menu:Logout"],
+                "/logout",
+                icon: "fa fa-sign-out-alt",
+                order: 999
+            ));
+        }
 
         /* Example nested menu definition:
 

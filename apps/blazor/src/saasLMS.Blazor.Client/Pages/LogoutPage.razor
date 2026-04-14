@@ -1,0 +1,20 @@
+@page "/logout"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject SignOutSessionStateManager SignOutManager
+@inject NavigationManager NavigationManager
+
+<div style="display:flex;justify-content:center;align-items:center;height:60vh;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Logging out...</span>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;   
+        
+        await SignOutManager.SetSignOutState();
+        NavigationManager.NavigateTo("authentication/logout", true);
+    }
+}

@@ -1,5 +1,8 @@
 ﻿@page "/"
 @inherits saasLMSComponentBase
+@using saasLMS.Blazor.Client.Authorization
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 <div class="row mb-3">
     <div class="col-xl-6 col-12 d-flex">
@@ -286,3 +289,35 @@
         </div>
     </div>
 </div>
+
+@code {
+    private bool _redirected = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _redirected) return;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true) return;
+
+        if (!user.Claims.Any(c => c.Type.Contains("role")))
+        {
+            return; // chưa sẵn sàng → đợi render tiếp theo
+        }
+
+        _redirected = true;
+
+        if (user.IsInRole(LmsRoles.Instructor))
+        {
+            NavigationManager.NavigateTo("/instructor/dashboard", true);
+            return;
+        }
+
+        if (user.IsInRole(LmsRoles.Student))
+        {
+            NavigationManager.NavigateTo("/student/dashboard", true);
+        }
+    }
+}
