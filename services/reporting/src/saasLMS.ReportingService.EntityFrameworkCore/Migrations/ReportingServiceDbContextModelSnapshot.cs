@@ -272,9 +272,6 @@ namespace saasLMS.ReportingService.Migrations
                     b.Property<int>("TotalCourses")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalInstructors")
-                        .HasColumnType("int");
-
                     b.Property<int>("TotalStudents")
                         .HasColumnType("int");
 
