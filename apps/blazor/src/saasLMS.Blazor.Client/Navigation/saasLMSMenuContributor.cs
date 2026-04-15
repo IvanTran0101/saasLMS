@@ -66,6 +66,14 @@ public class saasLMSMenuContributor : IMenuContributor
                     icon: "fa fa-chalkboard-teacher",
                     order: 1
                 ));
+
+                context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.InstructorReport,
+                    l["Menu:InstructorReport"],
+                    "/instructor/report",
+                    icon: "fa fa-chart-bar",
+                    order: 2
+                ));
             }
 
             if (currentUser.IsInRole(LmsRoles.Student))

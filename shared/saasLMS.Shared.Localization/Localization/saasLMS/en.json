@@ -4,6 +4,7 @@
     "AppName": "saasLMS",
     "Menu:Home": "Home",
     "Menu:InstructorDashboard": "My Courses",
+    "Menu:InstructorReport": "Report",
     "Menu:StudentDashboard": "My Learning",
     "Menu:Logout": "Log Out",
     "Login": "Login",
