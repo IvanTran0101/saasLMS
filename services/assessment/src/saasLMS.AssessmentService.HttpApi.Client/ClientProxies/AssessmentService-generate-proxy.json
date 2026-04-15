@@ -620,6 +620,116 @@
             }
           }
         },
+        "saasLMS.AssessmentService.SubmissionAppService": {
+          "controllerName": "Submission",
+          "controllerGroupName": "Submission",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.AssessmentService.SubmissionAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.AssessmentService.Submissions.ISubmissionAppService",
+              "name": "ISubmissionAppService",
+              "methods": [
+                { "name": "SubmitAsync", "parametersOnMethod": [{ "name": "input", "typeAsString": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" } },
+                { "name": "GradeAsync", "parametersOnMethod": [{ "name": "submissionId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }, { "name": "input", "typeAsString": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" } },
+                { "name": "GetAsync", "parametersOnMethod": [{ "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" } },
+                { "name": "GetListByAssignmentAsync", "parametersOnMethod": [{ "name": "assignmentId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Submissions.SubmissionListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Submissions.SubmissionListItemDto]" } },
+                { "name": "GetMySubmissionByAssignmentAsync", "parametersOnMethod": [{ "name": "assignmentId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" } }
+              ]
+            }
+          ],
+          "actions": {
+            "SubmitAsyncByInput": {
+              "uniqueName": "SubmitAsyncByInput",
+              "name": "SubmitAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/submission/submit",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmitSubmissionDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
+            },
+            "GradeAsyncBySubmissionIdAndInput": {
+              "uniqueName": "GradeAsyncBySubmissionIdAndInput",
+              "name": "GradeAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/submission/{submissionId}/grade",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "submissionId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null },
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "submissionId", "name": "submissionId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" },
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.GradeSubmissionDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
+            },
+            "GetAsyncById": {
+              "uniqueName": "GetAsyncById",
+              "name": "GetAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/submission/{id}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "id", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "id", "name": "id", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
+            },
+            "GetListByAssignmentAsyncByAssignmentId": {
+              "uniqueName": "GetListByAssignmentAsyncByAssignmentId",
+              "name": "GetListByAssignmentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/submission/by-assignment/{assignmentId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "assignmentId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "assignmentId", "name": "assignmentId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "System.Collections.Generic.List<saasLMS.AssessmentService.Submissions.SubmissionListItemDto>", "typeSimple": "[saasLMS.AssessmentService.Submissions.SubmissionListItemDto]" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
+            },
+            "GetMySubmissionByAssignmentAsyncByAssignmentId": {
+              "uniqueName": "GetMySubmissionByAssignmentAsyncByAssignmentId",
+              "name": "GetMySubmissionByAssignmentAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/submission/my-by-assignment/{assignmentId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "assignmentId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "assignmentId", "name": "assignmentId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.Submissions.SubmissionDto", "typeSimple": "saasLMS.AssessmentService.Submissions.SubmissionDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
+            }
+          }
+        },
         "saasLMS.AssessmentService.QuizAppService": {
           "controllerName": "Quiz",
           "controllerGroupName": "Quiz",

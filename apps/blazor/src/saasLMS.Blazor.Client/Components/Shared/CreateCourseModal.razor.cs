@@ -89,8 +89,7 @@ public partial class CreateCourseModal : AbpComponentBase
             var input = new CreateCourseInput
             {
                 Title        = _title.Trim(),
-                Description  = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim(),
-                InstructorId = CurrentUser.Id!.Value
+                Description  = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim()
             };
 
             var course = await CourseCatalogAppService.CreateCourseAsync(input);

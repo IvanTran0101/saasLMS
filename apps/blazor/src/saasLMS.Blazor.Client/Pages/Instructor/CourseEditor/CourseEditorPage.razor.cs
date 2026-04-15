@@ -47,6 +47,7 @@ public partial class CourseEditorPage : AbpComponentBase
     // ── Child Component References ────────────────────────────────────────────────
 
     private AddResourcesToLessonModal _addResourceModal = default!;
+    private GradingModal              _gradingModal     = default!;
 
     // ── Page State ────────────────────────────────────────────────────────────────
 
@@ -613,6 +614,11 @@ public partial class CourseEditorPage : AbpComponentBase
         {
             _loadingEditAssignmentId = null;
         }
+    }
+
+    private void OpenGradingModal(AssignmentListItemDto asgn)
+    {
+        _gradingModal.Show(asgn.Id, asgn.Title, asgn.MaxScore);
     }
 
     private async Task RemoveMaterialAsync(

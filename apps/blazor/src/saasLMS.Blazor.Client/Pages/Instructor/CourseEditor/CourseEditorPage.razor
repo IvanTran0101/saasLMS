@@ -17,6 +17,8 @@
                            OnAssignmentUpdated="OnAssignmentUpdatedAsync"
                            OnQuizAdded="OnQuizAddedAsync" />
 
+<GradingModal @ref="_gradingModal" />
+
 @if (_isLoading)
 {
     <div class="cep-loading">
@@ -375,6 +377,13 @@ else
                                                         {
                                                             <i class="fa fa-pencil-alt"></i>
                                                         }
+                                                    </button>
+                                                    @* Grading *@
+                                                    <button class="cep-asgn-action-btn cep-asgn-action-btn--grading"
+                                                            title="Grade submissions"
+                                                            disabled="@(asgn.Status == AssignmentStatus.Draft || isAnyBusy)"
+                                                            @onclick="() => OpenGradingModal(asgn)">
+                                                        <i class="fa fa-graduation-cap"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -762,6 +771,8 @@ else
     .cep-asgn-action-btn--publish:hover:not(:disabled) { background: #edf4fd; border-color: #1a6db5; }
     .cep-asgn-action-btn--close { color: #c05621; border-color: #fbd38d; }
     .cep-asgn-action-btn--close:hover:not(:disabled) { background: #fffaf0; border-color: #c05621; }
+    .cep-asgn-action-btn--grading { color: #6b46c1; border-color: #d6bcfa; }
+    .cep-asgn-action-btn--grading:hover:not(:disabled) { background: #faf5ff; border-color: #6b46c1; }
 
     .cep-btn-sm {
         display: inline-flex;

@@ -1,0 +1,362 @@
+@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+@using saasLMS.AssessmentService.Submissions
+
+@if (_isVisible)
+{
+    <div class="gm-backdrop" @onclick="Close"></div>
+
+    <div class="gm-modal" role="dialog" aria-modal="true" aria-labelledby="gm-title">
+
+        @* ── Header ── *@
+        <div class="gm-modal__header">
+            <div>
+                <h5 class="gm-modal__title" id="gm-title">
+                    <i class="fa fa-graduation-cap me-2"></i>Grading
+                </h5>
+                <p class="gm-modal__subtitle">@_assignmentTitle &bull; Max score: @_maxScore</p>
+            </div>
+            <button class="gm-modal__close" @onclick="Close" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        @* ── Body ── *@
+        <div class="gm-modal__body">
+            @if (_isLoading)
+            {
+                <div class="gm-loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="gm-loading__text">Loading submissions...</span>
+                </div>
+            }
+            else if (_submissions.Count == 0)
+            {
+                <div class="gm-empty">
+                    <i class="fa fa-inbox gm-empty__icon"></i>
+                    <p class="gm-empty__text">No submissions yet for this assignment.</p>
+                </div>
+            }
+            else
+            {
+                <div class="gm-list">
+                    @foreach (var sub in _submissions)
+                    {
+                        var isGraded  = sub.Status == SubmissionStatus.Graded;
+                        var isGrading = _gradingSubmissionId == sub.Id;
+                        var inputVal  = _scoreInputs.TryGetValue(sub.Id, out var v) ? v : string.Empty;
+
+                        <div class="gm-row @(isGraded ? "gm-row--graded" : "")">
+                            @* Left – student info *@
+                            <div class="gm-row__left">
+                                <div class="gm-avatar">
+                                    <i class="fa fa-user-circle"></i>
+                                </div>
+                                <div class="gm-student-info">
+                                    <span class="gm-student-info__name">
+                                        Student <span class="gm-student-info__id">@sub.StudentId.ToString()[..8]…</span>
+                                    </span>
+                                    <span class="gm-student-info__file">
+                                        @if (!string.IsNullOrEmpty(sub.FileName))
+                                        {
+                                            <i class="fa fa-paperclip me-1"></i>@sub.FileName
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">(no file)</span>
+                                        }
+                                    </span>
+                                    <span class="gm-student-info__date">
+                                        Submitted @sub.SubmittedAt.ToString("MMM dd, yyyy HH:mm")
+                                    </span>
+                                </div>
+                            </div>
+
+                            @* Right – score input + grade button *@
+                            <div class="gm-row__right">
+                                @if (isGraded)
+                                {
+                                    <span class="gm-graded-badge">
+                                        <i class="fa fa-check me-1"></i>@sub.Score / @_maxScore pts
+                                    </span>
+                                }
+                                else
+                                {
+                                    <div class="gm-score-field">
+                                        <input type="number"
+                                               class="gm-score-input"
+                                               placeholder="Score"
+                                               min="0"
+                                               max="@_maxScore"
+                                               step="0.5"
+                                               value="@inputVal"
+                                               @oninput="e => OnScoreInput(sub.Id, e.Value?.ToString())"
+                                               disabled="@isGrading" />
+                                        <span class="gm-score-max">/ @_maxScore</span>
+                                    </div>
+                                    <button class="gm-grade-btn"
+                                            disabled="@(isGrading || string.IsNullOrWhiteSpace(inputVal))"
+                                            @onclick="() => GradeSubmissionAsync(sub.Id)">
+                                        @if (isGrading)
+                                        {
+                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa fa-check me-1"></i>
+                                        }
+                                        Grade
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @* ── Footer ── *@
+        <div class="gm-modal__footer">
+            <span class="gm-summary">
+                @_submissions.Count(s => s.Status == SubmissionStatus.Graded) of @_submissions.Count graded
+            </span>
+            <button class="gm-close-btn" @onclick="Close">Close</button>
+        </div>
+
+    </div>
+}
+
+<style>
+    .gm-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 39, 68, 0.45);
+        z-index: 1040;
+        animation: gm-fade-in 0.15s ease;
+    }
+
+    .gm-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(15,39,68,0.22);
+        width: 760px;
+        max-width: 96vw;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        animation: gm-slide-up 0.18s ease;
+    }
+
+    @@keyframes gm-fade-in  { from { opacity: 0 } to { opacity: 1 } }
+    @@keyframes gm-slide-up { from { transform: translate(-50%, -46%); opacity: 0 } to { transform: translate(-50%, -50%); opacity: 1 } }
+
+    .gm-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.25rem 1.5rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        flex-shrink: 0;
+    }
+    .gm-modal__title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f2744;
+        margin: 0 0 0.2rem;
+    }
+    .gm-modal__subtitle {
+        font-size: 0.82rem;
+        color: #8494a9;
+        margin: 0;
+    }
+    .gm-modal__close {
+        background: none;
+        border: none;
+        color: #a0aec0;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 6px;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-left: 1rem;
+        transition: color 0.15s;
+    }
+    .gm-modal__close:hover { color: #0f2744; }
+
+    .gm-modal__body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1.5rem;
+    }
+
+    .gm-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 3rem 0;
+    }
+    .gm-loading__text { color: #8494a9; font-size: 0.9rem; }
+
+    .gm-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #a0aec0;
+    }
+    .gm-empty__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+    .gm-empty__text { font-size: 0.9rem; }
+
+    .gm-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .gm-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .gm-row--graded {
+        border-color: #9ae6b4;
+        background: #f0fff4;
+    }
+
+    .gm-row__left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .gm-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .gm-student-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .gm-student-info__name {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    .gm-student-info__id {
+        font-family: monospace;
+        font-size: 0.78rem;
+        color: #8494a9;
+    }
+    .gm-student-info__file {
+        font-size: 0.78rem;
+        color: #4a5568;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
+    }
+    .gm-student-info__date {
+        font-size: 0.74rem;
+        color: #a0aec0;
+    }
+
+    .gm-row__right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-shrink: 0;
+    }
+
+    .gm-score-field {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .gm-score-input {
+        width: 80px;
+        border: 1.5px solid #d1d9e0;
+        border-radius: 7px;
+        padding: 0.35rem 0.5rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #0f2744;
+        text-align: center;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .gm-score-input:focus { border-color: #1a6db5; }
+    .gm-score-input:disabled { background: #f8fafc; color: #a0aec0; cursor: not-allowed; }
+    .gm-score-max { font-size: 0.8rem; color: #8494a9; white-space: nowrap; }
+
+    .gm-grade-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.38rem 0.85rem;
+        border-radius: 7px;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        white-space: nowrap;
+    }
+    .gm-grade-btn:hover:not(:disabled) { background: #155a96; }
+    .gm-grade-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .gm-graded-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.3rem 0.85rem;
+        border-radius: 20px;
+        background: #e6fffa;
+        color: #276749;
+        border: 1px solid #9ae6b4;
+        font-size: 0.82rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .gm-modal__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        flex-shrink: 0;
+    }
+    .gm-summary { font-size: 0.82rem; color: #8494a9; }
+    .gm-close-btn {
+        padding: 0.4rem 1.1rem;
+        border-radius: 7px;
+        border: 1.5px solid #d1d9e0;
+        background: transparent;
+        color: #4a5568;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .gm-close-btn:hover { background: #f1f5f9; }
+</style>
