@@ -29,7 +29,6 @@ namespace saasLMS.AssessmentService;
     typeof(saasLMSSharedHostingMicroservicesModule),
     typeof(AbpHttpClientIdentityModelWebModule),
     typeof(AssessmentServiceApplicationModule),
-    typeof(AssessmentServiceHttpApiClientModule),
     typeof(AssessmentServiceHttpApiModule),
     typeof(AssessmentServiceEntityFrameworkCoreModule),
     typeof(AbpBlobStoringAwsModule)

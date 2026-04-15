@@ -26,6 +26,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\..\services\courseCatalog\src\saasLMS.CourseCatalogService.Blazor\saasLMS.CourseCatalogService.Blazor.csproj" />
+        
     </ItemGroup>
 
 </Project>
