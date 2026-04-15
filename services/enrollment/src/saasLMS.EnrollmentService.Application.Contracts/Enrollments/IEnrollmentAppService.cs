@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs;
 using saasLMS.EnrollmentService.Enrollments.Dtos.Outputs;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 
 namespace saasLMS.EnrollmentService.Enrollments;
 
+[RemoteService(Name = EnrollmentServiceRemoteServiceConsts.RemoteServiceName)]
 public interface IEnrollmentAppService : IApplicationService
 {
     Task<EnrollmentDto> EnrollAsync(EnrollCourseInput input);

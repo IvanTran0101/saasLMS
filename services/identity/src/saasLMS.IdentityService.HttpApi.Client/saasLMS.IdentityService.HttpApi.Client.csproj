@@ -13,9 +13,11 @@
         <PackageReference Include="Volo.Abp.OpenIddict.Pro.HttpApi.Client" Version="10.1.1" />
         <PackageReference Include="Volo.Abp.Account.Pro.Admin.HttpApi.Client" Version="10.1.1" />
     </ItemGroup>
-
     <ItemGroup>
-        <ProjectReference Include="..\saasLMS.IdentityService.Application.Contracts\saasLMS.IdentityService.Application.Contracts.csproj" />
+        <ProjectReference Include="..\\saasLMS.IdentityService.Application.Contracts\\saasLMS.IdentityService.Application.Contracts.csproj" />
     </ItemGroup>
-
+    <ItemGroup>
+        <Compile Remove="ClientProxies\**\*.cs" />
+        <Compile Include="ClientProxies\**\*ClientProxy*.cs" />
+    </ItemGroup>
 </Project>

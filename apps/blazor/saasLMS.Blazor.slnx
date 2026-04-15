@@ -4,4 +4,22 @@
     <Project Path="src/saasLMS.Blazor/saasLMS.Blazor.csproj" />
   </Folder>
   <Folder Name="/test/" />
+  <Project Path="../../services/assessment/src/saasLMS.AssessmentService.Application.Contracts/saasLMS.AssessmentService.Application.Contracts.csproj" />
+  <Project Path="../../services/assessment/src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.csproj" />
+  <Project Path="../../services/assessment/src/saasLMS.AssessmentService.HttpApi.Client/saasLMS.AssessmentService.HttpApi.Client.csproj" />
+  <Project Path="../../services/courseCatalog/src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.csproj" />
+  <Project Path="../../services/courseCatalog/src/saasLMS.CourseCatalogService.Domain.Shared/saasLMS.CourseCatalogService.Domain.Shared.csproj" />
+  <Project Path="../../services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Client/saasLMS.CourseCatalogService.HttpApi.Client.csproj" />
+  <Project Path="../../services/enrollment/src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.csproj" />
+  <Project Path="../../services/enrollment/src/saasLMS.EnrollmentService.Domain.Shared/saasLMS.EnrollmentService.Domain.Shared.csproj" />
+  <Project Path="../../services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Client/saasLMS.EnrollmentService.HttpApi.Client.csproj" />
+  <Project Path="../../services/learningProgress/src/saasLMS.LearningProgressService.Application.Contracts/saasLMS.LearningProgressService.Application.Contracts.csproj" />
+  <Project Path="../../services/learningProgress/src/saasLMS.LearningProgressService.Domain.Shared/saasLMS.LearningProgressService.Domain.Shared.csproj" />
+  <Project Path="../../services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Client/saasLMS.LearningProgressService.HttpApi.Client.csproj" />
+  <Project Path="../../services/notification/src/saasLMS.NotificationService.Application.Contracts/saasLMS.NotificationService.Application.Contracts.csproj" />
+  <Project Path="../../services/notification/src/saasLMS.NotificationService.Domain.Shared/saasLMS.NotificationService.Domain.Shared.csproj" />
+  <Project Path="../../services/notification/src/saasLMS.NotificationService.HttpApi.Client/saasLMS.NotificationService.HttpApi.Client.csproj" />
+  <Project Path="../../services/reporting/src/saasLMS.ReportingService.Application.Contracts/saasLMS.ReportingService.Application.Contracts.csproj" />
+  <Project Path="../../services/reporting/src/saasLMS.ReportingService.Domain.Shared/saasLMS.ReportingService.Domain.Shared.csproj" />
+  <Project Path="../../services/reporting/src/saasLMS.ReportingService.HttpApi.Client/saasLMS.ReportingService.HttpApi.Client.csproj" />
 </Solution>

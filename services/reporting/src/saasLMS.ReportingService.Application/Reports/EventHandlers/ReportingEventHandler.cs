@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.EntityFrameworkCore;
 using saasLMS.AssessmentService.Assignments.Etos;
 using saasLMS.AssessmentService.QuizAttempts.Etos;
 using saasLMS.AssessmentService.Quizzes.Etos;
@@ -70,6 +71,24 @@ public class ReportingEventHandler :
     {
         await ExecuteInUowAsync(async () =>
         {
+            var tenantId = eventData.TenantId;
+            var studentId = eventData.StudentId;
+            var courseId = eventData.CourseId;
+
+            var studentQuery = await _studentCourseRepo.GetQueryableAsync();
+            var classQuery = await _classProgressRepo.GetQueryableAsync();
+
+            var hadStudentCourse = await studentQuery
+                .AnyAsync(x => x.TenantId == tenantId && x.CourseId == courseId && x.StudentId == studentId);
+            var hadAnyEnrollment = await studentQuery
+                .AnyAsync(x => x.TenantId == tenantId && x.StudentId == studentId);
+            var hadAnyActive = await studentQuery
+                .AnyAsync(x => x.TenantId == tenantId && x.StudentId == studentId && x.IsActiveEnrollment);
+            var hadCourse = await classQuery
+                .AnyAsync(x => x.TenantId == tenantId && x.CourseId == courseId);
+            var hadActiveCourse = await classQuery
+                .AnyAsync(x => x.TenantId == tenantId && x.CourseId == courseId && x.ActiveEnrollmentCount > 0);
+
             var studentView = await GetOrCreateStudentViewAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             if (!studentView.IsActiveEnrollment)
             {
@@ -80,7 +99,7 @@ public class ReportingEventHandler :
 
             var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
             classView.ActiveEnrollmentCount += 1;
-            if (studentView.CompletedLessonsCount == 0 && studentView.TotalLessonsCount == 0)
+            if (!hadStudentCourse)
             {
                 classView.TotalStudents += 1;
             }
@@ -91,8 +110,31 @@ public class ReportingEventHandler :
 
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
-            await InvalidateTenantCacheAsync(eventData.TenantId);
             await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
+
+            var summary = await GetOrCreateTenantSummaryAsync(tenantId);
+            if (!hadCourse)
+            {
+                summary.TotalCourses += 1;
+            }
+            if (!hadActiveCourse)
+            {
+                summary.ActiveCourses += 1;
+            }
+
+            summary.TotalStudents = await studentQuery
+                .Where(x => x.TenantId == tenantId)
+                .Select(x => x.StudentId)
+                .Distinct()
+                .CountAsync();
+            summary.ActiveStudents = await studentQuery
+                .Where(x => x.TenantId == tenantId && x.IsActiveEnrollment)
+                .Select(x => x.StudentId)
+                .Distinct()
+                .CountAsync();
+            summary.LastUpdatedAt = DateTime.UtcNow;
+            await _tenantSummaryRepo.UpdateAsync(summary, autoSave: true);
+            await InvalidateTenantCacheAsync(tenantId);
         });
     }
 
@@ -100,6 +142,10 @@ public class ReportingEventHandler :
     {
         await ExecuteInUowAsync(async () =>
         {
+            var tenantId = eventData.TenantId;
+            var studentId = eventData.StudentId;
+            var courseId = eventData.CourseId;
+
             var studentView = await _studentCourseRepo.FirstOrDefaultAsync(
                 x => x.TenantId == eventData.TenantId
                   && x.CourseId == eventData.CourseId
@@ -109,7 +155,8 @@ public class ReportingEventHandler :
                 return;
             }
 
-            if (studentView.IsActiveEnrollment)
+            var wasActiveEnrollment = studentView.IsActiveEnrollment;
+            if (wasActiveEnrollment)
             {
                 studentView.IsActiveEnrollment = false;
                 studentView.LastUpdatedAt = DateTime.UtcNow;
@@ -117,6 +164,7 @@ public class ReportingEventHandler :
             }
 
             var classView = await GetOrCreateClassViewAsync(eventData.TenantId, eventData.CourseId);
+            var wasActiveCourse = classView.ActiveEnrollmentCount > 0;
             classView.ActiveEnrollmentCount = Math.Max(0, classView.ActiveEnrollmentCount - 1);
             classView.LastUpdatedAt = DateTime.UtcNow;
             await _classProgressRepo.UpdateAsync(classView, autoSave: true);
@@ -125,8 +173,28 @@ public class ReportingEventHandler :
 
             await InvalidateStudentCacheAsync(eventData.TenantId, eventData.CourseId, eventData.StudentId);
             await InvalidateClassCacheAsync(eventData.TenantId, eventData.CourseId);
-            await InvalidateTenantCacheAsync(eventData.TenantId);
             await InvalidateCourseOutcomeCacheAsync(eventData.TenantId, eventData.CourseId);
+
+            var summary = await GetOrCreateTenantSummaryAsync(tenantId);
+            if (wasActiveCourse && classView.ActiveEnrollmentCount == 0)
+            {
+                summary.ActiveCourses = Math.Max(0, summary.ActiveCourses - 1);
+            }
+
+            var studentQuery = await _studentCourseRepo.GetQueryableAsync();
+            summary.TotalStudents = await studentQuery
+                .Where(x => x.TenantId == tenantId)
+                .Select(x => x.StudentId)
+                .Distinct()
+                .CountAsync();
+            summary.ActiveStudents = await studentQuery
+                .Where(x => x.TenantId == tenantId && x.IsActiveEnrollment)
+                .Select(x => x.StudentId)
+                .Distinct()
+                .CountAsync();
+            summary.LastUpdatedAt = DateTime.UtcNow;
+            await _tenantSummaryRepo.UpdateAsync(summary, autoSave: true);
+            await InvalidateTenantCacheAsync(tenantId);
         });
     }
 
@@ -531,4 +599,17 @@ public class ReportingEventHandler :
 
     private Task InvalidateTenantCacheAsync(Guid tenantId)
         => _tenantSummaryCache.RemoveAsync(ReportingCacheKeys.Tenant(tenantId));
+
+    private async Task<TenantSummaryReportView> GetOrCreateTenantSummaryAsync(Guid tenantId)
+    {
+        var summary = await _tenantSummaryRepo.FirstOrDefaultAsync(x => x.TenantId == tenantId);
+        if (summary != null)
+        {
+            return summary;
+        }
+
+        summary = new TenantSummaryReportView(Guid.NewGuid(), tenantId);
+        await _tenantSummaryRepo.InsertAsync(summary, autoSave: true);
+        return summary;
+    }
 }

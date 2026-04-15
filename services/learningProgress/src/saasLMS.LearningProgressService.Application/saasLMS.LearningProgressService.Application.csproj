@@ -10,11 +10,16 @@
 
   <ItemGroup>
     <PackageReference Include="Volo.Abp.Ddd.Application" Version="10.1.1" />
+    <PackageReference Include="Volo.Abp.Http.Client" Version="10.1.1" />
     <PackageReference Include="Volo.Abp.Mapperly" Version="10.1.1" />
     <ProjectReference Include="..\saasLMS.LearningProgressService.Application.Contracts\saasLMS.LearningProgressService.Application.Contracts.csproj" />
     <ProjectReference Include="..\saasLMS.LearningProgressService.Domain\saasLMS.LearningProgressService.Domain.csproj" />
     <ProjectReference Include="..\..\..\enrollment\src\saasLMS.EnrollmentService.Domain.Shared\saasLMS.EnrollmentService.Domain.Shared.csproj" />
     <ProjectReference Include="..\..\..\courseCatalog\src\saasLMS.CourseCatalogService.Domain.Shared\saasLMS.CourseCatalogService.Domain.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\enrollment\src\saasLMS.EnrollmentService.Application.Contracts\saasLMS.EnrollmentService.Application.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

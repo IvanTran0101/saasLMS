@@ -10,13 +10,18 @@
 
   <ItemGroup>
     <PackageReference Include="Volo.Abp.Http.Client" Version="10.1.1" />
-    <ProjectReference Include="..\saasLMS.EnrollmentService.Application.Contracts\saasLMS.EnrollmentService.Application.Contracts.csproj" />
-    <ProjectReference Include="..\..\..\courseCatalog\src\saasLMS.CourseCatalogService.Application.Contracts\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\\saasLMS.EnrollmentService.Application.Contracts\\saasLMS.EnrollmentService.Application.Contracts.csproj" />
+    <ProjectReference Include="..\\..\\..\\courseCatalog\\src\\saasLMS.CourseCatalogService.Application.Contracts\\saasLMS.CourseCatalogService.Application.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="**\*generate-proxy.json" />
     <Content Remove="**\*generate-proxy.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ClientProxies\**\*.cs" />
+    <Compile Include="ClientProxies\**\*ClientProxy*.cs" />
   </ItemGroup>
 
 </Project>

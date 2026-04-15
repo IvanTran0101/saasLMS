@@ -8,11 +8,17 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using saasLMS.AdministrationService;
+using saasLMS.AssessmentService;
 using saasLMS.Blazor.Client.Components.Layout;
 using saasLMS.Blazor.Client.Navigation;
+using saasLMS.CourseCatalogService;
+using saasLMS.EnrollmentService;
 using saasLMS.IdentityService;
+using saasLMS.LearningProgressService;
+using saasLMS.NotificationService;
 using saasLMS.ProductService;
 using saasLMS.ProductService.Blazor;
+using saasLMS.ReportingService;
 using saasLMS.SaasService;
 using Volo.Abp.Account.Pro.Admin.Blazor.WebAssembly;
 using Volo.Abp.Account.Pro.Public.Blazor.WebAssembly;
@@ -57,7 +63,13 @@ namespace saasLMS.Blazor.Client;
     typeof(ProductServiceHttpApiClientModule),
     typeof(AdministrationServiceHttpApiClientModule),
     typeof(SaasServiceHttpApiClientModule),
-    typeof(IdentityServiceHttpApiClientModule)
+    typeof(IdentityServiceHttpApiClientModule),
+    typeof(CourseCatalogServiceHttpApiClientModule),
+    typeof(AssessmentServiceHttpApiClientModule),
+    typeof(EnrollmentServiceHttpApiClientModule),
+    typeof(LearningProgressServiceHttpApiClientModule),
+    typeof(NotificationServiceHttpApiClientModule),
+    typeof(ReportingServiceHttpApiClientModule)
 )]
 public class saasLMSBlazorClientModule : AbpModule
 {
@@ -122,6 +134,12 @@ public class saasLMSBlazorClientModule : AbpModule
             options.ProviderOptions.DefaultScopes.Add("AdministrationService");
             options.ProviderOptions.DefaultScopes.Add("SaasService");
             options.ProviderOptions.DefaultScopes.Add("ProductService");
+            options.ProviderOptions.DefaultScopes.Add("AssessmentService");
+            options.ProviderOptions.DefaultScopes.Add("CourseCatalogService");
+            options.ProviderOptions.DefaultScopes.Add("EnrollmentService");
+            options.ProviderOptions.DefaultScopes.Add("LearningProgressService");
+            options.ProviderOptions.DefaultScopes.Add("NotificationService");
+            options.ProviderOptions.DefaultScopes.Add("ReportingService");
         });
     }
 

@@ -24,4 +24,8 @@
       <ProjectReference Include="..\saasLMS.Blazor.Client\saasLMS.Blazor.Client.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\services\courseCatalog\src\saasLMS.CourseCatalogService.Blazor\saasLMS.CourseCatalogService.Blazor.csproj" />
+    </ItemGroup>
+
 </Project>

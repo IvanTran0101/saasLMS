@@ -1,0 +1,28 @@
+﻿{
+  "selectedKubernetesProfile": null,
+  "solutionRunner": {
+    "selectedProfile": "Default",
+    "targetFrameworks": [],
+    "applicationsStartingWithoutBuild": [],
+    "applicationsWithoutAutoRefreshBrowserOnRestart": [],
+    "applicationBatchStartStates": [
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.Blazor",
+        "value": 0
+      }
+    ],
+    "folderBatchStartStates": [
+      {
+        "profile": "Default",
+        "applicationOrFolder": "saasLMS.Blazor",
+        "value": 0
+      },
+      {
+        "profile": "Default",
+        "applicationOrFolder": "src",
+        "value": 0
+      }
+    ]
+  }
+}

@@ -9,7 +9,7 @@ public class NotificationServicePermissions
     public static class Notifications
     {
         public const string Default = GroupName + ".Notifications";
-        public const string ViewOwn = Default + ".ViewOwn"; // Xem thông báo của mình
+        public const string ViewMy = Default + ".ViewOwn"; // Xem thông báo của mình
         public const string Manage  = Default + ".Manage";  // Đánh dấu đã đọc
     }
 

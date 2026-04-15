@@ -1,0 +1,17 @@
+{
+  "folders": {
+    "items": {
+      "saasLMS.Blazor": {},
+      "src": {}
+    }
+  },
+  "applications": {
+    "saasLMS.Blazor": {
+      "type": "dotnet-project",
+      "path": "../../../src/saasLMS.Blazor/saasLMS.Blazor.csproj",
+      "launchUrl": "https://localhost:44307",
+      "folder": "saasLMS.Blazor",
+      "runnable": true
+    }
+  }
+}

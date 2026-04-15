@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using saasLMS.ReportingService.BackgroundWorkers;
 using saasLMS.ReportingService.DbMigrations;
 using saasLMS.ReportingService.EntityFrameworkCore;
 using saasLMS.Shared.Hosting.Microservices;
@@ -68,6 +69,7 @@ public class ReportingServiceHttpApiHostModule : AbpModule
         });
 
         context.Services.TransformAbpClaims();
+        context.Services.AddHostedService<TenantSummaryReconcileHostedService>();
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

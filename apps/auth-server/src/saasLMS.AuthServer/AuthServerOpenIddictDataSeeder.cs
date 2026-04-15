@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using OpenIddict.Abstractions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
@@ -29,6 +30,16 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
         "ReportingService"
     ];
 
+    private static readonly string[] CommonScopes =
+    [
+        OpenIddictConstants.Permissions.Scopes.Address,
+        OpenIddictConstants.Permissions.Scopes.Email,
+        OpenIddictConstants.Permissions.Scopes.Phone,
+        OpenIddictConstants.Permissions.Scopes.Profile,
+        OpenIddictConstants.Permissions.Scopes.Roles
+    ];
+
+    private readonly IConfiguration _configuration;
     private readonly ICurrentTenant _currentTenant;
     private readonly IOpenIddictApplicationRepository _applicationRepository;
     private readonly IAbpApplicationManager _applicationManager;
@@ -36,12 +47,14 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
     private readonly IOpenIddictScopeManager _scopeManager;
 
     public AuthServerOpenIddictDataSeeder(
+        IConfiguration configuration,
         ICurrentTenant currentTenant,
         IOpenIddictApplicationRepository applicationRepository,
         IAbpApplicationManager applicationManager,
         IOpenIddictScopeRepository scopeRepository,
         IOpenIddictScopeManager scopeManager)
     {
+        _configuration = configuration;
         _currentTenant = currentTenant;
         _applicationRepository = applicationRepository;
         _applicationManager = applicationManager;
@@ -62,6 +75,7 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
             await CreateApiScopesAsync();
             await CreateServiceClientsAsync();
             await CreateSwaggerUiClientAsync();
+            await CreateBlazorClientAsync();
         }
     }
 
@@ -136,6 +150,7 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
 
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
         descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
 
@@ -165,6 +180,53 @@ public class AuthServerOpenIddictDataSeeder : IDataSeedContributor, ITransientDe
             descriptor.RedirectUris.Add(new Uri($"{baseUrl}/swagger/oauth2-redirect.html"));
             descriptor.RedirectUris.Add(new Uri($"{baseUrl}/swagger/ui/oauth2-redirect.html"));
         }
+
+        if (client == null)
+        {
+            await _applicationManager.CreateAsync(descriptor);
+        }
+        else
+        {
+            await _applicationManager.UpdateAsync(client.ToModel(), descriptor);
+        }
+    }
+
+    private async Task CreateBlazorClientAsync()
+    {
+        const string clientId = "Blazor";
+        var rootUrl = _configuration["OpenIddict:Applications:Blazor:RootUrl"] ?? "https://localhost:44307/";
+        if (!rootUrl.EndsWith("/", StringComparison.Ordinal))
+        {
+            rootUrl += "/";
+        }
+
+        var client = await _applicationRepository.FindByClientIdAsync(clientId);
+        var descriptor = new AbpApplicationDescriptor
+        {
+            ClientId = clientId,
+            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ConsentType = OpenIddictConstants.ConsentTypes.Implicit,
+            DisplayName = "Blazor Client"
+        };
+
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Authorization);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
+        descriptor.Permissions.Add(OpenIddictConstants.Permissions.ResponseTypes.Code);
+
+        foreach (var scope in CommonScopes)
+        {
+            descriptor.Permissions.Add(scope);
+        }
+
+        foreach (var scope in ServiceScopes)
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + scope);
+        }
+
+        descriptor.RedirectUris.Add(new Uri($"{rootUrl}authentication/login-callback"));
+        descriptor.PostLogoutRedirectUris.Add(new Uri($"{rootUrl}authentication/logout-callback"));
 
         if (client == null)
         {

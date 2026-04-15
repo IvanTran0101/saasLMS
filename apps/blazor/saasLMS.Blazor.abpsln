@@ -1,0 +1,17 @@
+{
+  "id": "b65cdf2e-c6a0-49fb-a95e-d02e400c0eda",
+  "template": "empty",
+  "modules": {
+    "saasLMS.Blazor": {
+      "path": "saasLMS.Blazor.abpmdl"
+    },
+    "src": {
+      "path": "src/src.abpmdl"
+    }
+  },
+  "runProfiles": {
+    "Default": {
+      "path": "etc/abp-studio/run-profiles/Default.abprun.json"
+    }
+  }
+}
