@@ -654,6 +654,8 @@
         else
         {
             @* ── Course Outcome Tab ──────────────────────────────────────────── *@
+
+            @* ── Row 1: Score averages + Pass Rate ───────────────────────────── *@
             <div class="row g-3">
 
                 <div class="col-6 col-md-3">
@@ -698,10 +700,11 @@
 
             </div>
 
-            <div class="row g-3 mt-0">
+            @* ── Row 2: Counts + Completion Rate ─────────────────────────────── *@
+            <div class="row g-3 mt-1">
 
-                <div class="col-12 col-md-6">
-                    <div class="irp-stat" style="margin-top: 1rem;">
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
                         <div class="irp-stat__icon irp-stat__icon--blue">
                             <i class="fa fa-clipboard-check"></i>
                         </div>
@@ -711,7 +714,7 @@
                 </div>
 
                 <div class="col-6 col-md-3">
-                    <div class="irp-stat" style="margin-top: 1rem;">
+                    <div class="irp-stat">
                         <div class="irp-stat__icon irp-stat__icon--orange">
                             <i class="fa fa-file-alt"></i>
                         </div>
@@ -721,16 +724,87 @@
                 </div>
 
                 <div class="col-6 col-md-3">
-                    <div class="irp-stat" style="margin-top: 1rem;">
+                    <div class="irp-stat">
                         <div class="irp-stat__icon irp-stat__icon--purple">
-                            <i class="fa fa-check"></i>
+                            <i class="fa fa-list-alt"></i>
                         </div>
                         <div class="irp-stat__label">Quizzes Completed</div>
                         <div class="irp-stat__value">@(_courseOutcome?.QuizCompletedCount ?? 0)</div>
                     </div>
                 </div>
 
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--green">
+                            <i class="fa fa-user-graduate"></i>
+                        </div>
+                        <div class="irp-stat__label">Students with Final Score</div>
+                        <div class="irp-stat__value">@(_courseOutcome?.FinalScoreCount ?? 0)</div>
+                    </div>
+                </div>
+
             </div>
+
+            @* ── Row 3: Score distribution bar chart ─────────────────────────── *@
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <div class="irp-chart-card">
+                        <div class="irp-chart-card__title">Final Score Distribution</div>
+
+                        <div class="irp-vchart__body">
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB0</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB0))px; background:#e8704a;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB26</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB26))px; background:#f29900;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB51</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB51))px; background:#1a73e8;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB76</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB76))px; background:#0d9488;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB100</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB100))px; background:#1e8e3e;"></div>
+                            </div>
+                        </div>
+
+                        <div class="irp-vchart__xlabels">
+                            <span class="irp-vchart__xlabel">0–25</span>
+                            <span class="irp-vchart__xlabel">26–50</span>
+                            <span class="irp-vchart__xlabel">51–75</span>
+                            <span class="irp-vchart__xlabel">76–99</span>
+                            <span class="irp-vchart__xlabel">100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ── Row 4: Last updated ──────────────────────────────────────────── *@
+            @if (_courseOutcome != null)
+            {
+                <div class="row g-3 mt-1">
+                    <div class="col-12">
+                        <div class="irp-insight">
+                            <div class="irp-insight__header">
+                                <div class="irp-insight__icon" style="background:#e8f0fe; color:#1a73e8;">
+                                    <i class="fa fa-clock"></i>
+                                </div>
+                                <span class="irp-insight__label">Last Updated</span>
+                            </div>
+                            <div class="irp-insight__value" style="font-size:1.1rem;">
+                                @_courseOutcome.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                            </div>
+                            <div class="irp-insight__formula">Time of the most recent report recalculation</div>
+                        </div>
+                    </div>
+                </div>
+            }
         }
     }
 
