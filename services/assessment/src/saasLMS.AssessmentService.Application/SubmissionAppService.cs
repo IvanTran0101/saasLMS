@@ -225,7 +225,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
         return ObjectMapper.Map<Submission, SubmissionDto>(submission);
     }
 
-    [HttpPost("{submissionId}/grade")]
+    [RemoteService(false)]
     [Authorize(AssessmentServicePermissions.Submissions.Grade)]
     public async Task<SubmissionDto> GradeAsync(Guid submissionId, GradeSubmissionDto input)
     {
