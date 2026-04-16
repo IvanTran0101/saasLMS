@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Microsoft.Extensions.Configuration;
+using Microsoft.JSInterop;
 using saasLMS.AssessmentService.Submissions;
 using Volo.Abp.AspNetCore.Components;
 
@@ -14,6 +19,18 @@ public partial class GradingModal : AbpComponentBase
 
     [Inject]
     private ISubmissionAppService SubmissionAppService { get; set; } = default!;
+
+    [Inject]
+    private IHttpClientFactory HttpClientFactory { get; set; } = default!;
+
+    [Inject]
+    private IAccessTokenProvider AccessTokenProvider { get; set; } = default!;
+
+    [Inject]
+    private IConfiguration Configuration { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
 
     // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -87,6 +104,41 @@ public partial class GradingModal : AbpComponentBase
     private void OnScoreInput(Guid submissionId, string? value)
     {
         _scoreInputs[submissionId] = value ?? string.Empty;
+    }
+
+    private async Task DownloadSubmissionFileAsync(Guid submissionId, string fileName)
+    {
+        try
+        {
+            var tokenResult = await AccessTokenProvider.RequestAccessToken();
+            if (!tokenResult.TryGetToken(out var token))
+            {
+                await HandleErrorAsync(new Exception("Could not obtain access token for download."));
+                return;
+            }
+
+            var baseUrl = (Configuration["RemoteServices:AssessmentService:BaseUrl"]
+                           ?? Configuration["RemoteServices:Default:BaseUrl"]!)
+                          .TrimEnd('/');
+
+            var httpClient = HttpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token.Value);
+
+            var response = await httpClient.GetAsync(
+                $"{baseUrl}/api/assessment/submission/{submissionId}/download-file");
+            response.EnsureSuccessStatusCode();
+
+            var bytes    = await response.Content.ReadAsByteArrayAsync();
+            var base64   = Convert.ToBase64String(bytes);
+            var mimeType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+
+            await JS.InvokeVoidAsync("downloadFileFromBytes", fileName, base64, mimeType);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
     }
 
     private async Task GradeSubmissionAsync(Guid submissionId)

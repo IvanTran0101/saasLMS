@@ -60,7 +60,13 @@
                                     <span class="gm-student-info__file">
                                         @if (!string.IsNullOrEmpty(sub.FileName))
                                         {
-                                            <i class="fa fa-paperclip me-1"></i>@sub.FileName
+                                            <a href="javascript:void(0)"
+                                               class="gm-file-link"
+                                               title="Download @sub.FileName"
+                                               @onclick="() => DownloadSubmissionFileAsync(sub.Id, sub.FileName)"
+                                               @onclick:preventDefault="true">
+                                                <i class="fa fa-paperclip me-1"></i>@sub.FileName
+                                            </a>
                                         }
                                         else
                                         {
@@ -278,6 +284,19 @@
         font-size: 0.74rem;
         color: #a0aec0;
     }
+    .gm-file-link {
+        color: #1a6db5;
+        text-decoration: none;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
+        display: inline-block;
+        vertical-align: bottom;
+        cursor: pointer;
+    }
+    .gm-file-link:hover { text-decoration: underline; }
 
     .gm-row__right {
         display: flex;

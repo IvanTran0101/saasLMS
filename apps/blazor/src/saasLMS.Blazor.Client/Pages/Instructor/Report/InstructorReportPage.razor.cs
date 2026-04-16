@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -36,6 +37,7 @@ public partial class InstructorReportPage : AbpComponentBase
     // ── Report data ──────────────────────────────────────────────────────────
     private ClassProgressViewDto? _classProgress;
     private CourseOutcomeReportViewDto? _courseOutcome;
+    private ScoreDistributionData? _scoreDist;
 
     // ── ClassProgress: bucket shorthand ──────────────────────────────────────
     private int CpB0   => _classProgress?.Bucket_0_25  ?? 0;
@@ -77,6 +79,18 @@ public partial class InstructorReportPage : AbpComponentBase
 
     private string CpCenterPct => CpCompletionRate.ToString("F0") + "%";
 
+    // ── CourseOutcome: score distribution bucket shorthand ───────────────────
+    private int SdB0   => _scoreDist?.Bucket_0_25  ?? 0;
+    private int SdB26  => _scoreDist?.Bucket_26_50 ?? 0;
+    private int SdB51  => _scoreDist?.Bucket_51_75 ?? 0;
+    private int SdB76  => _scoreDist?.Bucket_76_99 ?? 0;
+    private int SdB100 => _scoreDist?.Bucket_100   ?? 0;
+
+    private int SdBMax => Math.Max(1, Math.Max(SdB0, Math.Max(SdB26, Math.Max(SdB51, Math.Max(SdB76, SdB100)))));
+
+    // Returns pixel height (0–120) proportional to count vs max bucket
+    private int SdBarPx(int count) => count * 120 / SdBMax;
+
     // ────────────────────────────────────────────────────────────────────────
 
     protected override async Task OnInitializedAsync()
@@ -114,6 +128,7 @@ public partial class InstructorReportPage : AbpComponentBase
         _activeTab = ReportTab.ClassProgress;
         _classProgress = null;
         _courseOutcome = null;
+        _scoreDist = null;
 
         await LoadClassProgressAsync();
     }
@@ -123,6 +138,7 @@ public partial class InstructorReportPage : AbpComponentBase
         _selectedCourse = null;
         _classProgress = null;
         _courseOutcome = null;
+        _scoreDist = null;
     }
 
     private async Task SetTab(ReportTab tab)
@@ -165,9 +181,11 @@ public partial class InstructorReportPage : AbpComponentBase
             _isLoadingReport = true;
             StateHasChanged();
 
-            // TODO: Uncomment when ready to wire up to the real API
-            // _courseOutcome = await ReportingAppService.GetCourseOutcomeReportAsync(_selectedCourse.CourseId);
-            await Task.CompletedTask;
+            _courseOutcome = await ReportingAppService.GetCourseOutcomeReportAsync(_selectedCourse.CourseId);
+
+            _scoreDist = string.IsNullOrEmpty(_courseOutcome?.ScoreDistributionJson)
+                ? null
+                : JsonSerializer.Deserialize<ScoreDistributionData>(_courseOutcome.ScoreDistributionJson);
         }
         catch (Exception ex)
         {
@@ -177,6 +195,16 @@ public partial class InstructorReportPage : AbpComponentBase
         {
             _isLoadingReport = false;
         }
+    }
+
+    // ── ScoreDistributionJson shape (mirrors server-side ScoreDistribution) ──
+    private sealed class ScoreDistributionData
+    {
+        public int Bucket_0_25  { get; set; }
+        public int Bucket_26_50 { get; set; }
+        public int Bucket_51_75 { get; set; }
+        public int Bucket_76_99 { get; set; }
+        public int Bucket_100   { get; set; }
     }
 }
 
