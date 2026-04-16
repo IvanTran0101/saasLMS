@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using saasLMS.AssessmentService.QuizAttempts;
@@ -37,5 +38,11 @@ public class QuizAttemptSubmitController : AssessmentServiceController
     public Task<QuizAttemptDto> SubmitAsync(Guid quizId, [FromBody] SubmitQuizAttemptDto input)
     {
         return _quizAttemptAppService.SubmitAsync(quizId, input);
+    }
+
+    [HttpGet("{quizId}/results")]
+    public Task<List<QuizAttemptDto>> GetListByQuizAsync(Guid quizId)
+    {
+        return _quizAttemptAppService.GetListByQuizAsync(quizId);
     }
 }

@@ -11,7 +11,31 @@
           "isIntegrationService": false,
           "apiVersion": null,
           "type": "saasLMS.AssessmentService.QuizAttemptSubmitController",
-          "interfaces": [],
+          "interfaces": [
+            {
+              "type": "saasLMS.AssessmentService.QuizAttempts.IQuizAttemptAppService",
+              "name": "IQuizAttemptAppService",
+              "methods": [
+                {
+                  "name": "GetListByQuizAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "quizId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List`1[[saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto, saasLMS.AssessmentService.Application.Contracts]]",
+                    "typeSimple": "[saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto]"
+                  }
+                }
+              ]
+            }
+          ],
           "actions": {
             "SubmitAsyncByQuizIdAndInput": {
               "uniqueName": "SubmitAsyncByQuizIdAndInput",
@@ -70,6 +94,44 @@
               "allowAnonymous": null,
               "authorizeDatas": [],
               "implementFrom": "saasLMS.AssessmentService.QuizAttemptSubmitController"
+            },
+            "GetListByQuizAsyncByQuizId": {
+              "uniqueName": "GetListByQuizAsyncByQuizId",
+              "name": "GetListByQuizAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz-attempts/{quizId}/results",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "quizId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "quizId",
+                  "name": "quizId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "System.Collections.Generic.List`1[[saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto, saasLMS.AssessmentService.Application.Contracts]]",
+                "typeSimple": "[saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto]"
+              },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.QuizAttempts.IQuizAttemptAppService"
             }
           }
         },

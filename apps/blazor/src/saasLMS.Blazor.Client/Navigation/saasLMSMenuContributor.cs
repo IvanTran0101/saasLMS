@@ -57,6 +57,17 @@ public class saasLMSMenuContributor : IMenuContributor
         // ── Role-based LMS Navigation ──────────────────────────────────────────
         if (currentUser.IsAuthenticated)
         {
+            if (currentUser.IsInRole(LmsRoles.Admin))
+            {
+                context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.AdminDashboard,
+                    l["Menu:AdminDashboard"],
+                    "/admin/dashboard",
+                    icon: "fa fa-tachometer-alt",
+                    order: 1
+                ));
+            }
+
             if (currentUser.IsInRole(LmsRoles.Instructor))
             {
                 context.Menu.AddItem(new ApplicationMenuItem(

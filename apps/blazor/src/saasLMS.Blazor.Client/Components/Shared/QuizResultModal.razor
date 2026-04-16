@@ -1,0 +1,288 @@
+@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+
+@if (_isVisible)
+{
+    <div class="qrm-backdrop" @onclick="Close"></div>
+
+    <div class="qrm-modal" role="dialog" aria-modal="true" aria-labelledby="qrm-title">
+
+        @* ── Header ── *@
+        <div class="qrm-modal__header">
+            <div>
+                <h5 class="qrm-modal__title" id="qrm-title">
+                    <i class="fa fa-poll me-2"></i>Quiz Results
+                </h5>
+                <p class="qrm-modal__subtitle">@_quizTitle &bull; Max score: @_maxScore</p>
+            </div>
+            <button class="qrm-modal__close" @onclick="Close" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        @* ── Body ── *@
+        <div class="qrm-modal__body">
+            @if (_isLoading)
+            {
+                <div class="qrm-loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="qrm-loading__text">Loading results...</span>
+                </div>
+            }
+            else if (_attempts.Count == 0)
+            {
+                <div class="qrm-empty">
+                    <i class="fa fa-inbox qrm-empty__icon"></i>
+                    <p class="qrm-empty__text">No students have attempted this quiz yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="qrm-list">
+                    @foreach (var attempt in _attempts)
+                    {
+                        var isPassed = attempt.Score >= _maxScore * 0.5m;
+
+                        <div class="qrm-row @(isPassed ? "qrm-row--passed" : "")">
+                            @* Left – student info *@
+                            <div class="qrm-row__left">
+                                <div class="qrm-avatar">
+                                    <i class="fa fa-user-circle"></i>
+                                </div>
+                                <div class="qrm-student-info">
+                                    <span class="qrm-student-info__name">
+                                        Student <span class="qrm-student-info__id">@attempt.StudentId.ToString()[..8]…</span>
+                                    </span>
+                                    <span class="qrm-student-info__meta">
+                                        @if (attempt.CompletedAt.HasValue)
+                                        {
+                                            <span>Completed @attempt.CompletedAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="qrm-status--incomplete">In Progress</span>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+
+                            @* Right – score badge *@
+                            <div class="qrm-row__right">
+                                <span class="qrm-score-badge @(isPassed ? "qrm-score-badge--pass" : "qrm-score-badge--fail")">
+                                    <i class="fa @(isPassed ? "fa-check" : "fa-times") me-1"></i>@attempt.Score / @_maxScore pts
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @* ── Footer ── *@
+        <div class="qrm-modal__footer">
+            <span class="qrm-summary">
+                @_attempts.Count(a => a.CompletedAt.HasValue) of @_attempts.Count completed
+            </span>
+            <button class="qrm-close-btn" @onclick="Close">Close</button>
+        </div>
+
+    </div>
+}
+
+<style>
+    .qrm-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 39, 68, 0.45);
+        z-index: 1040;
+        animation: qrm-fade-in 0.15s ease;
+    }
+
+    .qrm-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(15,39,68,0.22);
+        width: 680px;
+        max-width: 96vw;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        animation: qrm-slide-up 0.18s ease;
+    }
+
+    @@keyframes qrm-fade-in  { from { opacity: 0 } to { opacity: 1 } }
+    @@keyframes qrm-slide-up { from { transform: translate(-50%, -46%); opacity: 0 } to { transform: translate(-50%, -50%); opacity: 1 } }
+
+    .qrm-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.25rem 1.5rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        flex-shrink: 0;
+    }
+    .qrm-modal__title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f2744;
+        margin: 0 0 0.2rem;
+    }
+    .qrm-modal__subtitle {
+        font-size: 0.82rem;
+        color: #8494a9;
+        margin: 0;
+    }
+    .qrm-modal__close {
+        background: none;
+        border: none;
+        color: #a0aec0;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 6px;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-left: 1rem;
+        transition: color 0.15s;
+    }
+    .qrm-modal__close:hover { color: #0f2744; }
+
+    .qrm-modal__body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1.5rem;
+    }
+
+    .qrm-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 3rem 0;
+    }
+    .qrm-loading__text { color: #8494a9; font-size: 0.9rem; }
+
+    .qrm-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #a0aec0;
+    }
+    .qrm-empty__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+    .qrm-empty__text { font-size: 0.9rem; }
+
+    .qrm-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .qrm-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+    }
+    .qrm-row--passed {
+        border-color: #9ae6b4;
+        background: #f0fff4;
+    }
+
+    .qrm-row__left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .qrm-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .qrm-student-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .qrm-student-info__name {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    .qrm-student-info__id {
+        font-family: monospace;
+        font-size: 0.78rem;
+        color: #8494a9;
+    }
+    .qrm-student-info__meta {
+        font-size: 0.74rem;
+        color: #a0aec0;
+        margin-top: 0.1rem;
+    }
+    .qrm-status--incomplete {
+        color: #d69e2e;
+        font-weight: 600;
+    }
+
+    .qrm-row__right {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .qrm-score-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.3rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .qrm-score-badge--pass {
+        background: #e6fffa;
+        color: #276749;
+        border: 1px solid #9ae6b4;
+    }
+    .qrm-score-badge--fail {
+        background: #fff5f5;
+        color: #c53030;
+        border: 1px solid #feb2b2;
+    }
+
+    .qrm-modal__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        flex-shrink: 0;
+    }
+    .qrm-summary { font-size: 0.82rem; color: #8494a9; }
+    .qrm-close-btn {
+        padding: 0.4rem 1.1rem;
+        border-radius: 7px;
+        border: 1.5px solid #d1d9e0;
+        background: transparent;
+        color: #4a5568;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .qrm-close-btn:hover { background: #f1f5f9; }
+</style>

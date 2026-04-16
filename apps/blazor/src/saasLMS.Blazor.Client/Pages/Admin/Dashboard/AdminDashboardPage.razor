@@ -1,0 +1,397 @@
+@page "/admin/dashboard"
+@inherits AbpComponentBase
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<style>
+    /* ── Shared skeleton / shimmer ──────────────────────────────────────────── */
+    .adp-skeleton {
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        min-height: 120px;
+    }
+
+    .adp-skeleton__line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: adp-shimmer 1.4s infinite;
+        margin-bottom: 0.5rem;
+    }
+
+    .adp-skeleton__line--short { width: 40%; }
+
+    @@keyframes adp-shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* ── Page header ────────────────────────────────────────────────────────── */
+    .adp-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .adp-header__title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.25rem;
+    }
+
+    .adp-header__sub {
+        font-size: 0.88rem;
+        color: #8a93a2;
+    }
+
+    /* ── Compact left-aligned tabs ──────────────────────────────────────────── */
+    .adp-tabs {
+        display: inline-flex;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1.5rem;
+        gap: 0;
+    }
+
+    .adp-tab-btn {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #8a93a2;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+        white-space: nowrap;
+    }
+
+    .adp-tab-btn:hover { color: #0d1117; }
+
+    .adp-tab-btn--active {
+        color: #1a73e8;
+        border-bottom-color: #1a73e8;
+    }
+
+    /* ── Report stat cards ──────────────────────────────────────────────────── */
+    .adp-stat {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .adp-stat__label {
+        font-size: 0.72rem;
+        color: #8a93a2;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.3rem;
+    }
+
+    .adp-stat__value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.1;
+    }
+
+    .adp-stat__icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .adp-stat__icon--blue   { background: #e8f0fe; color: #1a73e8; }
+    .adp-stat__icon--green  { background: #e6f4ea; color: #1e8e3e; }
+    .adp-stat__icon--teal   { background: #e0f5f5; color: #0d9488; }
+    .adp-stat__icon--purple { background: #f0ebff; color: #7c4dff; }
+
+    /* ── Chart card wrapper ─────────────────────────────────────────────────── */
+    .adp-chart-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .adp-chart-card__title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 1rem;
+    }
+
+    /* ── SVG donut chart ────────────────────────────────────────────────────── */
+    .adp-donut-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .adp-donut__svg {
+        width: 100%;
+        max-width: 180px;
+        display: block;
+        margin: 0 auto 0.75rem;
+    }
+
+    .adp-donut__legend {
+        display: flex;
+        gap: 1.25rem;
+        justify-content: center;
+        font-size: 0.78rem;
+        flex-wrap: wrap;
+    }
+
+    .adp-donut__legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .adp-donut__legend-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .adp-donut__legend-label { color: #5f6368; }
+    .adp-donut__legend-val   { font-weight: 700; color: #0d1117; }
+
+    /* ── Insight card ───────────────────────────────────────────────────────── */
+    .adp-insight {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.1rem 1.3rem;
+        height: 100%;
+    }
+
+    .adp-insight__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .adp-insight__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .adp-insight__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .adp-insight__value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+    }
+
+    .adp-insight__formula {
+        font-size: 0.72rem;
+        color: #8a93a2;
+    }
+
+    /* ── Loading overlay ────────────────────────────────────────────────────── */
+    .adp-loading-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        color: #8a93a2;
+        font-size: 0.9rem;
+        gap: 0.6rem;
+    }
+</style>
+
+<div>
+
+    <div class="adp-header">
+        <h4 class="adp-header__title">Admin Dashboard</h4>
+        <p class="adp-header__sub">Tenant-wide summary of students and courses.</p>
+    </div>
+
+    <div class="adp-tabs">
+        <button class="adp-tab-btn adp-tab-btn--active">
+            <i class="fa fa-chart-pie me-1"></i> Tenant Summary
+        </button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="adp-loading-overlay">
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            Loading report data...
+        </div>
+    }
+    else
+    {
+        @* ── Row 1: Key stats ──────────────────────────────────────────────────── *@
+        <div class="row g-3">
+
+            <div class="col-6 col-md-3">
+                <div class="adp-stat">
+                    <div class="adp-stat__icon adp-stat__icon--blue">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <div class="adp-stat__label">Total Students</div>
+                    <div class="adp-stat__value">@(_summary?.TotalStudents ?? 0)</div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="adp-stat">
+                    <div class="adp-stat__icon adp-stat__icon--green">
+                        <i class="fa fa-user-check"></i>
+                    </div>
+                    <div class="adp-stat__label">Active Students</div>
+                    <div class="adp-stat__value">@(_summary?.ActiveStudents ?? 0)</div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="adp-stat">
+                    <div class="adp-stat__icon adp-stat__icon--teal">
+                        <i class="fa fa-book"></i>
+                    </div>
+                    <div class="adp-stat__label">Total Courses</div>
+                    <div class="adp-stat__value">@(_summary?.TotalCourses ?? 0)</div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="adp-stat">
+                    <div class="adp-stat__icon adp-stat__icon--purple">
+                        <i class="fa fa-graduation-cap"></i>
+                    </div>
+                    <div class="adp-stat__label">Active Courses</div>
+                    <div class="adp-stat__value">@(_summary?.ActiveCourses ?? 0)</div>
+                </div>
+            </div>
+
+        </div>
+
+        @* ── Row 2: Two Pie Charts ─────────────────────────────────────────────── *@
+        <div class="row g-3 mt-1">
+
+            @* Students Donut ─────────────────────────────────────────────────── *@
+            <div class="col-12 col-md-6">
+                <div class="adp-chart-card adp-donut-wrap">
+                    <div class="adp-chart-card__title">Active Students / Total Students</div>
+
+                    <svg class="adp-donut__svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f2f5" stroke-width="18"/>
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#1a73e8" stroke-width="18"
+                                stroke-dasharray="@StDashActive" stroke-dashoffset="0"
+                                transform="rotate(-90 50 50)"/>
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#e8f0fe" stroke-width="18"
+                                stroke-dasharray="@StDashInactive" stroke-dashoffset="@StOffsetInactive"
+                                transform="rotate(-90 50 50)"/>
+                        <text x="50" y="47" text-anchor="middle"
+                              font-size="13" font-weight="700" fill="#0d1117">@StCenterPct</text>
+                        <text x="50" y="57" text-anchor="middle"
+                              font-size="6.5" fill="#8a93a2">Active</text>
+                    </svg>
+
+                    <div class="adp-donut__legend">
+                        <div class="adp-donut__legend-item">
+                            <div class="adp-donut__legend-dot" style="background:#1a73e8;"></div>
+                            <span class="adp-donut__legend-label">Active</span>
+                            <span class="adp-donut__legend-val">@(_summary?.ActiveStudents ?? 0)</span>
+                        </div>
+                        <div class="adp-donut__legend-item">
+                            <div class="adp-donut__legend-dot" style="background:#e8f0fe;"></div>
+                            <span class="adp-donut__legend-label">Inactive</span>
+                            <span class="adp-donut__legend-val">@((_summary?.TotalStudents ?? 0) - (_summary?.ActiveStudents ?? 0))</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Courses Donut ──────────────────────────────────────────────────── *@
+            <div class="col-12 col-md-6">
+                <div class="adp-chart-card adp-donut-wrap">
+                    <div class="adp-chart-card__title">Active Courses / Total Courses</div>
+
+                    <svg class="adp-donut__svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f2f5" stroke-width="18"/>
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#1e8e3e" stroke-width="18"
+                                stroke-dasharray="@CoDashActive" stroke-dashoffset="0"
+                                transform="rotate(-90 50 50)"/>
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#e6f4ea" stroke-width="18"
+                                stroke-dasharray="@CoDashInactive" stroke-dashoffset="@CoOffsetInactive"
+                                transform="rotate(-90 50 50)"/>
+                        <text x="50" y="47" text-anchor="middle"
+                              font-size="13" font-weight="700" fill="#0d1117">@CoCenterPct</text>
+                        <text x="50" y="57" text-anchor="middle"
+                              font-size="6.5" fill="#8a93a2">Active</text>
+                    </svg>
+
+                    <div class="adp-donut__legend">
+                        <div class="adp-donut__legend-item">
+                            <div class="adp-donut__legend-dot" style="background:#1e8e3e;"></div>
+                            <span class="adp-donut__legend-label">Active</span>
+                            <span class="adp-donut__legend-val">@(_summary?.ActiveCourses ?? 0)</span>
+                        </div>
+                        <div class="adp-donut__legend-item">
+                            <div class="adp-donut__legend-dot" style="background:#e6f4ea;"></div>
+                            <span class="adp-donut__legend-label">Inactive</span>
+                            <span class="adp-donut__legend-val">@((_summary?.TotalCourses ?? 0) - (_summary?.ActiveCourses ?? 0))</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @* ── Row 3: Last Updated ───────────────────────────────────────────────── *@
+        @if (_summary != null)
+        {
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <div class="adp-insight">
+                        <div class="adp-insight__header">
+                            <div class="adp-insight__icon" style="background:#e8f0fe; color:#1a73e8;">
+                                <i class="fa fa-clock"></i>
+                            </div>
+                            <span class="adp-insight__label">Last Updated</span>
+                        </div>
+                        <div class="adp-insight__value">
+                            @_summary.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                        </div>
+                        <div class="adp-insight__formula">Time of the most recent report recalculation</div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+</div>

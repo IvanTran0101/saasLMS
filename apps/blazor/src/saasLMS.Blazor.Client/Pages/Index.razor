@@ -309,6 +309,12 @@
 
         _redirected = true;
 
+        if (user.IsInRole(LmsRoles.Admin))
+        {
+            NavigationManager.NavigateTo("/admin/dashboard", true);
+            return;
+        }
+
         if (user.IsInRole(LmsRoles.Instructor))
         {
             NavigationManager.NavigateTo("/instructor/dashboard", true);

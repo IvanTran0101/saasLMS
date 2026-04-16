@@ -5,6 +5,7 @@ public class saasLMSMenus
     private const string Prefix = "saasLMS";
 
     public const string Home                = Prefix + ".Home";
+    public const string AdminDashboard      = Prefix + ".AdminDashboard";
     public const string InstructorDashboard = Prefix + ".InstructorDashboard";
     public const string InstructorReport    = Prefix + ".InstructorReport";
     public const string StudentDashboard    = Prefix + ".StudentDashboard";

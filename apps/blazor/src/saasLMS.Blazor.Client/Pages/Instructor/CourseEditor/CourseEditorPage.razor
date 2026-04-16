@@ -18,6 +18,7 @@
                            OnQuizAdded="OnQuizAddedAsync" />
 
 <GradingModal @ref="_gradingModal" />
+<QuizResultModal @ref="_quizResultModal" />
 
 @if (_isLoading)
 {
@@ -421,6 +422,13 @@ else
                                                             @onclick="() => CloseQuizAsync(quiz)">
                                                         <i class="fa fa-lock"></i>
                                                     </button>
+                                                    @* View Results *@
+                                                    <button class="cep-asgn-action-btn cep-asgn-action-btn--results"
+                                                            title="View Results"
+                                                            disabled="@(quiz.Status == QuizStatus.Draft)"
+                                                            @onclick="() => OpenQuizResultModal(quiz)">
+                                                        <i class="fa fa-poll"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         }
@@ -773,6 +781,8 @@ else
     .cep-asgn-action-btn--close:hover:not(:disabled) { background: #fffaf0; border-color: #c05621; }
     .cep-asgn-action-btn--grading { color: #6b46c1; border-color: #d6bcfa; }
     .cep-asgn-action-btn--grading:hover:not(:disabled) { background: #faf5ff; border-color: #6b46c1; }
+    .cep-asgn-action-btn--results { color: #0d9488; border-color: #99f6e4; }
+    .cep-asgn-action-btn--results:hover:not(:disabled) { background: #f0fdfa; border-color: #0d9488; }
 
     .cep-btn-sm {
         display: inline-flex;
