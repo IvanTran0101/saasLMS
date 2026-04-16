@@ -178,15 +178,34 @@
                                   disabled="@_isSaving"></textarea>
                     </div>
 
-                    <div class="arm-preview-placeholder mt-3">
-                        <div class="arm-preview-placeholder__icon">
-                            <i class="fa fa-image"></i>
+                    @{
+                        var embedUrl = _isEditMode && !string.IsNullOrWhiteSpace(_videoUrl)
+                            ? GetEmbedUrl(_videoUrl)
+                            : null;
+                    }
+                    @if (embedUrl != null)
+                    {
+                        <div class="arm-video-embed mt-3">
+                            <iframe src="@embedUrl"
+                                    width="100%"
+                                    height="220"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
                         </div>
-                        <div>
-                            <p class="arm-preview-placeholder__title">Preview not available</p>
-                            <p class="arm-preview-placeholder__sub">The video player will be embedded in the lesson</p>
+                    }
+                    else
+                    {
+                        <div class="arm-preview-placeholder mt-3">
+                            <div class="arm-preview-placeholder__icon">
+                                <i class="fa fa-image"></i>
+                            </div>
+                            <div>
+                                <p class="arm-preview-placeholder__title">Preview not available</p>
+                                <p class="arm-preview-placeholder__sub">The video player will be embedded in the lesson</p>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
             }
 
@@ -430,6 +449,72 @@
         _                          => "Resource title"
     };
 
+    /// <summary>
+    /// Converts a YouTube or Vimeo URL to its embeddable form.
+    /// Returns null if the URL is not recognised or cannot be parsed.
+    /// </summary>
+    private static string? GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri)) return null;
+
+        var host = uri.Host.ToLowerInvariant();
+        if (host.StartsWith("www.")) host = host[4..];
+        if (host.StartsWith("m."))   host = host[2..];
+
+        // ── YouTube ──────────────────────────────────────────────────────────────
+        if (host == "youtube.com" || host == "youtu.be")
+        {
+            string? videoId = null;
+
+            if (host == "youtu.be")
+            {
+                // https://youtu.be/VIDEO_ID
+                videoId = uri.AbsolutePath.TrimStart('/').Split('?')[0];
+            }
+            else
+            {
+                var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                if (segments.Length >= 2 && segments[0] == "embed")
+                {
+                    // Already an embed URL
+                    videoId = segments[1].Split('?')[0];
+                }
+                else
+                {
+                    // Parse ?v= from query string manually
+                    foreach (var part in uri.Query.TrimStart('?').Split('&'))
+                    {
+                        var kv = part.Split('=', 2);
+                        if (kv.Length == 2 && kv[0] == "v")
+                        {
+                            videoId = Uri.UnescapeDataString(kv[1]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(videoId))
+                return $"https://www.youtube.com/embed/{videoId}";
+        }
+
+        // ── Vimeo ─────────────────────────────────────────────────────────────────
+        if (host == "vimeo.com" || host == "player.vimeo.com")
+        {
+            var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            if (host == "player.vimeo.com" && segments.Length >= 2 && segments[0] == "video")
+                return url.Trim(); // already embed URL
+
+            if (segments.Length >= 1 && long.TryParse(segments[0], out _))
+                return $"https://player.vimeo.com/video/{segments[0]}";
+        }
+
+        return null;
+    }
+
     private static string FormatFileSize(long bytes)
     {
         if (bytes < 1024) return $"{bytes} B";
@@ -599,6 +684,12 @@
     .arm-format-badge--pptx { background: #fff4ec; color: #d35400; border: 1px solid #fad7be; }
     .arm-format-badge--docx { background: #edf4fd; color: #1a6db5; border: 1px solid #bdd6f0; }
     .arm-format-badge--zip  { background: #f5f0fd; color: #6b46c1; border: 1px solid #d6c8f7; }
+
+    .arm-video-embed iframe {
+        display: block;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
 
     .arm-preview-placeholder {
         display: flex;

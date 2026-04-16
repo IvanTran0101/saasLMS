@@ -58,4 +58,14 @@ public class SubmissionFileController : AssessmentServiceController
         var file = await _submissionAppService.DownloadSubmissionFileAsync(input);
         return File(file.GetStream(), file.ContentType ?? "application/octet-stream", file.FileName ?? "submission");
     }
+
+    /// <summary>
+    /// Grade a submission as Instructor.
+    /// Requires Submissions.Grade permission (checked inside GradeAsync).
+    /// </summary>
+    [HttpPost("{submissionId}/grade")]
+    public async Task<SubmissionDto> GradeAsync([FromRoute] Guid submissionId, [FromBody] GradeSubmissionDto input)
+    {
+        return await _submissionAppService.GradeAsync(submissionId, input);
+    }
 }
