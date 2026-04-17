@@ -1,13 +1,376 @@
 @page "/student/dashboard"
 @inherits AbpComponentBase
 
+@using saasLMS.Blazor.Client.Components.Shared
+@using saasLMS.CourseCatalogService.Courses
+
 <PageTitle>My Learning</PageTitle>
 
-<div class="sdp-header">
-    <h1 class="sdp-header__title">
-        <i class="fa fa-graduation-cap me-2"></i>My Learning
-    </h1>
-    <p class="sdp-header__sub">Welcome back, @CurrentUser.Name!</p>
-</div>
+<style>
+    .sdb-hero {
+        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 60%, #1e4976 100%);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
 
-<p class="text-muted">Student dashboard is coming soon.</p>
+    .sdb-hero__title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+
+    .sdb-hero__subtitle {
+        opacity: 0.72;
+        font-size: 0.95rem;
+    }
+
+    .sdb-hero__star {
+        position: absolute;
+        color: rgba(255,255,255,0.10);
+    }
+
+    .sdb-hero__star--lg { font-size: 7rem; right: 0;    top: -2rem; }
+    .sdb-hero__star--md { font-size: 4rem; right: 5rem; top: 1.5rem; }
+    .sdb-hero__star--sm { font-size: 2rem; right: 1rem; top: 4.5rem; }
+
+    .sdb-stat {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        height: 100%;
+    }
+
+    .sdb-stat__icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .sdb-stat__icon--enrolled  { background: #e8f0fe; color: #1a73e8; }
+    .sdb-stat__icon--completed { background: #e6f4ea; color: #1e8e3e; }
+
+    .sdb-stat__label {
+        font-size: 0.72rem;
+        color: #8a93a2;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.2rem;
+    }
+
+    .sdb-stat__value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1;
+    }
+
+    .sdb-stat__sub {
+        font-size: 0.78rem;
+        font-weight: 400;
+        color: #8a93a2;
+    }
+
+    .sdb-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .sdb-section-header__title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 0;
+        color: #0d1117;
+    }
+
+    .sdb-section-header__badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #e8f0fe;
+        color: #1a73e8;
+        padding: 2px 10px;
+        border-radius: 20px;
+    }
+
+    .sdb-skeleton {
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        min-height: 220px;
+    }
+
+    .sdb-skeleton__thumb {
+        height: 150px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: sdb-shimmer 1.4s infinite;
+    }
+
+    .sdb-skeleton__body { padding: 0.875rem 1rem; }
+
+    .sdb-skeleton__line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: sdb-shimmer 1.4s infinite;
+        margin-bottom: 0.5rem;
+    }
+
+    .sdb-skeleton__line--short { width: 40%; }
+
+    .sdb-empty {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: #8a93a2;
+        background: #fafbfc;
+        border-radius: 14px;
+        border: 1px dashed #ced4da;
+    }
+
+    .sdb-empty__icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+    }
+
+    .sdb-empty__text {
+        font-size: 0.88rem;
+    }
+
+    @@keyframes sdb-shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+
+<div>
+
+    @* ── Search Bar ── *@
+    <div class="input-group mb-3" style="max-width: 420px;">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="fa fa-search text-muted"></i>
+        </span>
+        <input type="text"
+               class="form-control border-start-0 ps-0"
+               placeholder="Search courses…"
+               @bind="SearchText"
+               @bind:event="oninput" />
+        @if (!string.IsNullOrEmpty(SearchText))
+        {
+            <button class="btn btn-outline-secondary border-start-0"
+                    type="button"
+                    @onclick="() => SearchText = string.Empty">
+                <i class="fa fa-times"></i>
+            </button>
+        }
+    </div>
+
+    @* ── Hero Banner ── *@
+    <div class="sdb-hero">
+        <h2 class="sdb-hero__title">Welcome back, @(CurrentUser.Name ?? CurrentUser.UserName ?? "Student").</h2>
+        <p class="sdb-hero__subtitle">Keep learning and track your progress.</p>
+        <i class="fa fa-graduation-cap sdb-hero__star sdb-hero__star--lg"></i>
+        <i class="fa fa-book       sdb-hero__star sdb-hero__star--md"></i>
+        <i class="fa fa-star       sdb-hero__star sdb-hero__star--sm"></i>
+    </div>
+
+    @* ── Stats ── *@
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="sdb-stat">
+                <div class="sdb-stat__icon sdb-stat__icon--enrolled">
+                    <i class="fa fa-book-open"></i>
+                </div>
+                <div>
+                    <div class="sdb-stat__label">Enrolled Courses</div>
+                    <div class="sdb-stat__value">
+                        @if (_isLoadingEnrollments)
+                        {
+                            <span class="placeholder col-4 rounded"></span>
+                        }
+                        else
+                        {
+                            @_totalEnrolled
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="sdb-stat">
+                <div class="sdb-stat__icon sdb-stat__icon--completed">
+                    <i class="fa fa-check-circle"></i>
+                </div>
+                <div>
+                    <div class="sdb-stat__label">Completed</div>
+                    <div class="sdb-stat__value">
+                        @if (_isLoadingProgress)
+                        {
+                            <span class="placeholder col-3 rounded"></span>
+                        }
+                        else
+                        {
+                            @_completedCount
+                            <span class="sdb-stat__sub ms-1">courses</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ── Recently Accessed ── *@
+    @if (!_isLoadingProgress && _recentlyAccessed.Count > 0 && string.IsNullOrEmpty(SearchText))
+    {
+        <div class="sdb-section-header mb-1">
+            <h5 class="sdb-section-header__title">
+                <i class="fa fa-clock-o me-2 text-muted"></i>Recently Accessed
+            </h5>
+            <span class="sdb-section-header__badge">@_recentlyAccessed.Count</span>
+        </div>
+        <div class="row g-3 mb-4">
+            @foreach (var course in _recentlyAccessed)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <StudentCourseCard Course="course"
+                                       IsEnrolled="true"
+                                       Progress="_progressMap.GetValueOrDefault(course.CourseId)"
+                                       ResumeLessonId="_resumeMap.GetValueOrDefault(course.CourseId)?.LessonId" />
+                </div>
+            }
+        </div>
+    }
+
+    @* ── My Learning ── *@
+    <div class="sdb-section-header">
+        <h5 class="sdb-section-header__title">
+            <i class="fa fa-book-open me-2 text-muted"></i>My Learning
+        </h5>
+        @if (!_isLoadingEnrollments)
+        {
+            <span class="sdb-section-header__badge">@_filteredEnrolledCourses.Count</span>
+        }
+    </div>
+
+    <div class="row g-3 mb-4">
+        @if (_isLoadingEnrollments || _isLoadingProgress)
+        {
+            @for (var i = 0; i < 3; i++)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="sdb-skeleton">
+                        <div class="sdb-skeleton__thumb"></div>
+                        <div class="sdb-skeleton__body">
+                            <div class="sdb-skeleton__line"></div>
+                            <div class="sdb-skeleton__line sdb-skeleton__line--short"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else if (_filteredEnrolledCourses.Count == 0)
+        {
+            <div class="col-12">
+                <div class="sdb-empty">
+                    <div class="sdb-empty__icon"><i class="fa fa-inbox"></i></div>
+                    <div class="sdb-empty__text">
+                        @if (string.IsNullOrEmpty(SearchText))
+                        {
+                            <span>You haven't enrolled in any courses yet. Browse available courses below.</span>
+                        }
+                        else
+                        {
+                            <span>No enrolled courses match "<strong>@SearchText</strong>".</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var course in _filteredEnrolledCourses)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <StudentCourseCard Course="course"
+                                       IsEnrolled="true"
+                                       Progress="_progressMap.GetValueOrDefault(course.CourseId)"
+                                       ResumeLessonId="_resumeMap.GetValueOrDefault(course.CourseId)?.LessonId" />
+                </div>
+            }
+        }
+    </div>
+
+    @* ── Other Courses ── *@
+    <div class="sdb-section-header">
+        <h5 class="sdb-section-header__title">
+            <i class="fa fa-th-large me-2 text-muted"></i>Other Courses
+        </h5>
+        @if (!_isLoadingCourses)
+        {
+            <span class="sdb-section-header__badge">@_filteredOtherCourses.Count</span>
+        }
+    </div>
+
+    <div class="row g-3 mb-4">
+        @if (_isLoadingCourses)
+        {
+            @for (var i = 0; i < 3; i++)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="sdb-skeleton">
+                        <div class="sdb-skeleton__thumb"></div>
+                        <div class="sdb-skeleton__body">
+                            <div class="sdb-skeleton__line"></div>
+                            <div class="sdb-skeleton__line sdb-skeleton__line--short"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else if (_filteredOtherCourses.Count == 0)
+        {
+            <div class="col-12">
+                <div class="sdb-empty">
+                    <div class="sdb-empty__icon"><i class="fa fa-search"></i></div>
+                    <div class="sdb-empty__text">
+                        @if (string.IsNullOrEmpty(SearchText))
+                        {
+                            <span>No other courses available at the moment.</span>
+                        }
+                        else
+                        {
+                            <span>No courses match "<strong>@SearchText</strong>".</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var course in _filteredOtherCourses)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <StudentCourseCard Course="course"
+                                       IsEnrolled="false" />
+                </div>
+            }
+        }
+    </div>
+
+</div>
