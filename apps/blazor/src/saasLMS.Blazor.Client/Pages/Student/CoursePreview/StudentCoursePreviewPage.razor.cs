@@ -9,7 +9,6 @@ using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
 using saasLMS.EnrollmentService.Enrollments;
 using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs;
 using Volo.Abp.AspNetCore.Components;
-using Volo.Abp.Identity;
 
 namespace saasLMS.Blazor.Client.Pages.Student.CoursePreview;
 
@@ -28,15 +27,12 @@ public partial class StudentCoursePreviewPage : AbpComponentBase
     [Inject]
     private IEnrollmentAppService EnrollmentAppService { get; set; } = default!;
 
-    [Inject]
-    private IIdentityUserAppService IdentityUserAppService { get; set; } = default!;
-
     private bool _isLoading = true;
     private bool _enrolling;
     private bool _isEnrolled;
 
     private CourseDetailDto? _course;
-    private string _instructorName = string.Empty;
+    private string _instructorName = "Instructor";
     private int _totalLessons;
 
     protected override async Task OnInitializedAsync()
@@ -65,9 +61,6 @@ public partial class StudentCoursePreviewPage : AbpComponentBase
             _course = courseTask.Result;
             _isEnrolled = enrollmentTask.Result?.Status == EnrollmentStatus.Active;
             _totalLessons = _course.Chapters.Sum(c => c.Lessons.Count);
-
-            // Load instructor name
-            await LoadInstructorNameAsync(_course.InstructorId);
         }
         catch (Exception ex)
         {
@@ -76,20 +69,6 @@ public partial class StudentCoursePreviewPage : AbpComponentBase
         finally
         {
             _isLoading = false;
-        }
-    }
-
-    private async Task LoadInstructorNameAsync(Guid instructorId)
-    {
-        try
-        {
-            var user = await IdentityUserAppService.GetAsync(instructorId);
-            var fullName = $"{user.Name} {user.Surname}".Trim();
-            _instructorName = string.IsNullOrEmpty(fullName) ? user.UserName : fullName;
-        }
-        catch
-        {
-            _instructorName = "Instructor";
         }
     }
 
