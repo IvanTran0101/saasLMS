@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -7,9 +8,11 @@ using Microsoft.AspNetCore.Components;
 using saasLMS.Blazor.Client.Authorization;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
+using saasLMS.EnrollmentService.Enrollments;
 using saasLMS.ReportingService.Reports;
 using saasLMS.ReportingService.Reports.Dtos.Outputs;
 using Volo.Abp.AspNetCore.Components;
+using Volo.Abp.Identity;
 
 namespace saasLMS.Blazor.Client.Pages.Instructor.Report;
 
@@ -21,6 +24,12 @@ public partial class InstructorReportPage : AbpComponentBase
 
     [Inject]
     private IReportingAppService ReportingAppService { get; set; } = default!;
+
+    [Inject]
+    private IEnrollmentAppService EnrollmentAppService { get; set; } = default!;
+
+    [Inject]
+    private IIdentityUserAppService IdentityUserAppService { get; set; } = default!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
@@ -38,6 +47,16 @@ public partial class InstructorReportPage : AbpComponentBase
     private ClassProgressViewDto? _classProgress;
     private CourseOutcomeReportViewDto? _courseOutcome;
     private ScoreDistributionData? _scoreDist;
+
+    // ── Enrolled Students tab ────────────────────────────────────────────────
+    private bool _isLoadingStudents;
+    private List<EnrolledStudentRow> _enrolledStudents = new();
+
+    private sealed record EnrolledStudentRow(
+        string DisplayName,
+        string Email,
+        EnrollmentStatus Status,
+        DateTime EnrolledAt);
 
     // ── ClassProgress: bucket shorthand ──────────────────────────────────────
     private int CpB0   => _classProgress?.Bucket_0_25  ?? 0;
@@ -129,6 +148,7 @@ public partial class InstructorReportPage : AbpComponentBase
         _classProgress = null;
         _courseOutcome = null;
         _scoreDist = null;
+        _enrolledStudents = new();
 
         await LoadClassProgressAsync();
     }
@@ -139,6 +159,7 @@ public partial class InstructorReportPage : AbpComponentBase
         _classProgress = null;
         _courseOutcome = null;
         _scoreDist = null;
+        _enrolledStudents = new();
     }
 
     private async Task SetTab(ReportTab tab)
@@ -149,6 +170,8 @@ public partial class InstructorReportPage : AbpComponentBase
             await LoadClassProgressAsync();
         else if (tab == ReportTab.CourseOutcome && _courseOutcome == null)
             await LoadCourseOutcomeAsync();
+        else if (tab == ReportTab.EnrolledStudents && _enrolledStudents.Count == 0)
+            await LoadEnrolledStudentsAsync();
     }
 
     private async Task LoadClassProgressAsync()
@@ -197,6 +220,50 @@ public partial class InstructorReportPage : AbpComponentBase
         }
     }
 
+    private async Task LoadEnrolledStudentsAsync()
+    {
+        if (_selectedCourse == null) return;
+
+        try
+        {
+            _isLoadingStudents = true;
+            StateHasChanged();
+
+            var enrollments = await EnrollmentAppService.GetEnrollmentsByCourseAsync(_selectedCourse.CourseId);
+
+            // Lookup user info in parallel
+            var userTasks = enrollments.Select(async e =>
+            {
+                string displayName;
+                string email;
+                try
+                {
+                    var user = await IdentityUserAppService.GetAsync(e.StudentId);
+                    var fullName = $"{user.Name} {user.Surname}".Trim();
+                    displayName = string.IsNullOrEmpty(fullName) ? user.UserName : fullName;
+                    email = user.Email ?? string.Empty;
+                }
+                catch
+                {
+                    displayName = e.StudentId.ToString()[..8] + "…";
+                    email = string.Empty;
+                }
+
+                return new EnrolledStudentRow(displayName, email, e.Status, e.EnrolledAt);
+            });
+
+            _enrolledStudents = (await Task.WhenAll(userTasks)).ToList();
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _isLoadingStudents = false;
+        }
+    }
+
     // ── ScoreDistributionJson shape (mirrors server-side ScoreDistribution) ──
     private sealed class ScoreDistributionData
     {
@@ -211,5 +278,6 @@ public partial class InstructorReportPage : AbpComponentBase
 public enum ReportTab
 {
     ClassProgress,
-    CourseOutcome
+    CourseOutcome,
+    EnrolledStudents
 }

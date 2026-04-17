@@ -2,6 +2,7 @@
 @inherits AbpComponentBase
 
 @using saasLMS.CourseCatalogService.Courses
+@using saasLMS.EnrollmentService.Enrollments
 
 <PageTitle>Instructor Report</PageTitle>
 
@@ -487,11 +488,101 @@
                     @onclick='() => SetTab(ReportTab.CourseOutcome)'>
                 <i class="fa fa-graduation-cap me-1"></i> Course Outcome
             </button>
+            <button class="irp-tab-btn @(_activeTab == ReportTab.EnrolledStudents ? "irp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(ReportTab.EnrolledStudents)'>
+                <i class="fa fa-user-check me-1"></i> Enrolled Students
+            </button>
         </div>
 
         @* ── Tab Content ────────────────────────────────────────────────────── *@
 
-        @if (_isLoadingReport)
+        @if (_activeTab == ReportTab.EnrolledStudents)
+        {
+            @* ── Enrolled Students Tab ──────────────────────────────────────── *@
+            @if (_isLoadingStudents)
+            {
+                <div class="irp-loading-overlay">
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    Loading students...
+                </div>
+            }
+            else if (_enrolledStudents.Count == 0)
+            {
+                <div class="irp-loading-overlay">
+                    <i class="fa fa-inbox me-2 text-muted"></i>
+                    No enrollments found for this course.
+                </div>
+            }
+            else
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3" style="width:36px;"></th>
+                                    <th>Student</th>
+                                    <th>Email</th>
+                                    <th>Enrolled</th>
+                                    <th class="text-end pe-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in _enrolledStudents)
+                                {
+                                    var (statusCss, statusLabel) = row.Status switch
+                                    {
+                                        EnrollmentStatus.Active    => ("success", "Active"),
+                                        EnrollmentStatus.Completed => ("primary", "Completed"),
+                                        EnrollmentStatus.Cancelled => ("secondary", "Cancelled"),
+                                        _                          => ("secondary", row.Status.ToString())
+                                    };
+
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div style="width:32px;height:32px;border-radius:50%;background:#e8f0fe;
+                                                        color:#1a73e8;display:flex;align-items:center;
+                                                        justify-content:center;font-size:0.8rem;font-weight:700;">
+                                                @(row.DisplayName.Length > 0 ? row.DisplayName[0].ToString().ToUpper() : "?")
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span style="font-weight:600;font-size:0.88rem;color:#0d1117;">
+                                                @row.DisplayName
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="font-size:0.85rem;color:#5f6368;">
+                                                @(string.IsNullOrEmpty(row.Email) ? "—" : row.Email)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="font-size:0.82rem;color:#8a93a2;">
+                                                @row.EnrolledAt.ToLocalTime().ToString("dd MMM yyyy")
+                                            </span>
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            <span class="badge rounded-pill bg-@statusCss bg-opacity-10
+                                                         text-@statusCss border border-@statusCss border-opacity-25"
+                                                  style="font-size:0.72rem;font-weight:700;padding:4px 10px;">
+                                                @statusLabel
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-3 py-2 border-top text-muted" style="font-size:0.78rem;">
+                        @_enrolledStudents.Count student(s) total &mdash;
+                        @_enrolledStudents.Count(r => r.Status == EnrollmentStatus.Active) active,
+                        @_enrolledStudents.Count(r => r.Status == EnrollmentStatus.Completed) completed,
+                        @_enrolledStudents.Count(r => r.Status == EnrollmentStatus.Cancelled) cancelled
+                    </div>
+                </div>
+            }
+        }
+        else if (_isLoadingReport)
         {
             <div class="irp-loading-overlay">
                 <span class="spinner-border spinner-border-sm" role="status"></span>

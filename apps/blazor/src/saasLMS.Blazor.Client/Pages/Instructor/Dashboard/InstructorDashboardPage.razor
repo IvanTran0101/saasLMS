@@ -228,6 +228,26 @@
 <div>
 
     @* ── Hero Banner ── *@
+    @* ── Search Bar ── *@
+    <div class="input-group mb-3" style="max-width: 420px;">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="fa fa-search text-muted"></i>
+        </span>
+        <input type="text"
+               class="form-control border-start-0 ps-0"
+               placeholder="Search by title or course ID…"
+               @bind="SearchText"
+               @bind:event="oninput" />
+        @if (!string.IsNullOrEmpty(SearchText))
+        {
+            <button class="btn btn-outline-secondary border-start-0"
+                    type="button"
+                    @onclick="() => SearchText = string.Empty">
+                <i class="fa fa-times"></i>
+            </button>
+        }
+    </div>
+    
     <div class="idb-hero">
         <div class="idb-hero__content">
             <h2 class="idb-hero__title">Welcome back, @(CurrentUser.Name ?? CurrentUser.UserName ?? "Instructor").</h2>
