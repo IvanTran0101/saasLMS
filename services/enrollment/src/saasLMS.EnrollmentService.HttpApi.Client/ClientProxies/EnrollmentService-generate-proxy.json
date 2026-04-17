@@ -4,6 +4,437 @@
       "rootPath": "EnrollmentService",
       "remoteServiceName": "EnrollmentService",
       "controllers": {
+        "saasLMS.EnrollmentService.EnrollmentAppService": {
+          "controllerName": "Enrollment",
+          "controllerGroupName": "Enrollment",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.EnrollmentService.EnrollmentAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService",
+              "name": "IEnrollmentAppService",
+              "methods": [
+                {
+                  "name": "EnrollAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput, saasLMS.EnrollmentService.Application.Contracts",
+                      "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput",
+                      "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                    "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+                  }
+                },
+                {
+                  "name": "CancelAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput, saasLMS.EnrollmentService.Application.Contracts",
+                      "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput",
+                      "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                    "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+                  }
+                },
+                {
+                  "name": "GetByIdAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "id",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                    "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+                  }
+                },
+                {
+                  "name": "FindByCourseAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "courseId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                    "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+                  }
+                },
+                {
+                  "name": "GetMyEnrollmentsAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.GetMyEnrollmentsInput, saasLMS.EnrollmentService.Application.Contracts",
+                      "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.GetMyEnrollmentsInput",
+                      "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.GetMyEnrollmentsInput",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto>",
+                    "typeSimple": "[saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto]"
+                  }
+                },
+                {
+                  "name": "GetEnrollmentsByCourseAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "courseId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto>",
+                    "typeSimple": "[saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto]"
+                  }
+                },
+                {
+                  "name": "CheckActiveEnrollmentAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "courseId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    },
+                    {
+                      "name": "studentId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.ActiveEnrollmentDto",
+                    "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.ActiveEnrollmentDto"
+                  }
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "EnrollAsyncByInput": {
+              "uniqueName": "EnrollAsyncByInput",
+              "name": "EnrollAsync",
+              "httpMethod": "POST",
+              "url": "api/enrollment/enrollment/enroll",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput, saasLMS.EnrollmentService.Application.Contracts",
+                  "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput",
+                  "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput",
+                  "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.EnrollCourseInput",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            },
+            "CancelAsyncByInput": {
+              "uniqueName": "CancelAsyncByInput",
+              "name": "CancelAsync",
+              "httpMethod": "POST",
+              "url": "api/enrollment/enrollment/cancel",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput, saasLMS.EnrollmentService.Application.Contracts",
+                  "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput",
+                  "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput",
+                  "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.CancelEnrollmentInput",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            },
+            "GetByIdAsyncById": {
+              "uniqueName": "GetByIdAsyncById",
+              "name": "GetByIdAsync",
+              "httpMethod": "GET",
+              "url": "api/enrollment/enrollment/{id}/by-id",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            },
+            "FindByCourseAsyncByCourseId": {
+              "uniqueName": "FindByCourseAsyncByCourseId",
+              "name": "FindByCourseAsync",
+              "httpMethod": "POST",
+              "url": "api/enrollment/enrollment/find-by-course/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "courseId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "courseId",
+                  "name": "courseId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto",
+                "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            },
+            "GetMyEnrollmentsAsyncByInput": {
+              "uniqueName": "GetMyEnrollmentsAsyncByInput",
+              "name": "GetMyEnrollmentsAsync",
+              "httpMethod": "GET",
+              "url": "api/enrollment/enrollment/my-enrollments",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.GetMyEnrollmentsInput, saasLMS.EnrollmentService.Application.Contracts",
+                  "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.GetMyEnrollmentsInput",
+                  "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Inputs.GetMyEnrollmentsInput",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "Status",
+                  "jsonName": null,
+                  "type": "saasLMS.EnrollmentService.Enrollments.EnrollmentStatus?",
+                  "typeSimple": "enum?",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": "input"
+                }
+              ],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto>",
+                "typeSimple": "[saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto]"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            },
+            "GetEnrollmentsByCourseAsyncByCourseId": {
+              "uniqueName": "GetEnrollmentsByCourseAsyncByCourseId",
+              "name": "GetEnrollmentsByCourseAsync",
+              "httpMethod": "GET",
+              "url": "api/enrollment/enrollment/enrollments-by-course/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "courseId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "courseId",
+                  "name": "courseId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto>",
+                "typeSimple": "[saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.EnrollmentListItemDto]"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            },
+            "CheckActiveEnrollmentAsyncByCourseIdAndStudentId": {
+              "uniqueName": "CheckActiveEnrollmentAsyncByCourseIdAndStudentId",
+              "name": "CheckActiveEnrollmentAsync",
+              "httpMethod": "POST",
+              "url": "api/enrollment/enrollment/check-active-enrollment",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "courseId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                },
+                {
+                  "name": "studentId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "courseId",
+                  "name": "courseId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": ""
+                },
+                {
+                  "nameOnMethod": "studentId",
+                  "name": "studentId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "ModelBinding",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.ActiveEnrollmentDto",
+                "typeSimple": "saasLMS.EnrollmentService.Enrollments.Dtos.Outputs.ActiveEnrollmentDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.EnrollmentService.Enrollments.IEnrollmentAppService"
+            }
+          }
+        },
         "saasLMS.EnrollmentService.Samples.SampleController": {
           "controllerName": "Sample",
           "controllerGroupName": "EnrollmentService",

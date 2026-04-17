@@ -4,6 +4,299 @@
       "rootPath": "LearningProgressService",
       "remoteServiceName": "LearningProgressService",
       "controllers": {
+        "saasLMS.LearningProgressService.LearningProgressAppService": {
+          "controllerName": "LearningProgress",
+          "controllerGroupName": "LearningProgress",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.LearningProgressService.LearningProgressAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.LearningProgressService.LessonProgresses.ILearningProgressAppService",
+              "name": "ILearningProgressAppService",
+              "methods": [
+                {
+                  "name": "StartLessonAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput, saasLMS.LearningProgressService.Application.Contracts",
+                      "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput",
+                      "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto",
+                    "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto"
+                  }
+                },
+                {
+                  "name": "CompleteLessonAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "input",
+                      "typeAsString": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput, saasLMS.LearningProgressService.Application.Contracts",
+                      "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput",
+                      "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto",
+                    "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto"
+                  }
+                },
+                {
+                  "name": "GetMyProgressAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "courseId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Collections.Generic.List<saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto>",
+                    "typeSimple": "[saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto]"
+                  }
+                },
+                {
+                  "name": "GetMyCourseProgressAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "courseId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs.CourseProgressDto",
+                    "typeSimple": "saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs.CourseProgressDto"
+                  }
+                },
+                {
+                  "name": "GetResumePositionAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "courseId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.ResumeResultDto",
+                    "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.ResumeResultDto"
+                  }
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "StartLessonAsyncByInput": {
+              "uniqueName": "StartLessonAsyncByInput",
+              "name": "StartLessonAsync",
+              "httpMethod": "POST",
+              "url": "api/learning-progress/learning-progress/start-lesson",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput, saasLMS.LearningProgressService.Application.Contracts",
+                  "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput",
+                  "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput",
+                  "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.StartLessonInput",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto",
+                "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.LearningProgressService.LessonProgresses.ILearningProgressAppService"
+            },
+            "CompleteLessonAsyncByInput": {
+              "uniqueName": "CompleteLessonAsyncByInput",
+              "name": "CompleteLessonAsync",
+              "httpMethod": "POST",
+              "url": "api/learning-progress/learning-progress/complete-lesson",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "input",
+                  "typeAsString": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput, saasLMS.LearningProgressService.Application.Contracts",
+                  "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput",
+                  "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "input",
+                  "name": "input",
+                  "jsonName": null,
+                  "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput",
+                  "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Inputs.CompleteLessonInput",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Body",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto",
+                "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.LearningProgressService.LessonProgresses.ILearningProgressAppService"
+            },
+            "GetMyProgressAsyncByCourseId": {
+              "uniqueName": "GetMyProgressAsyncByCourseId",
+              "name": "GetMyProgressAsync",
+              "httpMethod": "GET",
+              "url": "api/learning-progress/learning-progress/my-progress/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "courseId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "courseId",
+                  "name": "courseId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "System.Collections.Generic.List<saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto>",
+                "typeSimple": "[saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.LessonProgressDto]"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.LearningProgressService.LessonProgresses.ILearningProgressAppService"
+            },
+            "GetMyCourseProgressAsyncByCourseId": {
+              "uniqueName": "GetMyCourseProgressAsyncByCourseId",
+              "name": "GetMyCourseProgressAsync",
+              "httpMethod": "GET",
+              "url": "api/learning-progress/learning-progress/my-course-progress/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "courseId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "courseId",
+                  "name": "courseId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs.CourseProgressDto",
+                "typeSimple": "saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs.CourseProgressDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.LearningProgressService.LessonProgresses.ILearningProgressAppService"
+            },
+            "GetResumePositionAsyncByCourseId": {
+              "uniqueName": "GetResumePositionAsyncByCourseId",
+              "name": "GetResumePositionAsync",
+              "httpMethod": "GET",
+              "url": "api/learning-progress/learning-progress/resume-position/{courseId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "courseId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "courseId",
+                  "name": "courseId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.ResumeResultDto",
+                "typeSimple": "saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs.ResumeResultDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.LearningProgressService.LessonProgresses.ILearningProgressAppService"
+            }
+          }
+        },
         "saasLMS.LearningProgressService.Samples.SampleController": {
           "controllerName": "Sample",
           "controllerGroupName": "LearningProgressService",
