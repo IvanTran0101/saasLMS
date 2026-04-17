@@ -15,6 +15,7 @@ using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs;
 using saasLMS.LearningProgressService.LessonProgresses;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs;
 using Volo.Abp.AspNetCore.Components;
+using Volo.Abp.Identity;
 
 namespace saasLMS.Blazor.Client.Pages.Student.Dashboard;
 
@@ -33,6 +34,9 @@ public partial class StudentDashboardPage : AbpComponentBase
     [Inject]
     private ILearningProgressAppService LearningProgressAppService { get; set; } = default!;
 
+    [Inject]
+    private IIdentityUserAppService IdentityUserAppService { get; set; } = default!;
+
     // Loading states
     private bool _isLoadingEnrollments = true;
     private bool _isLoadingCourses = true;
@@ -43,6 +47,7 @@ public partial class StudentDashboardPage : AbpComponentBase
     private List<CourseListItemDto> _allTenantCourses = new();
     private Dictionary<Guid, CourseProgressDto> _progressMap = new();
     private Dictionary<Guid, ResumeResultDto> _resumeMap = new();
+    private Dictionary<Guid, string> _instructorNameMap = new();
 
     // Derived lists (all, before search filter)
     private List<CourseListItemDto> _enrolledCourses = new();
@@ -83,8 +88,8 @@ public partial class StudentDashboardPage : AbpComponentBase
         // Step 2: build course lists so we know which courses are enrolled
         BuildCourseLists();
 
-        // Step 3: load progress + resume positions for enrolled courses in parallel
-        await LoadProgressAndResumeAsync();
+        // Step 3: load progress, resume positions, and instructor names in parallel
+        await Task.WhenAll(LoadProgressAndResumeAsync(), LoadInstructorNamesAsync());
 
         // Step 4: apply search + derived stats
         ApplySearch();
@@ -152,7 +157,6 @@ public partial class StudentDashboardPage : AbpComponentBase
         {
             _isLoadingProgress = true;
 
-            // Run progress + resume fetches for all enrolled courses in parallel
             var progressTasks = _enrolledCourses
                 .Select(c => LearningProgressAppService.GetMyCourseProgressAsync(c.CourseId));
 
@@ -170,7 +174,6 @@ public partial class StudentDashboardPage : AbpComponentBase
                 .Zip(resumeResults, (course, resume) => (course.CourseId, resume))
                 .ToDictionary(x => x.CourseId, x => x.resume);
 
-            // Recently Accessed: enrolled courses with a LastAccessedAt, sorted desc, top 4
             _recentlyAccessed = _enrolledCourses
                 .Where(c => _progressMap.TryGetValue(c.CourseId, out var p) && p.LastAccessedAt.HasValue)
                 .OrderByDescending(c => _progressMap[c.CourseId].LastAccessedAt)
@@ -184,6 +187,59 @@ public partial class StudentDashboardPage : AbpComponentBase
         finally
         {
             _isLoadingProgress = false;
+        }
+    }
+
+    private async Task LoadInstructorNamesAsync()
+    {
+        var instructorIds = _allTenantCourses
+            .Select(c => c.InstructorId)
+            .Distinct()
+            .ToList();
+
+        if (instructorIds.Count == 0) return;
+
+        var tasks = instructorIds.Select(async id =>
+        {
+            try
+            {
+                var user = await IdentityUserAppService.GetAsync(id);
+                var fullName = $"{user.Name} {user.Surname}".Trim();
+                return (id, name: string.IsNullOrEmpty(fullName) ? user.UserName : fullName);
+            }
+            catch
+            {
+                return (id, name: "Instructor");
+            }
+        });
+
+        var results = await Task.WhenAll(tasks);
+        _instructorNameMap = results.ToDictionary(r => r.id, r => r.name);
+    }
+
+    private string GetInstructorName(Guid instructorId)
+        => _instructorNameMap.TryGetValue(instructorId, out var name) ? name : "Instructor";
+
+    private async Task EnrollFromCardAsync(Guid courseId)
+    {
+        try
+        {
+            await EnrollmentAppService.EnrollAsync(new EnrollCourseInput { CourseId = courseId });
+
+            // Move the course from Other to My Learning in-memory
+            var course = _otherCourses.FirstOrDefault(c => c.CourseId == courseId);
+            if (course != null)
+            {
+                _otherCourses.Remove(course);
+                _enrolledCourses.Add(course);
+                _totalEnrolled++;
+                ApplySearch();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
         }
     }
 
@@ -214,5 +270,4 @@ public partial class StudentDashboardPage : AbpComponentBase
         _completedCount = _progressMap.Values
             .Count(p => p.Status == CourseProgressStatus.Completed);
     }
-
 }

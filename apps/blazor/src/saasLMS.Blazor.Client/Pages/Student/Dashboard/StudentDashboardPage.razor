@@ -251,7 +251,8 @@
                     <StudentCourseCard Course="course"
                                        IsEnrolled="true"
                                        Progress="_progressMap.GetValueOrDefault(course.CourseId)"
-                                       ResumeLessonId="_resumeMap.GetValueOrDefault(course.CourseId)?.LessonId" />
+                                       ResumeLessonId="_resumeMap.GetValueOrDefault(course.CourseId)?.LessonId"
+                                       InstructorName="@GetInstructorName(course.InstructorId)" />
                 </div>
             }
         </div>
@@ -310,7 +311,8 @@
                     <StudentCourseCard Course="course"
                                        IsEnrolled="true"
                                        Progress="_progressMap.GetValueOrDefault(course.CourseId)"
-                                       ResumeLessonId="_resumeMap.GetValueOrDefault(course.CourseId)?.LessonId" />
+                                       ResumeLessonId="_resumeMap.GetValueOrDefault(course.CourseId)?.LessonId"
+                                       InstructorName="@GetInstructorName(course.InstructorId)" />
                 </div>
             }
         }
@@ -367,7 +369,9 @@
             {
                 <div class="col-12 col-md-6 col-xl-4">
                     <StudentCourseCard Course="course"
-                                       IsEnrolled="false" />
+                                       IsEnrolled="false"
+                                       InstructorName="@GetInstructorName(course.InstructorId)"
+                                       OnEnroll="EnrollFromCardAsync" />
                 </div>
             }
         }

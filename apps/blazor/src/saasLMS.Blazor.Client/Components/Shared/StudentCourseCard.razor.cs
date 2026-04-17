@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
 using saasLMS.LearningProgressService.CourseProgresses;
@@ -26,6 +27,16 @@ public partial class StudentCourseCard : ComponentBase
     [Parameter]
     public Guid? ResumeLessonId { get; set; }
 
+    /// <summary>Instructor display name, used on non-enrolled cards.</summary>
+    [Parameter]
+    public string InstructorName { get; set; } = string.Empty;
+
+    /// <summary>Invoked when the student clicks Enroll on a non-enrolled card.</summary>
+    [Parameter]
+    public EventCallback<Guid> OnEnroll { get; set; }
+
+    private bool _enrolling;
+
     private int _progressPct => Progress is null ? 0 : (int)Math.Round(Progress.ProgressPercent);
 
     private string _progressCssClass => Progress?.Status switch
@@ -44,17 +55,25 @@ public partial class StudentCourseCard : ComponentBase
 
     private void HandleCardClick()
     {
-        if (IsEnrolled)
-        {
-            if (ResumeLessonId.HasValue)
-                NavigationManager.NavigateTo($"/student/learn/{Course.CourseId}/{ResumeLessonId.Value}");
-            // If no resume position yet, fall through to preview page
-            else
-                NavigationManager.NavigateTo($"/student/courses/{Course.CourseId}");
-        }
+        if (!IsEnrolled) return; // non-enrolled cards use the Enroll button
+
+        if (ResumeLessonId.HasValue)
+            NavigationManager.NavigateTo($"/student/learn/{Course.CourseId}/{ResumeLessonId.Value}");
         else
+            NavigationManager.NavigateTo($"/student/learn/{Course.CourseId}");
+    }
+
+    private async Task HandleEnrollClickAsync()
+    {
+        if (_enrolling) return;
+        _enrolling = true;
+        try
         {
-            NavigationManager.NavigateTo($"/student/courses/{Course.CourseId}");
+            await OnEnroll.InvokeAsync(Course.CourseId);
+        }
+        finally
+        {
+            _enrolling = false;
         }
     }
 }
