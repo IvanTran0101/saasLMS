@@ -26,6 +26,11 @@ public static class AbpHostingHostBuilderExtensions
                 optional: optional,
                 reloadOnChange: reloadOnChange
             );
+
+            // Ensure container environment variables can override yarp.json (Swarm/K8s).
+            // WebApplication.CreateBuilder(args) adds env vars early; AddYarpJson runs later and would
+            // otherwise override those values.
+            builder.AddEnvironmentVariables();
         });
     }
 }
