@@ -117,7 +117,7 @@ public partial class LessonViewerPage : AbpComponentBase
             // Load assignments (non-fatal if the endpoint is unavailable)
             try
             {
-                var assignments = await AssignmentAppService.GetListByCourseAsync(CourseId);
+                var assignments = await AssignmentAppService.GetListByCourseStudentAsync(CourseId);
                 _assignmentsByLesson = assignments
                     .GroupBy(a => a.LessonId)
                     .ToDictionary(g => g.Key, g => g.ToList());
