@@ -1,0 +1,350 @@
+version: "3.9"
+
+x-env-common: &env_common
+  ASPNETCORE_ENVIRONMENT: Production
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+  ASPNETCORE_URLS: http://+:80
+  AllowedHosts: "*"
+  App__CorsOrigins: https://app.trananhminh.uk,https://api.trananhminh.uk,https://auth.trananhminh.uk
+  App__RedirectAllowedUrls: https://app.trananhminh.uk,https://api.trananhminh.uk,https://auth.trananhminh.uk
+  AuthServer__Authority: https://auth.trananhminh.uk
+  AuthServer__MetadataAddress: https://auth.trananhminh.uk/.well-known/openid-configuration
+  AuthServer__RequireHttpsMetadata: "true"
+  AuthServer__SwaggerClientId: WebGateway_Swagger
+  Redis__Configuration: 10.0.1.118:6379
+  RabbitMQ__Connections__Default__HostName: 10.0.1.118
+  RabbitMQ__Connections__Default__Port: "5672"
+  RabbitMQ__EventBus__ExchangeName: saasLMS
+  ElasticSearch__Url: http://10.0.1.118:9200
+  # Internal service-to-service calls go via the gateway (no TLS).
+  RemoteServices__Default__BaseUrl: http://gateway:80
+  IdentityClients__Default__Authority: https://auth.trananhminh.uk
+  IdentityClients__Default__RequireHttps: "true"
+
+x-deploy-worker: &deploy_worker
+  replicas: 1
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 10
+    window: 60s
+  placement:
+    constraints:
+      - node.role == worker
+
+networks:
+  saaslms-app:
+    driver: overlay
+    attachable: true
+
+secrets:
+  abplicensecode:
+    external: true
+  stringencryption_defaultpassphrase:
+    external: true
+  identityclients_default_clientsecret:
+    external: true
+  connectionstrings_administrationservice:
+    external: true
+  connectionstrings_assessmentservice:
+    external: true
+  connectionstrings_coursecatalogservice:
+    external: true
+  connectionstrings_enrollmentservice:
+    external: true
+  connectionstrings_forms:
+    external: true
+  connectionstrings_identityservice:
+    external: true
+  connectionstrings_learningprogressservice:
+    external: true
+  connectionstrings_notificationservice:
+    external: true
+  connectionstrings_productservice:
+    external: true
+  connectionstrings_reportingservice:
+    external: true
+  connectionstrings_saasservice:
+    external: true
+
+services:
+  dbmigrator:
+    image: youngmizh/saaslms-db-migrator:latest
+    environment:
+      <<: *env_common
+      DbMigrator__Redis__Configuration: 10.0.1.118:6379
+      DbMigrator__ElasticSearch__Url: http://10.0.1.118:9200
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_administrationservice
+      - connectionstrings_assessmentservice
+      - connectionstrings_coursecatalogservice
+      - connectionstrings_enrollmentservice
+      - connectionstrings_forms
+      - connectionstrings_identityservice
+      - connectionstrings_learningprogressservice
+      - connectionstrings_notificationservice
+      - connectionstrings_productservice
+      - connectionstrings_reportingservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  authserver:
+    image: youngmizh/saaslms-authserver:latest
+    ports:
+      - target: 80
+        published: 8082
+        protocol: tcp
+        mode: ingress
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://auth.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_AuthServer
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_identityservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  gateway:
+    image: youngmizh/saaslms-gateway-web:latest
+    ports:
+      - target: 80
+        published: 8080
+        protocol: tcp
+        mode: ingress
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_WebGateway
+      # Override localhost dev destinations from yarp.json to internal service DNS names.
+      ReverseProxy__Clusters__AuthServer__Destinations__AuthServer__Address: http://authserver:80/
+      ReverseProxy__Clusters__Administration__Destinations__Administration__Address: http://administrationservice:80/
+      ReverseProxy__Clusters__Identity__Destinations__Identity__Address: http://identityservice:80/
+      ReverseProxy__Clusters__Saas__Destinations__Saas__Address: http://saasservice:80/
+      ReverseProxy__Clusters__Product__Destinations__Product__Address: http://productservice:80/
+      ReverseProxy__Clusters__CourseCatalog__Destinations__CourseCatalog__Address: http://coursecatalogservice:80/
+      ReverseProxy__Clusters__Enrollment__Destinations__Enrollment__Address: http://enrollmentservice:80/
+      ReverseProxy__Clusters__Assessment__Destinations__Assessment__Address: http://assessmentservice:80/
+      ReverseProxy__Clusters__LearningProgress__Destinations__LearningProgress__Address: http://learningprogressservice:80/
+      ReverseProxy__Clusters__Notification__Destinations__Notification__Address: http://notificationservice:80/
+      ReverseProxy__Clusters__Reporting__Destinations__Reporting__Address: http://reportingservice:80/
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  saasservice:
+    image: youngmizh/saaslms-saas:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_SaasService
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_saasservice
+      - connectionstrings_administrationservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  administrationservice:
+    image: youngmizh/saaslms-administration:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_AdministrationService
+      RemoteServices__AbpIdentity__BaseUrl: http://gateway:80/
+      RemoteServices__AbpIdentity__UseCurrentAccessToken: "false"
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  identityservice:
+    image: youngmizh/saaslms-identity:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_IdentityService
+      # Prevent OpenIddict seeding from crashing due to missing RootUrl keys.
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
+      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk/
+      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__PublicWeb__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__PublicWebGateway__RootUrl: https://api.trananhminh.uk/
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_identityservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  productservice:
+    image: youngmizh/saaslms-product:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_ProductService
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_productservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  coursecatalogservice:
+    image: youngmizh/saaslms-coursecatalog:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_CourseCatalogService
+      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
+      RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
+      RemoteServices__EnrollmentService__IdentityClient: Default
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_coursecatalogservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  enrollmentservice:
+    image: youngmizh/saaslms-enrollment:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_EnrollmentService
+      RemoteServices__course-catalog__BaseUrl: http://gateway:80
+      RemoteServices__course-catalog__UseCurrentAccessToken: "false"
+      RemoteServices__course-catalog__IdentityClient: Default
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_enrollmentservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  assessmentservice:
+    image: youngmizh/saaslms-assessment:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_AssessmentService
+      RemoteServices__course-catalog__BaseUrl: http://gateway:80
+      RemoteServices__course-catalog__UseCurrentAccessToken: "true"
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_assessmentservice
+      - connectionstrings_forms
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  learningprogressservice:
+    image: youngmizh/saaslms-learningprogress:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_LearningProgressService
+      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
+      RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
+      RemoteServices__EnrollmentService__IdentityClient: Default
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_learningprogressservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  notificationservice:
+    image: youngmizh/saaslms-notification:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_NotificationService
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_notificationservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
+
+  reportingservice:
+    image: youngmizh/saaslms-reporting:latest
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://api.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_ReportingService
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+      - connectionstrings_reportingservice
+      - connectionstrings_administrationservice
+      - connectionstrings_saasservice
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_worker
