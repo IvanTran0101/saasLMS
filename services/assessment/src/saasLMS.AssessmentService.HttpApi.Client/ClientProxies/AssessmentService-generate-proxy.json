@@ -777,7 +777,7 @@
               "uniqueName": "GetMySubmissionByAssignmentAsyncByAssignmentId",
               "name": "GetMySubmissionByAssignmentAsync",
               "httpMethod": "GET",
-              "url": "api/assessment/submission/my-by-assignment/{assignmentId}",
+              "url": "api/assessment/submission/my-submission-by-assignment/{assignmentId}",
               "supportedVersions": [],
               "parametersOnMethod": [
                 { "name": "assignmentId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }

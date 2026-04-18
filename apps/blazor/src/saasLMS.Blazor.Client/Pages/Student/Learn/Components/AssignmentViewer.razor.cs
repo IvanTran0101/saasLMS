@@ -60,17 +60,21 @@ public partial class AssignmentViewer : AbpComponentBase
 
         try
         {
-            var assignTask = AssignmentAppService.GetStudentAsync(AssignmentId);
-            var subTask    = SubmissionAppService.GetMySubmissionByAssignmentAsync(AssignmentId);
-
-            await Task.WhenAll(assignTask, subTask);
-
-            _assignment = assignTask.Result;
-            _submission = subTask.Result;
+            _assignment = await AssignmentAppService.GetStudentAsync(AssignmentId);
         }
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
+        }
+
+        try
+        {
+            _submission = await SubmissionAppService.GetMySubmissionByAssignmentAsync(AssignmentId);
+        }
+        catch
+        {
+            // No submission yet — this is expected for students who haven't submitted.
+            _submission = null;
         }
         finally
         {
