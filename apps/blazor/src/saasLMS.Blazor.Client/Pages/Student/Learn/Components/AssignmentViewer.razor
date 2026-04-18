@@ -1,0 +1,562 @@
+@using saasLMS.AssessmentService.Assignments
+@using saasLMS.AssessmentService.Submissions
+@using saasLMS.AssessmentService.Shared
+@using Microsoft.AspNetCore.Components.Forms
+
+@inherits AbpComponentBase
+
+<style>
+    .av-root { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* Header */
+    .av-header {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.1rem 1.25rem;
+    }
+
+    .av-header__title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.4rem;
+    }
+
+    .av-header__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+        font-size: 0.78rem;
+        color: #8a93a2;
+    }
+
+    .av-header__meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .av-header__meta-item i { color: #6c757d; }
+
+    .av-header__desc {
+        margin-top: 0.6rem;
+        font-size: 0.85rem;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    /* Submission card */
+    .av-submission {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.1rem 1.25rem;
+    }
+
+    .av-submission__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #8a93a2;
+        margin-bottom: 0.6rem;
+    }
+
+    .av-file-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 0.75rem;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    .av-file-row__icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #e8f0fe;
+        color: #1a73e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    .av-file-row__name {
+        flex: 1;
+        font-size: 0.84rem;
+        font-weight: 500;
+        color: #0d1117;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .av-file-row__size {
+        font-size: 0.74rem;
+        color: #8a93a2;
+        white-space: nowrap;
+    }
+
+    .av-btn-dl {
+        background: transparent;
+        border: none;
+        color: #1a73e8;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: background 0.15s;
+    }
+
+    .av-btn-dl:hover { background: #e8f0fe; }
+
+    /* Meta info */
+    .av-submission__info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.78rem;
+        color: #8a93a2;
+        margin-top: 0.4rem;
+    }
+
+    .av-submission__info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    /* Grade chip */
+    .av-grade {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+
+    .av-grade--graded {
+        background: #e6f4ea;
+        color: #1e8e3e;
+        border: 1px solid #ceead6;
+    }
+
+    .av-grade--pending {
+        background: #f8f9fa;
+        color: #8a93a2;
+        border: 1px solid #dee2e6;
+    }
+
+    /* Upload zone */
+    .av-upload-zone {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.1rem 1.25rem;
+    }
+
+    .av-upload-zone__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #8a93a2;
+        margin-bottom: 0.75rem;
+    }
+
+    .av-dropzone {
+        border: 2px dashed #ced4da;
+        border-radius: 10px;
+        padding: 2rem 1rem;
+        text-align: center;
+        position: relative;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        background: #fafbfc;
+    }
+
+    .av-dropzone:hover, .av-dropzone--hover {
+        border-color: #1a73e8;
+        background: #f0f6ff;
+    }
+
+    .av-dropzone__icon {
+        font-size: 1.8rem;
+        color: #8a93a2;
+        margin-bottom: 0.5rem;
+    }
+
+    .av-dropzone__text {
+        font-size: 0.84rem;
+        color: #6c757d;
+        margin-bottom: 0.3rem;
+    }
+
+    .av-dropzone__hint {
+        font-size: 0.74rem;
+        color: #adb5bd;
+    }
+
+    .av-dropzone__input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .av-selected-file {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.85rem;
+        background: #e8f0fe;
+        border-radius: 8px;
+        margin-top: 0.65rem;
+    }
+
+    .av-selected-file__name {
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: #1a73e8;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .av-selected-file__size {
+        font-size: 0.74rem;
+        color: #5a8ee0;
+        white-space: nowrap;
+    }
+
+    .av-btn-clear {
+        background: transparent;
+        border: none;
+        color: #d93025;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        transition: background 0.15s;
+    }
+
+    .av-btn-clear:hover { background: #fce8e6; }
+
+    .av-error {
+        font-size: 0.78rem;
+        color: #d93025;
+        margin-top: 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    /* Actions */
+    .av-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .av-btn-submit {
+        background: #1a73e8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.15s;
+    }
+
+    .av-btn-submit:hover { background: #1557b0; }
+    .av-btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .av-btn-edit {
+        background: transparent;
+        color: #495057;
+        border: 1.5px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.42rem 1rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: border-color 0.15s, color 0.15s;
+    }
+
+    .av-btn-edit:hover {
+        border-color: #1a73e8;
+        color: #1a73e8;
+    }
+
+    .av-btn-done {
+        background: #1a73e8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.15s;
+    }
+
+    .av-btn-done:hover { background: #1557b0; }
+
+    .av-closed-banner {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        font-size: 0.82rem;
+        color: #856404;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+</style>
+
+<div class="av-root">
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+            <span class="ms-2 text-muted" style="font-size:0.85rem;">Loading assignment...</span>
+        </div>
+    }
+    else if (_assignment is null)
+    {
+        <div class="av-closed-banner">
+            <i class="fa fa-exclamation-circle"></i> Assignment not found.
+        </div>
+    }
+    else
+    {
+        @* ── Header ── *@
+        <div class="av-header">
+            <div class="av-header__title">@_assignment.Title</div>
+            <div class="av-header__meta">
+                <span class="av-header__meta-item">
+                    <i class="fa fa-trophy"></i> Max Score: @_assignment.MaxScore.ToString("G")
+                </span>
+                @if (_assignment.Deadline.HasValue)
+                {
+                    <span class="av-header__meta-item">
+                        <i class="fa fa-calendar"></i>
+                        Due: @_assignment.Deadline.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                    </span>
+                }
+                <span class="av-header__meta-item">
+                    <i class="fa fa-info-circle"></i>
+                    Status: @_assignment.Status.ToString()
+                </span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_assignment.Description))
+            {
+                <div class="av-header__desc">@_assignment.Description</div>
+            }
+        </div>
+
+        @* ── Closed banner ── *@
+        @if (_assignment.Status == AssignmentStatus.Closed)
+        {
+            <div class="av-closed-banner">
+                <i class="fa fa-lock"></i> This assignment is closed. No more submissions are accepted.
+            </div>
+        }
+
+        @* ── Existing submission ── *@
+        @if (_submission is not null && !_isEditing)
+        {
+            <div class="av-submission">
+                <div class="av-submission__label">Your Submission</div>
+
+                @if (!string.IsNullOrWhiteSpace(_submission.FileName))
+                {
+                    <div class="av-file-row">
+                        <div class="av-file-row__icon">
+                            <i class="fa fa-file-o"></i>
+                        </div>
+                        <span class="av-file-row__name" title="@_submission.FileName">
+                            @_submission.FileName
+                        </span>
+                        @if (_submission.FileSize.HasValue)
+                        {
+                            <span class="av-file-row__size">@FormatFileSize(_submission.FileSize.Value)</span>
+                        }
+                        <button class="av-btn-dl"
+                                @onclick="DownloadMySubmissionAsync"
+                                disabled="@_isDownloading"
+                                title="Download">
+                            @if (_isDownloading)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                            }
+                            else
+                            {
+                                <i class="fa fa-download"></i>
+                            }
+                        </button>
+                    </div>
+                }
+
+                <div class="av-submission__info">
+                    <span class="av-submission__info-item">
+                        <i class="fa fa-clock-o"></i>
+                        Submitted: @_submission.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                    </span>
+                </div>
+
+                @* Grade ── *@
+                @if (_submission.Status == SubmissionStatus.Graded && _submission.Score.HasValue)
+                {
+                    <div class="av-grade av-grade--graded">
+                        <i class="fa fa-check-circle"></i>
+                        Score: @_submission.Score.Value.ToString("G") / @_assignment.MaxScore.ToString("G")
+                        @if (_submission.GradedAt.HasValue)
+                        {
+                            <span style="font-weight:400;font-size:0.75rem;">
+                                &nbsp;· Graded @_submission.GradedAt.Value.ToLocalTime().ToString("MMM dd, yyyy")
+                            </span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="av-grade av-grade--pending">
+                        <i class="fa fa-hourglass-o"></i> Not Graded Yet
+                    </div>
+                }
+            </div>
+
+            @* Edit + Done ── *@
+            <div class="av-actions">
+                @if (_assignment.Status != AssignmentStatus.Closed)
+                {
+                    <button class="av-btn-edit" @onclick="() => _isEditing = true">
+                        <i class="fa fa-pencil"></i> Edit Submission
+                    </button>
+                }
+                else
+                {
+                    <span></span>
+                }
+                @if (OnDone.HasDelegate)
+                {
+                    <button class="av-btn-done" @onclick="OnDone">
+                        <i class="fa fa-check"></i> Done
+                    </button>
+                }
+            </div>
+        }
+
+        @* ── Upload zone (new or editing) ── *@
+        @if (_submission is null || _isEditing)
+        {
+            <div class="av-upload-zone">
+                <div class="av-upload-zone__label">
+                    @(_isEditing ? "Replace Submission" : "Submit Your Work")
+                </div>
+
+                <div class="av-dropzone">
+                    <div class="av-dropzone__icon"><i class="fa fa-cloud-upload"></i></div>
+                    <div class="av-dropzone__text">
+                        @if (_selectedFile is null)
+                        {
+                            <span>Drop your file here or click to browse</span>
+                        }
+                        else
+                        {
+                            <span style="color:#1a73e8;font-weight:600;">@_selectedFile.Name</span>
+                        }
+                    </div>
+                    <div class="av-dropzone__hint">PDF, DOCX, ZIP, up to 50 MB</div>
+                    <InputFile class="av-dropzone__input"
+                               OnChange="OnFileSelected"
+                               disabled="@_isSubmitting" />
+                </div>
+
+                @if (_selectedFile is not null)
+                {
+                    <div class="av-selected-file">
+                        <i class="fa fa-file-o" style="color:#1a73e8;"></i>
+                        <span class="av-selected-file__name">@_selectedFile.Name</span>
+                        <span class="av-selected-file__size">@FormatFileSize(_selectedFile.Size)</span>
+                        <button class="av-btn-clear" @onclick="ClearFile" title="Remove">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_fileError))
+                {
+                    <div class="av-error"><i class="fa fa-exclamation-circle"></i> @_fileError</div>
+                }
+            </div>
+
+            <div class="av-actions">
+                @if (_isEditing)
+                {
+                    <button class="av-btn-edit" @onclick="() => { _isEditing = false; ClearFile(); }">
+                        <i class="fa fa-times"></i> Cancel
+                    </button>
+                }
+                else
+                {
+                    <span></span>
+                }
+                <div class="d-flex gap-2">
+                    <button class="av-btn-submit"
+                            @onclick="SubmitAsync"
+                            disabled="@(_isSubmitting || _selectedFile is null)">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Uploading...</span>
+                        }
+                        else
+                        {
+                            <i class="fa fa-paper-plane"></i>
+                            <span>Submit</span>
+                        }
+                    </button>
+                    @if (OnDone.HasDelegate)
+                    {
+                        <button class="av-btn-done" @onclick="OnDone">
+                            <i class="fa fa-check"></i> Done
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

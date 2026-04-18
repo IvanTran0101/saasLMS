@@ -1,11 +1,651 @@
+@page "/student/learn/{courseId:guid}"
 @page "/student/learn/{courseId:guid}/{lessonId:guid}"
+@using saasLMS.Blazor.Client.Layouts
+@layout CourseLearnLayout
 @inherits AbpComponentBase
 
-<PageTitle>Lesson</PageTitle>
+@using saasLMS.CourseCatalogService.Courses
+@using saasLMS.CourseCatalogService.Courses.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Materials.Dtos.Outputs
+@using saasLMS.LearningProgressService.LessonProgresses
+@using saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs
+@using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs
+@using saasLMS.Blazor.Client.Pages.Student.Learn.Components
 
-<h3>LessonViewerPage</h3>
+<PageTitle>@(_selectedLesson?.Title ?? _courseDetail?.Title ?? "Learning")</PageTitle>
 
-@code {
-    [Parameter] public Guid CourseId { get; set; }
-    [Parameter] public Guid LessonId { get; set; }
+<style>
+    /* ── Two-column wrapper ───────────────────────────────────────────────── */
+    .slp-wrapper {
+        display: flex;
+        height: 100%;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    /* ── LEFT SIDEBAR ─────────────────────────────────────────────────────── */
+    .slp-sidebar {
+        width: 260px;
+        min-width: 260px;
+        background: #fff;
+        border-right: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .slp-sidebar__header {
+        padding: 1rem 1rem 0.75rem;
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    .slp-sidebar__course-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+
+    .slp-sidebar__progress-bar {
+        height: 4px;
+        background: #e9ecef;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 0.3rem;
+    }
+
+    .slp-sidebar__progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #1a73e8, #34a853);
+        border-radius: 2px;
+        transition: width 0.4s ease;
+    }
+
+    .slp-sidebar__progress-text {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: #1a73e8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Chapter accordion */
+    .slp-chapter {
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    .slp-chapter__header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.65rem 1rem;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+    }
+
+    .slp-chapter__header:hover {
+        background: #f8f9fa;
+    }
+
+    .slp-chapter__number {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #495057;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .slp-chapter__number--active {
+        background: #1a73e8;
+        color: #fff;
+    }
+
+    .slp-chapter__title {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #0d1117;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .slp-chapter__chevron {
+        font-size: 0.65rem;
+        color: #8a93a2;
+        flex-shrink: 0;
+        transition: transform 0.2s;
+    }
+
+    /* Lesson items */
+    .slp-lessons {
+        padding: 0.25rem 0;
+        background: #fafbfc;
+    }
+
+    .slp-lesson {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 1rem 0.5rem 1.4rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
+    }
+
+    .slp-lesson:hover {
+        background: #f0f2f5;
+    }
+
+    .slp-lesson--active {
+        background: #e8f0fe;
+        border-right: 3px solid #1a73e8;
+    }
+
+    .slp-lesson--active .slp-lesson__title {
+        color: #1a73e8;
+        font-weight: 600;
+    }
+
+    .slp-lesson__icon {
+        font-size: 0.8rem;
+        width: 16px;
+        flex-shrink: 0;
+        text-align: center;
+    }
+
+    .slp-lesson__title {
+        font-size: 0.79rem;
+        color: #333;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    /* ── MAIN CONTENT ─────────────────────────────────────────────────────── */
+    .slp-main {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .slp-main-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 1.5rem 2rem;
+        width: 100%;
+    }
+
+    /* Breadcrumb */
+    .slp-breadcrumb {
+        font-size: 0.77rem;
+        color: #8a93a2;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .slp-breadcrumb__chapter {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #1a73e8;
+        font-size: 0.7rem;
+    }
+
+    /* Lesson header */
+    .slp-lesson-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .slp-lesson-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .slp-btn-resume {
+        background: #1a73e8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.55rem 1.35rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-shrink: 0;
+    }
+
+    .slp-btn-resume:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+    }
+
+    .slp-btn-resume:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .slp-btn-review {
+        background: transparent;
+        color: #495057;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s;
+        white-space: nowrap;
+    }
+
+    .slp-btn-review:hover {
+        border-color: #1a73e8;
+        color: #1a73e8;
+    }
+
+    /* Material section label */
+    .slp-section-label {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    /* Material cards */
+    .slp-material {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 0.6rem;
+        transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .slp-material:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-color: #d0d7de;
+    }
+
+    .slp-material__icon-wrap {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .slp-material__icon-wrap--video   { background: #e8f0fe; color: #1a73e8; }
+    .slp-material__icon-wrap--text    { background: #fce8e6; color: #d93025; }
+    .slp-material__icon-wrap--file    { background: #e6f4ea; color: #1e8e3e; }
+    .slp-material__icon-wrap--default { background: #f0f2f5; color: #495057; }
+
+    .slp-material__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .slp-material__title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0d1117;
+        margin-bottom: 0.15rem;
+    }
+
+    .slp-material__meta {
+        font-size: 0.76rem;
+        color: #8a93a2;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .slp-material__completed-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.72rem;
+        color: #1e8e3e;
+        font-weight: 600;
+    }
+
+    .slp-material__action {
+        flex-shrink: 0;
+    }
+
+    /* Empty / loading states */
+    .slp-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        color: #8a93a2;
+        gap: 0.75rem;
+    }
+
+    .slp-empty {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #8a93a2;
+    }
+
+    .slp-empty__icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.4;
+    }
+
+    /* Progress footer */
+    .slp-nav-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .slp-btn-nav {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #1a73e8;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+        padding: 0.4rem 0.5rem;
+        border-radius: 6px;
+        transition: background 0.15s;
+    }
+
+    .slp-btn-nav:hover { background: #e8f0fe; }
+
+    .slp-btn-complete {
+        background: #1e8e3e;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.15s;
+    }
+
+    .slp-btn-complete:hover { background: #1a7a36; }
+    .slp-btn-complete:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .slp-completed-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #e6f4ea;
+        color: #1e8e3e;
+        border-radius: 20px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+</style>
+
+@if (_isLoading)
+{
+    <div class="slp-wrapper" style="align-items:center;justify-content:center;">
+        <div class="slp-loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span>Loading course...</span>
+        </div>
+    </div>
+}
+else if (_courseDetail is null)
+{
+    <div class="slp-wrapper" style="align-items:center;justify-content:center;">
+        <div class="slp-empty">
+            <div class="slp-empty__icon"><i class="fa fa-exclamation-triangle"></i></div>
+            <p>Course not found or you are not enrolled.</p>
+            <a href="/student/dashboard" class="btn btn-outline-primary btn-sm mt-2">Back to My Learning</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="slp-wrapper">
+
+        @* ── LEFT SIDEBAR ── *@
+        <div class="slp-sidebar">
+            <div class="slp-sidebar__header">
+                <div class="slp-sidebar__course-title">@_courseDetail.Title</div>
+                <div class="slp-sidebar__progress-bar">
+                    <div class="slp-sidebar__progress-fill" style="width:@_progressPct%"></div>
+                </div>
+                <div class="slp-sidebar__progress-text">@_progressPct% COMPLETED</div>
+            </div>
+
+            @foreach (var chapter in _courseDetail.Chapters.OrderBy(c => c.OrderNo))
+            {
+                var isChapterActive = chapter.Lessons.Any(l => l.Id == _selectedLesson?.Id);
+                <div class="slp-chapter">
+                    <div class="slp-chapter__header" @onclick="() => ToggleChapter(chapter.Id)">
+                        <span class="slp-chapter__number @(isChapterActive ? "slp-chapter__number--active" : "")">
+                            @chapter.OrderNo
+                        </span>
+                        <span class="slp-chapter__title" title="@chapter.Title">@chapter.Title</span>
+                        <i class="fa fa-chevron-@(_expandedChapters.Contains(chapter.Id) ? "up" : "down") slp-chapter__chevron"></i>
+                    </div>
+
+                    @if (_expandedChapters.Contains(chapter.Id))
+                    {
+                        <div class="slp-lessons">
+                            @foreach (var lesson in chapter.Lessons.OrderBy(l => l.SortOrder))
+                            {
+                                var isActive   = _selectedLesson?.Id == lesson.Id;
+                                var isDone     = _completedLessonIds.Contains(lesson.Id);
+                                <div class="slp-lesson @(isActive ? "slp-lesson--active" : "")"
+                                     @onclick="() => SelectLessonAsync(lesson)">
+                                    <span class="slp-lesson__icon">
+                                        @if (isDone)
+                                        {
+                                            <i class="fa fa-check-circle text-success"></i>
+                                        }
+                                        else if (isActive)
+                                        {
+                                            <i class="fa fa-play-circle text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa fa-circle-o text-muted" style="font-size:0.7rem;"></i>
+                                        }
+                                    </span>
+                                    <span class="slp-lesson__title" title="@lesson.Title">@lesson.Title</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @* ── MAIN CONTENT ── *@
+        <div class="slp-main">
+            @if (_selectedLesson is null)
+            {
+                <div class="slp-main-inner">
+                    <div class="slp-empty">
+                        <div class="slp-empty__icon"><i class="fa fa-book-open"></i></div>
+                        <p>Select a lesson from the sidebar to begin.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="slp-main-inner">
+                    @* Breadcrumb *@
+                    <div class="slp-breadcrumb">
+                        <span class="slp-breadcrumb__chapter">@_selectedChapter?.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span>@_selectedLesson.Title</span>
+                    </div>
+
+                    @* Lesson header + action button *@
+                    <div class="slp-lesson-header">
+                        <h1 class="slp-lesson-title">@_selectedLesson.Title</h1>
+
+                        @if (_isLessonCompleted)
+                        {
+                            <span class="slp-completed-chip">
+                                <i class="fa fa-check-circle"></i> Completed
+                            </span>
+                        }
+                        else if (_isResumeLesson)
+                        {
+                            <button class="slp-btn-resume" @onclick="ResumeLessonAsync" disabled="@_isActing">
+                                @if (_isActing)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                }
+                                else if (!_hasCourseStarted)
+                                {
+                                    <i class="fa fa-play"></i>
+                                    <span>Start Learning</span>
+                                }
+                                else
+                                {
+                                    <i class="fa fa-play"></i>
+                                    <span>Resume Learning</span>
+                                }
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="slp-btn-review" @onclick="ResumeLessonAsync">
+                                <i class="fa fa-eye me-1"></i> Review
+                            </button>
+                        }
+                    </div>
+
+                    @* Materials list *@
+                    @if (_selectedLesson.Materials.Count == 0)
+                    {
+                        <div class="slp-empty" style="padding:1.5rem 0;">
+                            <div class="slp-empty__icon"><i class="fa fa-folder-open-o"></i></div>
+                            <p>No materials in this lesson yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="slp-section-label">Lesson Material</div>
+                        @foreach (var material in _selectedLesson.Materials.OrderBy(m => m.SortOrder))
+                        {
+                            <div class="slp-material">
+                                <div class="slp-material__icon-wrap @GetMaterialIconClass(material.Type)">
+                                    <i class="fa @GetMaterialIcon(material.Type)"></i>
+                                </div>
+                                <div class="slp-material__info">
+                                    <div class="slp-material__title">@material.Title</div>
+                                    <div class="slp-material__meta">
+                                        <span>@GetMaterialTypeLabel(material.Type)</span>
+                                        @if (_isLessonCompleted)
+                                        {
+                                            <span class="slp-material__completed-badge">
+                                                <i class="fa fa-check-circle"></i> Completed
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="slp-material__action">
+                                    @if (_isLessonCompleted)
+                                    {
+                                        <i class="fa fa-check-circle text-success fa-lg"></i>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @* Complete lesson + Prev/Next navigation *@
+                    <div class="slp-nav-footer">
+                        <div>
+                            @if (_prevLesson != null)
+                            {
+                                <button class="slp-btn-nav" @onclick="GoToPrevLessonAsync">
+                                    <i class="fa fa-chevron-left"></i> Previous Lesson
+                                </button>
+                            }
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            @if (!_isLessonCompleted)
+                            {
+                                <button class="slp-btn-complete"
+                                        @onclick="CompleteLessonAsync"
+                                        disabled="@_isActing">
+                                    @if (_isActing)
+                                    {
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa fa-check"></i>
+                                    }
+                                    Mark as Complete
+                                </button>
+                            }
+
+                            @if (_nextLesson != null)
+                            {
+                                <button class="slp-btn-nav" @onclick="GoToNextLessonAsync">
+                                    Next: @_nextLesson.Title <i class="fa fa-chevron-right"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            }
+        </div>
+
+    </div>
 }

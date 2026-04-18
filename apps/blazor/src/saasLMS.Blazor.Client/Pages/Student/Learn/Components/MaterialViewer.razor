@@ -1,0 +1,180 @@
+@using saasLMS.CourseCatalogService.Courses
+@using saasLMS.CourseCatalogService.Lessons.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Materials.Dtos.Outputs
+@using saasLMS.CourseCatalogService.Materials.Dtos.Inputs
+
+@inherits AbpComponentBase
+
+<style>
+    .mv-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .mv-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1.1rem;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        transition: box-shadow 0.15s;
+    }
+
+    .mv-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    .mv-item__icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: #e6f4ea;
+        color: #1e8e3e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .mv-item__icon--pdf  { background: #fce8e6; color: #d93025; }
+    .mv-item__icon--ppt  { background: #fff0e0; color: #e37400; }
+    .mv-item__icon--word { background: #e8f0fe; color: #1a73e8; }
+    .mv-item__icon--zip  { background: #f0f2f5; color: #495057; }
+    .mv-item__icon--file { background: #e6f4ea; color: #1e8e3e; }
+
+    .mv-item__info { flex: 1; min-width: 0; }
+
+    .mv-item__name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0d1117;
+        margin-bottom: 0.15rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mv-item__meta {
+        font-size: 0.74rem;
+        color: #8a93a2;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .mv-item__action { flex-shrink: 0; }
+
+    .mv-btn-download {
+        background: #fff;
+        color: #1a73e8;
+        border: 1.5px solid #1a73e8;
+        border-radius: 7px;
+        padding: 0.38rem 0.9rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .mv-btn-download:hover { background: #e8f0fe; }
+
+    .mv-btn-download:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .mv-empty {
+        text-align: center;
+        padding: 2rem;
+        color: #8a93a2;
+        background: #fafbfc;
+        border-radius: 10px;
+        border: 1px dashed #ced4da;
+        font-size: 0.85rem;
+    }
+
+    .mv-done-bar {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .mv-btn-done {
+        background: #1a73e8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: background 0.15s;
+    }
+
+    .mv-btn-done:hover { background: #1557b0; }
+</style>
+
+@if (_fileMaterials.Count == 0)
+{
+    <div class="mv-empty">
+        <i class="fa fa-folder-open-o me-2"></i>No file materials in this lesson.
+    </div>
+}
+else
+{
+    <div class="mv-list">
+        @foreach (var m in _fileMaterials)
+        {
+            <div class="mv-item">
+                <div class="mv-item__icon @GetIconClass(m.FileName)">
+                    <i class="fa @GetFileIcon(m.FileName)"></i>
+                </div>
+                <div class="mv-item__info">
+                    <div class="mv-item__name" title="@m.Title">@m.Title</div>
+                    <div class="mv-item__meta">
+                        @if (!string.IsNullOrWhiteSpace(m.FileName))
+                        {
+                            <span>@m.FileName</span>
+                        }
+                        @if (m.FileSize.HasValue)
+                        {
+                            <span>&bull;</span>
+                            <span>@FormatFileSize(m.FileSize.Value)</span>
+                        }
+                    </div>
+                </div>
+                <div class="mv-item__action">
+                    <button class="mv-btn-download"
+                            @onclick="() => DownloadAsync(m)"
+                            disabled="@(_downloadingId == m.Id)">
+                        @if (_downloadingId == m.Id)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+                        else
+                        {
+                            <i class="fa fa-download"></i>
+                        }
+                        Download
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (OnDone.HasDelegate)
+{
+    <div class="mv-done-bar">
+        <button class="mv-btn-done" @onclick="OnDone">
+            <i class="fa fa-check"></i> Done
+        </button>
+    </div>
+}
+

@@ -1,0 +1,111 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+
+<style>
+    /* ── Reset ABP/LeptonX chrome for this layout ─────────────────────────── */
+    body {
+        background: #f8f9fa !important;
+    }
+
+    .lpx-sidebar, .lpx-nav, .lpx-topbar, aside,
+    .lpx-left-sidebar, .lpx-main-menu, .content-header,
+    .lpx-page-header, .card-header.border-bottom,
+    .lpx-theme-dark .lpx-topbar {
+        display: none !important;
+    }
+
+    .lpx-content-container, .lpx-body, main.container-fluid,
+    .lpx-main, .page-content, #main-content,
+    .content-wrapper, .lpx-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* ── Layout shell ─────────────────────────────────────────────────────── */
+    .cll-root {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .cll-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 52px;
+        padding: 0 1.25rem;
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        flex-shrink: 0;
+        z-index: 100;
+    }
+
+    .cll-topbar__brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #0f2744;
+        text-decoration: none;
+    }
+
+    .cll-topbar__brand i {
+        color: #1a73e8;
+        font-size: 1.1rem;
+    }
+
+    .cll-topbar__actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .cll-topbar__link {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #0f2744;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        transition: background 0.15s;
+    }
+
+    .cll-topbar__link:hover {
+        background: #f0f2f5;
+        color: #1a73e8;
+    }
+
+    .cll-body {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+    }
+</style>
+
+<div class="cll-root">
+    <header class="cll-topbar">
+        <a href="/" class="cll-topbar__brand">
+            <i class="fa fa-graduation-cap"></i>
+            SaaS LMS
+        </a>
+        <div class="cll-topbar__actions">
+            <a href="/student/dashboard" class="cll-topbar__link">
+                <i class="fa fa-th-large"></i>
+                My Learning
+            </a>
+        </div>
+    </header>
+
+    <div class="cll-body">
+        @Body
+    </div>
+</div>

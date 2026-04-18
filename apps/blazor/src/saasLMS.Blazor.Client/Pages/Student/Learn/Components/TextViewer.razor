@@ -1,5 +1,66 @@
-﻿<h3>TextBookViewer</h3>
+@using saasLMS.CourseCatalogService.Courses
+@using saasLMS.CourseCatalogService.Materials.Dtos.Outputs
 
-@code {
-    
-}
+<div class="tv-wrap">
+    @if (string.IsNullOrWhiteSpace(_renderedContent) && !_isHtml)
+    {
+        <div class="tv-empty">
+            <i class="fa fa-file-text-o tv-empty__icon"></i>
+            <span>No content available.</span>
+        </div>
+    }
+    else if (_isHtml)
+    {
+        <div class="tv-content tv-content--html">
+            @((MarkupString)(_renderedContent ?? string.Empty))
+        </div>
+    }
+    else
+    {
+        <pre class="tv-content tv-content--plain">@_renderedContent</pre>
+    }
+</div>
+
+<style>
+    .tv-wrap { margin-bottom: 1rem; }
+
+    .tv-content {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        font-size: 0.92rem;
+        line-height: 1.7;
+        color: #333;
+    }
+
+    .tv-content--plain {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: inherit;
+    }
+
+    .tv-content--html h1,
+    .tv-content--html h2,
+    .tv-content--html h3 {
+        margin-top: 1.25rem;
+        color: #0d1117;
+    }
+
+    .tv-empty {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #ced4da;
+        color: #8a93a2;
+        font-size: 0.85rem;
+    }
+
+    .tv-empty__icon {
+        font-size: 1.25rem;
+        opacity: 0.4;
+    }
+</style>
