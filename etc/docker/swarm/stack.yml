@@ -32,6 +32,17 @@ x-deploy-worker: &deploy_worker
     constraints:
       - node.role == worker
 
+x-deploy-manager: &deploy_manager
+  replicas: 1
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 10
+    window: 60s
+  placement:
+    constraints:
+      - node.role == manager
+
 networks:
   saaslms-app:
     driver: overlay
@@ -100,7 +111,7 @@ services:
       - target: 80
         published: 8082
         protocol: tcp
-        mode: ingress
+        mode: host
     environment:
       <<: *env_common
       App__SelfUrl: https://auth.trananhminh.uk
@@ -116,7 +127,7 @@ services:
     networks:
       - saaslms-app
     deploy:
-      <<: *deploy_worker
+      <<: *deploy_manager
 
   gateway:
     image: youngmizh/saaslms-gateway-web:latest
@@ -124,7 +135,7 @@ services:
       - target: 80
         published: 8080
         protocol: tcp
-        mode: ingress
+        mode: host
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -148,7 +159,7 @@ services:
     networks:
       - saaslms-app
     deploy:
-      <<: *deploy_worker
+      <<: *deploy_manager
 
   saasservice:
     image: youngmizh/saaslms-saas:latest
