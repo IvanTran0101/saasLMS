@@ -18,7 +18,7 @@ namespace saasLMS.Blazor.Client.Pages.Student.Learn.Components;
 
 public partial class AssignmentViewer : AbpComponentBase
 {
-    private const long MaxFileSizeBytes = 50 * 1024 * 1024; // 50 MB
+    private const long MaxFileSizeBytes = 20 * 1024 * 1024; // 50 MB
 
     // ── Parameters ────────────────────────────────────────────────────────────
 

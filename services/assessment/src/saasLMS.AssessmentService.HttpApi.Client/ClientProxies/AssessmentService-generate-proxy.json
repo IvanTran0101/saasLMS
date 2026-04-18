@@ -650,7 +650,7 @@
               "uniqueName": "GetListByCourseStudentAsyncByCourseId",
               "name": "GetListByCourseStudentAsync",
               "httpMethod": "GET",
-              "url": "api/assessment/assignment/by-course/{courseId}/student",
+              "url": "api/assessment/assignment/by-course-student/{courseId}",
               "supportedVersions": [],
               "parametersOnMethod": [
                 { "name": "courseId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
@@ -667,7 +667,7 @@
               "uniqueName": "GetListByLessonStudentAsyncByLessonId",
               "name": "GetListByLessonStudentAsync",
               "httpMethod": "GET",
-              "url": "api/assessment/assignment/by-lesson/{lessonId}/student",
+              "url": "api/assessment/assignment/by-lesson-student/{lessonId}",
               "supportedVersions": [],
               "parametersOnMethod": [
                 { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
@@ -961,7 +961,7 @@
               "uniqueName": "GetListByCourseStudentAsyncByLessonId",
               "name": "GetListByCourseStudentAsync",
               "httpMethod": "GET",
-              "url": "api/assessment/quiz/by-course/{lessonId}/student",
+              "url": "api/assessment/quiz/by-course-student/{lessonId}",
               "supportedVersions": [],
               "parametersOnMethod": [
                 { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
@@ -978,7 +978,7 @@
               "uniqueName": "GetListByLessonStudentAsyncByLessonId",
               "name": "GetListByLessonStudentAsync",
               "httpMethod": "GET",
-              "url": "api/assessment/quiz/by-lesson/{lessonId}/student",
+              "url": "api/assessment/quiz/by-lesson-student/{lessonId}",
               "supportedVersions": [],
               "parametersOnMethod": [
                 { "name": "lessonId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
