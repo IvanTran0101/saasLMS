@@ -28,7 +28,11 @@ public class LearningProgressServiceHttpApiModule : AbpModule
         {
             options.ConventionalControllers.Create(
                 typeof(LearningProgressServiceApplicationModule).Assembly,
-                opts => { opts.RootPath = "learning-progress"; });
+                opts =>
+                {
+                    opts.RootPath = "learning-progress";
+                    opts.RemoteServiceName = LearningProgressServiceRemoteServiceConsts.RemoteServiceName;
+                });
         });
 
         Configure<AbpLocalizationOptions>(options =>
@@ -36,17 +40,6 @@ public class LearningProgressServiceHttpApiModule : AbpModule
             options.Resources
                 .Get<LearningProgressServiceResource>()
                 .AddBaseTypes(typeof(AbpUiResource));
-        });
-        
-        Configure<AbpAspNetCoreMvcOptions>(options =>
-        {
-            options.ConventionalControllers.Create(
-                typeof(LearningProgressServiceApplicationModule).Assembly,
-                opts =>
-                {
-                    opts.RootPath = "learning-progress";
-                    opts.RemoteServiceName = LearningProgressServiceRemoteServiceConsts.RemoteServiceName;
-                });
         });
     }
 }

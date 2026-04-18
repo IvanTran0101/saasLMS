@@ -31,10 +31,11 @@ public class MaterialFileController : CourseCatalogServiceController
         var remoteStream = new RemoteStreamContent(stream, input.File.FileName, input.File.ContentType);
         var uploadInput = new UploadMaterialFileInput
         {
-            CourseId = input.CourseId,
-            ChapterId = input.ChapterId,
-            LessonId = input.LessonId,
-            MaterialId = input.MaterialId
+            CourseId   = input.CourseId,
+            ChapterId  = input.ChapterId,
+            LessonId   = input.LessonId,
+            MaterialId = input.MaterialId,
+            Title      = input.Title
         };
         return await _courseCatalogAppService.UploadMaterialFileAsync(uploadInput, remoteStream);
     }

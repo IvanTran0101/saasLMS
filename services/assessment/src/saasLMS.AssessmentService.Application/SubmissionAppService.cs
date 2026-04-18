@@ -7,6 +7,7 @@ using saasLMS.AssessmentService.Courses;
 using saasLMS.AssessmentService.Submissions;
 using Volo.Abp;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using saasLMS.AssessmentService.Permissions;
 using saasLMS.AssessmentService.BlobStoring;
 using saasLMS.AssessmentService.Shared;
@@ -224,6 +225,7 @@ public class SubmissionAppService : AssessmentServiceAppService, ISubmissionAppS
         return ObjectMapper.Map<Submission, SubmissionDto>(submission);
     }
 
+    [RemoteService(false)]
     [Authorize(AssessmentServicePermissions.Submissions.Grade)]
     public async Task<SubmissionDto> GradeAsync(Guid submissionId, GradeSubmissionDto input)
     {

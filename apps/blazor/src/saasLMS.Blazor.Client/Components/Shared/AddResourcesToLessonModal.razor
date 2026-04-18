@@ -1,0 +1,834 @@
+﻿@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+@using saasLMS.CourseCatalogService.Courses
+@using Microsoft.AspNetCore.Components.Forms
+@using saasLMS.AssessmentService.Assignments
+@using saasLMS.AssessmentService.Quizzes
+
+@if (_isVisible)
+{
+    <div class="arm-backdrop" @onclick="Close"></div>
+
+    <div class="arm-modal" role="dialog" aria-modal="true" aria-labelledby="arm-title">
+
+        @* ── Header ── *@
+        <div class="arm-modal__header">
+            <div>
+                <h5 class="arm-modal__title" id="arm-title">
+                    @(_isEditAssignmentMode ? "Edit Assignment" : _isEditMode ? "Edit Resource" : "Add Resource to Lesson")
+                </h5>
+                <p class="arm-modal__subtitle">@_lessonTitle</p>
+            </div>
+            <button class="arm-modal__close" @onclick="Close" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        @* ── Tabs ── *@
+        <div class="arm-tabs">
+            @* Material tabs: ẩn khi đang edit assignment *@
+            @if (!_isEditAssignmentMode)
+            {
+                <button class="arm-tab @(_activeTab == MaterialTabType.FileUpload ? "arm-tab--active" : "") @(_isEditMode && _activeTab != MaterialTabType.FileUpload ? "arm-tab--locked" : "")"
+                        @onclick='() => { if (!_isEditMode) SelectTab(MaterialTabType.FileUpload); }'
+                        disabled="@(_isEditMode && _activeTab != MaterialTabType.FileUpload)">
+                    <i class="fa fa-upload me-1"></i> File Upload
+                </button>
+                <button class="arm-tab @(_activeTab == MaterialTabType.VideoLink ? "arm-tab--active" : "") @(_isEditMode && _activeTab != MaterialTabType.VideoLink ? "arm-tab--locked" : "")"
+                        @onclick='() => { if (!_isEditMode) SelectTab(MaterialTabType.VideoLink); }'
+                        disabled="@(_isEditMode && _activeTab != MaterialTabType.VideoLink)">
+                    <i class="fa fa-play-circle me-1"></i> Video Link
+                </button>
+                <button class="arm-tab @(_activeTab == MaterialTabType.Text ? "arm-tab--active" : "") @(_isEditMode && _activeTab != MaterialTabType.Text ? "arm-tab--locked" : "")"
+                        @onclick='() => { if (!_isEditMode) SelectTab(MaterialTabType.Text); }'
+                        disabled="@(_isEditMode && _activeTab != MaterialTabType.Text)">
+                    <i class="fa fa-align-left me-1"></i> Text
+                </button>
+            }
+            @* Assignment tab: ẩn khi đang edit material *@
+            @if (!_isEditMode)
+            {
+                <button class="arm-tab @(_activeTab == MaterialTabType.Assignment ? "arm-tab--active" : "")"
+                        @onclick='() => { if (!_isEditAssignmentMode) SelectTab(MaterialTabType.Assignment); }'>
+                    <i class="fa fa-tasks me-1"></i> Assignment
+                </button>
+                <button class="arm-tab @(_activeTab == MaterialTabType.Quiz ? "arm-tab--active" : "")"
+                        @onclick='() => { if (!_isEditAssignmentMode) SelectTab(MaterialTabType.Quiz); }'>
+                    <i class="fa fa-question-circle me-1"></i> Quiz
+                </button>
+            }
+        </div>
+
+        @* ── Body ── *@
+        <div class="arm-modal__body">
+
+            @* Resource Title — ẩn cho Quiz tab (title lấy tự động từ tên file CSV) *@
+            @if (_activeTab != MaterialTabType.Quiz)
+            {
+                <div class="arm-field @(_titleError != null ? "arm-field--error" : "")">
+                    <label class="arm-field__label" for="arm-res-title">
+                        Resource Title <span class="arm-field__required">*</span>
+                    </label>
+                    <input id="arm-res-title"
+                           type="text"
+                           class="arm-field__input"
+                           placeholder="@GetTitlePlaceholder()"
+                           @bind="_resourceTitle"
+                           @bind:event="oninput"
+                           maxlength="200"
+                           disabled="@_isSaving" />
+                    @if (_titleError != null)
+                    {
+                        <span class="arm-field__error-msg">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_titleError
+                        </span>
+                    }
+                </div>
+            }
+
+            @* ── Tab: File Upload ── *@
+            @if (_activeTab == MaterialTabType.FileUpload)
+            {
+                <div class="arm-section">
+                    @if (_isEditMode && !string.IsNullOrEmpty(_existingFileName))
+                    {
+                        <div class="arm-current-file">
+                            <i class="fa fa-file-alt arm-current-file__icon"></i>
+                            <div>
+                                <span class="arm-current-file__label">Current file</span>
+                                <span class="arm-current-file__name">@_existingFileName</span>
+                            </div>
+                        </div>
+                    }
+                    <label class="arm-field__label">
+                        @(_isEditMode ? "Replace File (optional)" : "File Selection")
+                    </label>
+                    <div class="arm-dropzone @(_fileError != null ? "arm-dropzone--error" : "")">
+                        <div class="arm-dropzone__icon">
+                            <i class="fa fa-cloud-upload-alt"></i>
+                        </div>
+                        @if (_selectedFile is null)
+                        {
+                            <p class="arm-dropzone__hint">Drag and drop your file here</p>
+                            <p class="arm-dropzone__hint arm-dropzone__hint--sub">or click to browse</p>
+                        }
+                        else
+                        {
+                            <p class="arm-dropzone__file-name">@_selectedFile.Name</p>
+                            <p class="arm-dropzone__file-size">@FormatFileSize(_selectedFile.Size)</p>
+                        }
+                        <InputFile OnChange="OnFileSelected"
+                                   class="arm-dropzone__input"
+                                   accept=".pptx,.docx,.zip"
+                                   disabled="@_isSaving" />
+                    </div>
+                    @if (_fileError != null)
+                    {
+                        <span class="arm-field__error-msg mt-1">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_fileError
+                        </span>
+                    }
+                    <div class="arm-formats mt-2">
+                        <span class="arm-field__label">Supported Formats</span>
+                        <div class="arm-formats__badges">
+                            <span class="arm-format-badge arm-format-badge--pptx">PPTX</span>
+                            <span class="arm-format-badge arm-format-badge--docx">DOCX</span>
+                            <span class="arm-format-badge arm-format-badge--zip">ZIP</span>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* ── Tab: Video Link ── *@
+            @if (_activeTab == MaterialTabType.VideoLink)
+            {
+                <div class="arm-section">
+                    <div class="arm-field @(_videoUrlError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-video-url">
+                            Video URL <span class="arm-field__required">*</span>
+                        </label>
+                        <div class="arm-input-icon-wrap">
+                            <i class="fa fa-play arm-input-icon"></i>
+                            <input id="arm-video-url"
+                                   type="url"
+                                   class="arm-field__input arm-field__input--with-icon"
+                                   placeholder="Paste YouTube or Vimeo link"
+                                   @bind="_videoUrl"
+                                   @bind:event="oninput"
+                                   disabled="@_isSaving" />
+                        </div>
+                        @if (_videoUrlError != null)
+                        {
+                            <span class="arm-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_videoUrlError
+                            </span>
+                        }
+                    </div>
+
+                    <div class="arm-field mt-3">
+                        <label class="arm-field__label" for="arm-video-notes">
+                            Instructor Notes <span class="arm-field__optional">(optional)</span>
+                        </label>
+                        <textarea id="arm-video-notes"
+                                  class="arm-field__input arm-field__textarea"
+                                  placeholder="Briefly explain how students should use this resource..."
+                                  rows="3"
+                                  @bind="_videoNotes"
+                                  @bind:event="oninput"
+                                  disabled="@_isSaving"></textarea>
+                    </div>
+
+                    @{
+                        var embedUrl = _isEditMode && !string.IsNullOrWhiteSpace(_videoUrl)
+                            ? GetEmbedUrl(_videoUrl)
+                            : null;
+                    }
+                    @if (embedUrl != null)
+                    {
+                        <div class="arm-video-embed mt-3">
+                            <iframe src="@embedUrl"
+                                    width="100%"
+                                    height="220"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="arm-preview-placeholder mt-3">
+                            <div class="arm-preview-placeholder__icon">
+                                <i class="fa fa-image"></i>
+                            </div>
+                            <div>
+                                <p class="arm-preview-placeholder__title">Preview not available</p>
+                                <p class="arm-preview-placeholder__sub">The video player will be embedded in the lesson</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* ── Tab: Text ── *@
+            @if (_activeTab == MaterialTabType.Text)
+            {
+                <div class="arm-section">
+                    <div class="arm-field @(_textError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-text-content">
+                            Content <span class="arm-field__required">*</span>
+                        </label>
+                        <div class="arm-editor">
+                            <div class="arm-editor__toolbar">
+                                <button type="button" class="arm-editor__tool" title="Bold"><strong>B</strong></button>
+                                <button type="button" class="arm-editor__tool" title="Italic"><em>I</em></button>
+                                <button type="button" class="arm-editor__tool" title="List"><i class="fa fa-list-ul"></i></button>
+                                <button type="button" class="arm-editor__tool" title="Link"><i class="fa fa-link"></i></button>
+                                <button type="button" class="arm-editor__tool" title="Quote"><i class="fa fa-quote-right"></i></button>
+                            </div>
+                            <textarea id="arm-text-content"
+                                      class="arm-editor__content"
+                                      placeholder="Start typing your course notes here..."
+                                      rows="6"
+                                      @bind="_textContent"
+                                      @bind:event="oninput"
+                                      disabled="@_isSaving"></textarea>
+                        </div>
+                        @if (_textError != null)
+                        {
+                            <span class="arm-field__error-msg mt-1">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_textError
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+            
+            @* ── Tab: Assignment ── *@
+        @if (_activeTab == MaterialTabType.Assignment)
+        {
+            <div class="arm-section">
+
+                @* Description *@
+                <div class="arm-field mt-3">
+                    <label class="arm-field__label" for="arm-asgn-desc">
+                        Description <span class="arm-field__optional">(optional)</span>
+                    </label>
+                    <textarea id="arm-asgn-desc"
+                              class="arm-field__input arm-field__textarea"
+                              placeholder="Describe the assignment requirements..."
+                              rows="4"
+                              @bind="_assignmentDescription"
+                              @bind:event="oninput"
+                              disabled="@_isSaving"></textarea>
+                </div>
+
+                <div class="arm-field-row mt-3">
+
+                    @* Deadline *@
+                    <div class="arm-field arm-field--half @(_assignmentDeadlineError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-asgn-deadline">
+                            Deadline <span class="arm-field__optional">(optional)</span>
+                        </label>
+                        <input id="arm-asgn-deadline"
+                               type="datetime-local"
+                               class="arm-field__input"
+                               @bind="_assignmentDeadline"
+                               disabled="@_isSaving" />
+                        @if (_assignmentDeadlineError != null)
+                        {
+                            <span class="arm-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_assignmentDeadlineError
+                            </span>
+                        }
+                    </div>
+
+                    @* Max Score *@
+                    <div class="arm-field arm-field--half @(_assignmentMaxScoreError != null ? "arm-field--error" : "")">
+                        <label class="arm-field__label" for="arm-asgn-score">
+                            Max Score <span class="arm-field__required">*</span>
+                        </label>
+                        <input id="arm-asgn-score"
+                               type="number"
+                               class="arm-field__input"
+                               placeholder="e.g. 100"
+                               min="0"
+                               step="0.5"
+                               @bind="_assignmentMaxScore"
+                               @bind:event="oninput"
+                               disabled="@_isSaving" />
+                        @if (_assignmentMaxScoreError != null)
+                        {
+                            <span class="arm-field__error-msg">
+                                <i class="fa fa-exclamation-circle me-1"></i>@_assignmentMaxScoreError
+                            </span>
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+        @* ── Tab: Quiz ── *@
+        @if (_activeTab == MaterialTabType.Quiz)
+        {
+            <div class="arm-section">
+                <label class="arm-field__label">CSV File <span class="arm-field__required">*</span></label>
+                <p class="arm-quiz-hint">The quiz title, questions, and answer choices are all read from the CSV file.</p>
+                <div class="arm-dropzone @(_quizCsvFileError != null ? "arm-dropzone--error" : "")">
+                    <div class="arm-dropzone__icon">
+                        <i class="fa fa-file-csv"></i>
+                    </div>
+                    @if (_quizCsvFile is null)
+                    {
+                        <p class="arm-dropzone__hint">Drag and drop your CSV file here</p>
+                        <p class="arm-dropzone__hint arm-dropzone__hint--sub">or click to browse</p>
+                    }
+                    else
+                    {
+                        <p class="arm-dropzone__file-name">@_quizCsvFile.Name</p>
+                        <p class="arm-dropzone__file-size">@FormatFileSize(_quizCsvFile.Size)</p>
+                    }
+                    <InputFile OnChange="OnQuizCsvFileSelected"
+                               class="arm-dropzone__input"
+                               accept=".csv"
+                               disabled="@_isSaving" />
+                </div>
+                @if (_quizCsvFileError != null)
+                {
+                    <span class="arm-field__error-msg mt-1">
+                        <i class="fa fa-exclamation-circle me-1"></i>@_quizCsvFileError
+                    </span>
+                }
+                <div class="arm-formats mt-2">
+                    <span class="arm-field__label">Supported Formats</span>
+                    <div class="arm-formats__badges">
+                        <span class="arm-format-badge arm-format-badge--csv">CSV</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        </div>
+
+        @* ── Footer ── *@
+        <div class="arm-modal__footer">
+            <button class="arm-btn arm-btn--ghost" @onclick="Close" disabled="@_isSaving">Cancel</button>
+            <button class="arm-btn arm-btn--primary" @onclick="AddResourceAsync" disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Saving...</span>
+                }
+                else if (_isEditMode || _isEditAssignmentMode)
+                {
+                    <i class="fa fa-save me-2"></i>
+                    <span>Save Changes</span>
+                }
+                else
+                {
+                    <i class="fa fa-plus me-2"></i>
+                    <span>@(_activeTab == MaterialTabType.Assignment ? "Add to Lesson"
+                              : _activeTab == MaterialTabType.Quiz ? "Upload CSV"
+                              : "Add Resource")</span>
+                }
+            </button>
+        </div>
+
+    </div>
+}
+
+@* ── Quiz Preview Modal ── *@
+@if (_isQuizPreviewVisible && _uploadedQuizDto != null)
+{
+    <div class="arm-backdrop" @onclick="CloseQuizPreview"></div>
+
+    <div class="arm-modal arm-modal--wide" role="dialog" aria-modal="true" aria-labelledby="qp-title">
+
+        <div class="arm-modal__header">
+            <div>
+                <h5 class="arm-modal__title" id="qp-title">
+                    <i class="fa fa-question-circle me-2" style="color:#1a6db5;"></i>Quiz Preview
+                </h5>
+                <p class="arm-modal__subtitle">@_uploadedQuizDto.Title &nbsp;·&nbsp; @(_quizPreviewQuestions?.Count ?? 0) question(s)</p>
+            </div>
+            <button class="arm-modal__close" @onclick="CloseQuizPreview" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <div class="arm-modal__body">
+            @if (_quizPreviewQuestions != null && _quizPreviewQuestions.Count > 0)
+            {
+                <ol class="qp-question-list">
+                    @foreach (var (q, qi) in _quizPreviewQuestions.Select((q, i) => (q, i)))
+                    {
+                        <li class="qp-question">
+                            <p class="qp-question__text">@q.Text</p>
+                            <ul class="qp-choices">
+                                @foreach (var (a, ai) in q.Answers.Select((a, i) => (a, i)))
+                                {
+                                    <li class="qp-choice @(a.IsCorrect ? "qp-choice--correct" : "")">
+                                        <span class="qp-choice__letter">@((char)('A' + ai))</span>
+                                        <span class="qp-choice__text">@a.Text</span>
+                                        @if (a.IsCorrect)
+                                        {
+                                            <i class="fa fa-check-circle qp-choice__check"></i>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                </ol>
+            }
+            else
+            {
+                <p class="text-muted text-center py-3">No questions found.</p>
+            }
+        </div>
+
+        <div class="arm-modal__footer">
+            <button class="arm-btn arm-btn--ghost" @onclick="CloseQuizPreview">
+                <i class="fa fa-arrow-left me-2"></i>Cancel
+            </button>
+            <button class="arm-btn arm-btn--primary" @onclick="ConfirmQuizAsync">
+                <i class="fa fa-check me-2"></i>Confirm &amp; Add to Lesson
+            </button>
+        </div>
+
+    </div>
+}
+
+@code {
+    private string GetTitlePlaceholder() => _activeTab switch
+    {
+        MaterialTabType.FileUpload => "e.g. Syllabus - Advanced Pedagogy",
+        MaterialTabType.VideoLink  => "e.g. Expert Interview on Cognitive Load",
+        MaterialTabType.Text       => "e.g. Key Concept Summary",
+        _                          => "Resource title"
+    };
+
+    /// <summary>
+    /// Converts a YouTube or Vimeo URL to its embeddable form.
+    /// Returns null if the URL is not recognised or cannot be parsed.
+    /// </summary>
+    private static string? GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri)) return null;
+
+        var host = uri.Host.ToLowerInvariant();
+        if (host.StartsWith("www.")) host = host[4..];
+        if (host.StartsWith("m."))   host = host[2..];
+
+        // ── YouTube ──────────────────────────────────────────────────────────────
+        if (host == "youtube.com" || host == "youtu.be")
+        {
+            string? videoId = null;
+
+            if (host == "youtu.be")
+            {
+                // https://youtu.be/VIDEO_ID
+                videoId = uri.AbsolutePath.TrimStart('/').Split('?')[0];
+            }
+            else
+            {
+                var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                if (segments.Length >= 2 && segments[0] == "embed")
+                {
+                    // Already an embed URL
+                    videoId = segments[1].Split('?')[0];
+                }
+                else
+                {
+                    // Parse ?v= from query string manually
+                    foreach (var part in uri.Query.TrimStart('?').Split('&'))
+                    {
+                        var kv = part.Split('=', 2);
+                        if (kv.Length == 2 && kv[0] == "v")
+                        {
+                            videoId = Uri.UnescapeDataString(kv[1]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(videoId))
+                return $"https://www.youtube.com/embed/{videoId}";
+        }
+
+        // ── Vimeo ─────────────────────────────────────────────────────────────────
+        if (host == "vimeo.com" || host == "player.vimeo.com")
+        {
+            var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+            if (host == "player.vimeo.com" && segments.Length >= 2 && segments[0] == "video")
+                return url.Trim(); // already embed URL
+
+            if (segments.Length >= 1 && long.TryParse(segments[0], out _))
+                return $"https://player.vimeo.com/video/{segments[0]}";
+        }
+
+        return null;
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}
+
+<style>
+    .arm-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 39, 68, 0.5);
+        backdrop-filter: blur(2px);
+        z-index: 1040;
+    }
+
+    .arm-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        width: min(560px, 96vw);
+        max-height: 90vh;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 24px 64px rgba(15, 39, 68, 0.22);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .arm-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.4rem 1.6rem 0.9rem;
+        border-bottom: 1px solid #eef0f3;
+        flex-shrink: 0;
+    }
+    .arm-modal__title { font-size: 1.1rem; font-weight: 700; color: #0f2744; margin: 0 0 0.2rem; }
+    .arm-modal__subtitle { font-size: 0.82rem; color: #8494a9; margin: 0; }
+    .arm-modal__close {
+        background: none;
+        border: none;
+        color: #8494a9;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.2rem;
+        transition: color 0.15s;
+    }
+    .arm-modal__close:hover { color: #0f2744; }
+
+    .arm-tabs {
+        display: flex;
+        padding: 0 1.6rem;
+        border-bottom: 1px solid #eef0f3;
+        flex-shrink: 0;
+    }
+    .arm-tab {
+        background: none;
+        border: none;
+        border-bottom: 2.5px solid transparent;
+        padding: 0.7rem 1rem;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: #8494a9;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+        margin-bottom: -1px;
+    }
+    .arm-tab:hover { color: #0f2744; }
+    .arm-tab--active { color: #0f2744; border-bottom-color: #1a6db5; }
+    .arm-tab--locked { opacity: 0.35; cursor: not-allowed; }
+    .arm-tab:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    .arm-current-file {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: #f0f7ff;
+        border: 1px solid #bdd6f0;
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+    .arm-current-file__icon { color: #1a6db5; font-size: 1rem; flex-shrink: 0; }
+    .arm-current-file__label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #8494a9; }
+    .arm-current-file__name { display: block; font-size: 0.88rem; font-weight: 500; color: #0f2744; }
+
+    .arm-modal__body { padding: 1.25rem 1.6rem; flex: 1; overflow-y: auto; }
+    .arm-section { margin-top: 1rem; }
+
+    .arm-field { display: flex; flex-direction: column; }
+    .arm-field__label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #4a5568;
+        margin-bottom: 0.4rem;
+    }
+    .arm-field__required { color: #e53e3e; margin-left: 2px; }
+    .arm-field__optional { font-weight: 400; color: #a0aec0; text-transform: none; letter-spacing: 0; }
+    .arm-field__input {
+        border: 1.5px solid #d1d9e0;
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.9rem;
+        color: #1a202c;
+        background: #f8fafc;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+        resize: vertical;
+    }
+    .arm-field__input:focus {
+        border-color: #1a6db5;
+        box-shadow: 0 0 0 3px rgba(26, 109, 181, 0.12);
+        background: #fff;
+    }
+    .arm-field__textarea { min-height: 80px; }
+    .arm-field--error .arm-field__input { border-color: #e53e3e; }
+    .arm-field__error-msg { font-size: 0.8rem; color: #e53e3e; margin-top: 0.3rem; }
+
+    .arm-input-icon-wrap { position: relative; }
+    .arm-input-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        pointer-events: none;
+    }
+    .arm-field__input--with-icon { padding-left: 2.2rem; }
+
+    .arm-dropzone {
+        position: relative;
+        border: 2px dashed #d1d9e0;
+        border-radius: 10px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        overflow: hidden;
+    }
+    .arm-dropzone:hover { border-color: #1a6db5; background: #edf4fd; }
+    .arm-dropzone--error { border-color: #e53e3e; }
+    .arm-dropzone__icon { font-size: 2rem; color: #1a6db5; opacity: 0.7; margin-bottom: 0.5rem; }
+    .arm-dropzone__hint { font-size: 0.88rem; color: #4a5568; font-weight: 600; margin: 0; }
+    .arm-dropzone__hint--sub { font-size: 0.8rem; color: #a0aec0; font-weight: 400; margin-top: 0.2rem; }
+    .arm-dropzone__file-name { font-size: 0.9rem; font-weight: 600; color: #0f2744; margin: 0; }
+    .arm-dropzone__file-size { font-size: 0.8rem; color: #8494a9; margin: 0.2rem 0 0; }
+    .arm-dropzone__input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .arm-formats__badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
+    .arm-format-badge { padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.76rem; font-weight: 700; }
+    .arm-format-badge--pptx { background: #fff4ec; color: #d35400; border: 1px solid #fad7be; }
+    .arm-format-badge--docx { background: #edf4fd; color: #1a6db5; border: 1px solid #bdd6f0; }
+    .arm-format-badge--zip  { background: #f5f0fd; color: #6b46c1; border: 1px solid #d6c8f7; }
+
+    .arm-video-embed iframe {
+        display: block;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .arm-preview-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #f5f7fa;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+    }
+    .arm-preview-placeholder__icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .arm-preview-placeholder__title { font-size: 0.88rem; font-weight: 600; color: #2d3748; margin: 0; }
+    .arm-preview-placeholder__sub { font-size: 0.78rem; color: #a0aec0; margin: 0.15rem 0 0; }
+
+    .arm-editor { border: 1.5px solid #d1d9e0; border-radius: 8px; overflow: hidden; background: #f8fafc; }
+    .arm-editor__toolbar {
+        display: flex;
+        gap: 0.1rem;
+        padding: 0.4rem 0.5rem;
+        background: #f1f5f9;
+        border-bottom: 1px solid #d1d9e0;
+    }
+    .arm-editor__tool {
+        background: none;
+        border: none;
+        padding: 0.25rem 0.45rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        color: #4a5568;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+    .arm-editor__tool:hover { background: #e2e8f0; }
+    .arm-editor__content {
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: 0.7rem 0.85rem;
+        font-size: 0.9rem;
+        color: #1a202c;
+        resize: none;
+        outline: none;
+    }
+    .arm-editor__content:focus { background: #fff; }
+
+    .arm-modal__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.6rem 1.4rem;
+        border-top: 1px solid #eef0f3;
+        flex-shrink: 0;
+    }
+
+    .arm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s, opacity 0.15s;
+    }
+    .arm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .arm-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .arm-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
+    .arm-btn--primary { background: #0f2744; color: #fff; }
+    .arm-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+
+    .arm-field-row {
+        display: flex;
+        gap: 1rem;
+    }
+    .arm-field--half { flex: 1; min-width: 0; }
+
+    /* ── Quiz tab ── */
+    .arm-quiz-hint { font-size: 0.82rem; color: #8494a9; margin: 0 0 0.75rem; }
+    .arm-format-badge--csv { background: #e6fff2; color: #276749; border: 1px solid #9ae6b4; }
+
+    /* ── Wide modal for preview ── */
+    .arm-modal--wide { width: min(700px, 96vw); }
+
+    /* ── Quiz preview question list ── */
+    .qp-question-list { padding: 0; margin: 0; list-style: none; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .qp-question {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+    }
+    .qp-question__text { font-size: 0.92rem; font-weight: 600; color: #0f2744; margin: 0 0 0.65rem; }
+
+    .qp-choices { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+
+    .qp-choice {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 6px;
+        font-size: 0.87rem;
+        color: #2d3748;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        transition: background 0.12s;
+    }
+    .qp-choice--correct {
+        background: #e6fff2;
+        border-color: #9ae6b4;
+        color: #22543d;
+        font-weight: 600;
+    }
+    .qp-choice__letter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        color: #4a5568;
+    }
+    .qp-choice--correct .qp-choice__letter { background: #9ae6b4; color: #22543d; }
+    .qp-choice__text { flex: 1; }
+    .qp-choice__check { color: #38a169; font-size: 0.95rem; flex-shrink: 0; }
+</style>

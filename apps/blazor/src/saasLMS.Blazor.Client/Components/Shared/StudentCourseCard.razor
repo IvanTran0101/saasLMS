@@ -1,0 +1,233 @@
+@using saasLMS.CourseCatalogService.Courses
+@using saasLMS.LearningProgressService.CourseProgresses
+
+<style>
+    .scc-card {
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        height: 100%;
+        transition: box-shadow 0.2s, transform 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .scc-card:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+        transform: translateY(-2px);
+    }
+
+    .scc-card--clickable {
+        cursor: pointer;
+    }
+
+    .scc-card__thumbnail {
+        position: relative;
+        height: 150px;
+        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .scc-card__thumbnail-icon {
+        color: rgba(255,255,255,0.15);
+        font-size: 3.5rem;
+    }
+
+    .scc-card__status-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 5px;
+    }
+
+    .scc-card__status-badge--inprogress { background: #1a73e8; color: #fff; }
+    .scc-card__status-badge--completed  { background: #1e8e3e; color: #fff; }
+    .scc-card__status-badge--notstarted { background: rgba(255,255,255,0.18); color: #fff; }
+    .scc-card__status-badge--available  { background: rgba(255,255,255,0.18); color: #fff; }
+
+    .scc-card__body {
+        padding: 0.9rem 1rem 0.75rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .scc-card__title {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #0d1117;
+        margin-bottom: 0.25rem;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .scc-card__instructor {
+        font-size: 0.76rem;
+        color: #8a93a2;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .scc-card__meta {
+        font-size: 0.76rem;
+        color: #8a93a2;
+        margin-bottom: 0.6rem;
+    }
+
+    .scc-card__progress-wrap {
+        margin-top: auto;
+        padding-top: 0.5rem;
+    }
+
+    .scc-card__progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.3rem;
+    }
+
+    .scc-card__progress-label {
+        font-size: 0.72rem;
+        color: #8a93a2;
+    }
+
+    .scc-card__progress-pct {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #1a73e8;
+    }
+
+    .scc-card__progress-track {
+        height: 6px;
+        border-radius: 3px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+
+    .scc-card__progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #1a73e8, #34a853);
+        transition: width 0.4s ease;
+    }
+
+    .scc-card__progress-fill--completed {
+        background: linear-gradient(90deg, #1e8e3e, #34a853);
+    }
+
+    .scc-card__enroll-footer {
+        margin-top: auto;
+        padding-top: 0.5rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .scc-card__enroll-btn {
+        background: #1a73e8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 1.1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .scc-card__enroll-btn:hover:not(:disabled) {
+        background: #1557b0;
+        transform: translateY(-1px);
+    }
+
+    .scc-card__enroll-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
+@if (IsEnrolled)
+{
+    <div class="scc-card scc-card--clickable" @onclick="HandleCardClick">
+        <div class="scc-card__thumbnail">
+            <i class="fa fa-book-open scc-card__thumbnail-icon"></i>
+            <span class="scc-card__status-badge scc-card__status-badge--@_progressCssClass">
+                @_progressLabel
+            </span>
+        </div>
+        <div class="scc-card__body">
+            <div class="scc-card__title">@Course.Title</div>
+            @if (!string.IsNullOrEmpty(InstructorName))
+            {
+                <div class="scc-card__instructor">
+                    <i class="fa fa-user-o"></i> @InstructorName
+                </div>
+            }
+            @if (Progress != null)
+            {
+                <div class="scc-card__meta">
+                    @Progress.CompletedLessonsCount / @Progress.TotalLessonsCount lessons
+                </div>
+            }
+            <div class="scc-card__progress-wrap">
+                <div class="scc-card__progress-header">
+                    <span class="scc-card__progress-label">Progress</span>
+                    <span class="scc-card__progress-pct">@_progressPct%</span>
+                </div>
+                <div class="scc-card__progress-track">
+                    <div class="scc-card__progress-fill @(_progressPct >= 100 ? "scc-card__progress-fill--completed" : "")"
+                         style="width: @_progressPct%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="scc-card">
+        <div class="scc-card__thumbnail">
+            <i class="fa fa-graduation-cap scc-card__thumbnail-icon"></i>
+            <span class="scc-card__status-badge scc-card__status-badge--available">Available</span>
+        </div>
+        <div class="scc-card__body">
+            <div class="scc-card__title">@Course.Title</div>
+            <div class="scc-card__instructor">
+                <i class="fa fa-user-o"></i>
+                @(string.IsNullOrEmpty(InstructorName) ? "Instructor" : InstructorName)
+            </div>
+            <div class="scc-card__enroll-footer">
+                <button class="scc-card__enroll-btn"
+                        @onclick="HandleEnrollClickAsync"
+                        @onclick:stopPropagation="true"
+                        disabled="@_enrolling">
+                    @if (_enrolling)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
+                    else
+                    {
+                        <i class="fa fa-plus"></i>
+                    }
+                    Enroll Now
+                </button>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,902 @@
+@page "/instructor/report"
+@inherits AbpComponentBase
+
+@using saasLMS.CourseCatalogService.Courses
+@using saasLMS.EnrollmentService.Enrollments
+
+<PageTitle>Instructor Report</PageTitle>
+
+<style>
+    /* ── Shared skeleton / shimmer ──────────────────────────────────────────── */
+    .irp-skeleton {
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        min-height: 220px;
+    }
+
+    .irp-skeleton__thumb {
+        height: 140px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: irp-shimmer 1.4s infinite;
+    }
+
+    .irp-skeleton__body { padding: 0.875rem 1rem; }
+
+    .irp-skeleton__line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: irp-shimmer 1.4s infinite;
+        margin-bottom: 0.5rem;
+    }
+
+    .irp-skeleton__line--short { width: 40%; }
+
+    @@keyframes irp-shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* ── Course card (report variant) ──────────────────────────────────────── */
+    .irp-course-card {
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        height: 100%;
+        transition: box-shadow 0.2s, transform 0.2s;
+        cursor: pointer;
+    }
+
+    .irp-course-card:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+        transform: translateY(-2px);
+    }
+
+    .irp-course-card__thumbnail {
+        position: relative;
+        height: 150px;
+        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .irp-course-card__thumbnail-icon {
+        color: rgba(255,255,255,0.15);
+        font-size: 3.5rem;
+    }
+
+    .irp-course-card__status {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 5px;
+    }
+
+    .irp-course-card__status--published { background: #1e8e3e; color: #fff; }
+    .irp-course-card__status--draft     { background: #f4a100; color: #fff; }
+    .irp-course-card__status--hidden    { background: #5f6368; color: #fff; }
+
+    .irp-course-card__body { padding: 0.9rem 1rem; }
+
+    .irp-course-card__title {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #0d1117;
+        margin-bottom: 0.4rem;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .irp-course-card__hint {
+        font-size: 0.75rem;
+        color: #1a73e8;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    /* ── Page header ────────────────────────────────────────────────────────── */
+    .irp-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .irp-header__title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.25rem;
+    }
+
+    .irp-header__sub {
+        font-size: 0.88rem;
+        color: #8a93a2;
+    }
+
+    /* ── Report detail area ─────────────────────────────────────────────────── */
+    .irp-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #1a73e8;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        margin-bottom: 1.25rem;
+        text-decoration: none;
+    }
+
+    .irp-back-btn:hover { text-decoration: underline; color: #1557b0; }
+
+    .irp-report-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.75rem;
+    }
+
+    /* ── Compact left-aligned tabs ──────────────────────────────────────────── */
+    .irp-tabs {
+        display: inline-flex;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1.5rem;
+        gap: 0;
+    }
+
+    .irp-tab-btn {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #8a93a2;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+        white-space: nowrap;
+    }
+
+    .irp-tab-btn:hover { color: #0d1117; }
+
+    .irp-tab-btn--active {
+        color: #1a73e8;
+        border-bottom-color: #1a73e8;
+    }
+
+    /* ── Report stat cards ──────────────────────────────────────────────────── */
+    .irp-stat {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .irp-stat__label {
+        font-size: 0.72rem;
+        color: #8a93a2;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.3rem;
+    }
+
+    .irp-stat__value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.1;
+    }
+
+    .irp-stat__icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .irp-stat__icon--blue   { background: #e8f0fe; color: #1a73e8; }
+    .irp-stat__icon--green  { background: #e6f4ea; color: #1e8e3e; }
+    .irp-stat__icon--orange { background: #fef3e2; color: #f29900; }
+    .irp-stat__icon--purple { background: #f0ebff; color: #7c4dff; }
+
+    /* ── Chart card wrapper ─────────────────────────────────────────────────── */
+    .irp-chart-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .irp-chart-card__title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Vertical bar chart ─────────────────────────────────────────────────── */
+    .irp-vchart__body {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        height: 130px;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0;
+        position: relative;
+    }
+
+    .irp-vchart__col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 3px;
+    }
+
+    .irp-vchart__count {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1;
+    }
+
+    .irp-vchart__bar {
+        width: 65%;
+        border-radius: 4px 4px 0 0;
+        min-height: 3px;
+    }
+
+    .irp-vchart__xlabels {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .irp-vchart__xlabel {
+        flex: 1;
+        text-align: center;
+        font-size: 0.63rem;
+        color: #8a93a2;
+        line-height: 1.3;
+    }
+
+    /* ── SVG donut chart ────────────────────────────────────────────────────── */
+    .irp-donut-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .irp-donut__svg {
+        width: 100%;
+        max-width: 180px;
+        display: block;
+        margin: 0 auto 0.75rem;
+    }
+
+    .irp-donut__legend {
+        display: flex;
+        gap: 1.25rem;
+        justify-content: center;
+        font-size: 0.78rem;
+        flex-wrap: wrap;
+    }
+
+    .irp-donut__legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .irp-donut__legend-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .irp-donut__legend-label { color: #5f6368; }
+    .irp-donut__legend-val   { font-weight: 700; color: #0d1117; }
+
+    /* ── Insight cards ──────────────────────────────────────────────────────── */
+    .irp-insight {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.1rem 1.3rem;
+        height: 100%;
+    }
+
+    .irp-insight__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .irp-insight__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .irp-insight__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .irp-insight__value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+    }
+
+    .irp-insight__formula {
+        font-size: 0.72rem;
+        color: #8a93a2;
+    }
+
+    /* ── Loading overlay ────────────────────────────────────────────────────── */
+    .irp-loading-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        color: #8a93a2;
+        font-size: 0.9rem;
+        gap: 0.6rem;
+    }
+
+    .irp-section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .irp-section-header__title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 0;
+        color: #0d1117;
+    }
+</style>
+
+<div>
+
+    @if (_selectedCourse == null)
+    {
+        @* ── Course List View ──────────────────────────────────────────────── *@
+
+        <div class="irp-header">
+            <h4 class="irp-header__title">Reports</h4>
+            <p class="irp-header__sub">Select a course to view its detailed report.</p>
+        </div>
+
+        <div class="irp-section-header">
+            <h5 class="irp-section-header__title">My Courses</h5>
+        </div>
+
+        <div class="row g-3">
+
+            @if (_isLoadingCourses)
+            {
+                @for (var i = 0; i < 6; i++)
+                {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="irp-skeleton">
+                            <div class="irp-skeleton__thumb"></div>
+                            <div class="irp-skeleton__body">
+                                <div class="irp-skeleton__line"></div>
+                                <div class="irp-skeleton__line irp-skeleton__line--short"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                @foreach (var course in _courses)
+                {
+                    var statusCss = course.Status switch
+                    {
+                        CourseStatus.Published => "published",
+                        CourseStatus.Hidden    => "hidden",
+                        _                      => "draft"
+                    };
+                    var statusLabel = course.Status switch
+                    {
+                        CourseStatus.Published => "Published",
+                        CourseStatus.Hidden    => "Hidden",
+                        _                      => "Drafting"
+                    };
+
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="irp-course-card" @onclick="() => SelectCourse(course)">
+                            <div class="irp-course-card__thumbnail">
+                                <i class="fa fa-desktop irp-course-card__thumbnail-icon"></i>
+                                <span class="irp-course-card__status irp-course-card__status--@statusCss">
+                                    @statusLabel
+                                </span>
+                            </div>
+                            <div class="irp-course-card__body">
+                                <div class="irp-course-card__title">@course.Title</div>
+                                <div class="irp-course-card__hint">
+                                    <i class="fa fa-chart-bar"></i> View Report
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+    }
+    else
+    {
+        @* ── Report Detail View ────────────────────────────────────────────── *@
+
+        <button class="irp-back-btn" @onclick="ClearSelection">
+            <i class="fa fa-arrow-left"></i> Back to Courses
+        </button>
+
+        <h4 class="irp-report-title">@_selectedCourse.Title</h4>
+
+        @* ── Tabs (compact, left-aligned) ──────────────────────────────────── *@
+        <div class="irp-tabs">
+            <button class="irp-tab-btn @(_activeTab == ReportTab.ClassProgress ? "irp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(ReportTab.ClassProgress)'>
+                <i class="fa fa-users me-1"></i> Class Progress
+            </button>
+            <button class="irp-tab-btn @(_activeTab == ReportTab.CourseOutcome ? "irp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(ReportTab.CourseOutcome)'>
+                <i class="fa fa-graduation-cap me-1"></i> Course Outcome
+            </button>
+            <button class="irp-tab-btn @(_activeTab == ReportTab.EnrolledStudents ? "irp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(ReportTab.EnrolledStudents)'>
+                <i class="fa fa-user-check me-1"></i> Enrolled Students
+            </button>
+        </div>
+
+        @* ── Tab Content ────────────────────────────────────────────────────── *@
+
+        @if (_activeTab == ReportTab.EnrolledStudents)
+        {
+            @* ── Enrolled Students Tab ──────────────────────────────────────── *@
+            @if (_isLoadingStudents)
+            {
+                <div class="irp-loading-overlay">
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    Loading students...
+                </div>
+            }
+            else if (_enrolledStudents.Count == 0)
+            {
+                <div class="irp-loading-overlay">
+                    <i class="fa fa-inbox me-2 text-muted"></i>
+                    No enrollments found for this course.
+                </div>
+            }
+            else
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3" style="width:36px;"></th>
+                                    <th>Student</th>
+                                    <th>Email</th>
+                                    <th>Enrolled</th>
+                                    <th class="text-end pe-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in _enrolledStudents)
+                                {
+                                    var (statusCss, statusLabel) = row.Status switch
+                                    {
+                                        EnrollmentStatus.Active    => ("success", "Active"),
+                                        EnrollmentStatus.Completed => ("primary", "Completed"),
+                                        EnrollmentStatus.Cancelled => ("secondary", "Cancelled"),
+                                        _                          => ("secondary", row.Status.ToString())
+                                    };
+
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div style="width:32px;height:32px;border-radius:50%;background:#e8f0fe;
+                                                        color:#1a73e8;display:flex;align-items:center;
+                                                        justify-content:center;font-size:0.8rem;font-weight:700;">
+                                                @(row.DisplayName.Length > 0 ? row.DisplayName[0].ToString().ToUpper() : "?")
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span style="font-weight:600;font-size:0.88rem;color:#0d1117;">
+                                                @row.DisplayName
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="font-size:0.85rem;color:#5f6368;">
+                                                @(string.IsNullOrEmpty(row.Email) ? "—" : row.Email)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="font-size:0.82rem;color:#8a93a2;">
+                                                @row.EnrolledAt.ToLocalTime().ToString("dd MMM yyyy")
+                                            </span>
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            <span class="badge rounded-pill bg-@statusCss bg-opacity-10
+                                                         text-@statusCss border border-@statusCss border-opacity-25"
+                                                  style="font-size:0.72rem;font-weight:700;padding:4px 10px;">
+                                                @statusLabel
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-3 py-2 border-top text-muted" style="font-size:0.78rem;">
+                        @_enrolledStudents.Count student(s) total &mdash;
+                        @_enrolledStudents.Count(r => r.Status == EnrollmentStatus.Active) active,
+                        @_enrolledStudents.Count(r => r.Status == EnrollmentStatus.Completed) completed,
+                        @_enrolledStudents.Count(r => r.Status == EnrollmentStatus.Cancelled) cancelled
+                    </div>
+                </div>
+            }
+        }
+        else if (_isLoadingReport)
+        {
+            <div class="irp-loading-overlay">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                Loading report data...
+            </div>
+        }
+        else if (_activeTab == ReportTab.ClassProgress)
+        {
+            @* ── Row 1: Key stats ─────────────────────────────────────────────── *@
+            <div class="row g-3">
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--blue">
+                            <i class="fa fa-users"></i>
+                        </div>
+                        <div class="irp-stat__label">Total Students</div>
+                        <div class="irp-stat__value">@(_classProgress?.TotalStudents ?? 0)</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--green">
+                            <i class="fa fa-user-check"></i>
+                        </div>
+                        <div class="irp-stat__label">Active Enrollments</div>
+                        <div class="irp-stat__value">@(_classProgress?.ActiveEnrollmentCount ?? 0)</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--purple">
+                            <i class="fa fa-flag-checkered"></i>
+                        </div>
+                        <div class="irp-stat__label">Completed</div>
+                        <div class="irp-stat__value">@(_classProgress?.CompletedCount ?? 0)</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--orange">
+                            <i class="fa fa-hourglass-half"></i>
+                        </div>
+                        <div class="irp-stat__label">In Progress</div>
+                        <div class="irp-stat__value">@(_classProgress?.InProgressCount ?? 0)</div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* ── Row 2: Bar chart + Donut chart ───────────────────────────────── *@
+            <div class="row g-3 mt-1">
+
+                <div class="col-12 col-md-7">
+                    <div class="irp-chart-card">
+                        <div class="irp-chart-card__title">Progress Distribution</div>
+
+                        <div class="irp-vchart__body">
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@CpB0</span>
+                                <div class="irp-vchart__bar" style="height:@(CpBarPx(CpB0))px; background:#e8704a;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@CpB26</span>
+                                <div class="irp-vchart__bar" style="height:@(CpBarPx(CpB26))px; background:#f29900;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@CpB51</span>
+                                <div class="irp-vchart__bar" style="height:@(CpBarPx(CpB51))px; background:#1a73e8;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@CpB76</span>
+                                <div class="irp-vchart__bar" style="height:@(CpBarPx(CpB76))px; background:#0d9488;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@CpB100</span>
+                                <div class="irp-vchart__bar" style="height:@(CpBarPx(CpB100))px; background:#1e8e3e;"></div>
+                            </div>
+                        </div>
+
+                        <div class="irp-vchart__xlabels">
+                            <span class="irp-vchart__xlabel">0-25%</span>
+                            <span class="irp-vchart__xlabel">26-50%</span>
+                            <span class="irp-vchart__xlabel">51-75%</span>
+                            <span class="irp-vchart__xlabel">76-99%</span>
+                            <span class="irp-vchart__xlabel">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-5">
+                    <div class="irp-chart-card irp-donut-wrap">
+                        <div class="irp-chart-card__title">Completed vs In Progress</div>
+
+                        <svg class="irp-donut__svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f2f5" stroke-width="18"/>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#1e8e3e" stroke-width="18"
+                                    stroke-dasharray="@CpDashComp" stroke-dashoffset="0"
+                                    transform="rotate(-90 50 50)"/>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f29900" stroke-width="18"
+                                    stroke-dasharray="@CpDashInProg" stroke-dashoffset="@CpOffsetInProg"
+                                    transform="rotate(-90 50 50)"/>
+                            <text x="50" y="47" text-anchor="middle"
+                                  font-size="13" font-weight="700" fill="#0d1117">@CpCenterPct</text>
+                            <text x="50" y="57" text-anchor="middle"
+                                  font-size="6.5" fill="#8a93a2">Completion</text>
+                        </svg>
+
+                        <div class="irp-donut__legend">
+                            <div class="irp-donut__legend-item">
+                                <div class="irp-donut__legend-dot" style="background:#1e8e3e;"></div>
+                                <span class="irp-donut__legend-label">Completed</span>
+                                <span class="irp-donut__legend-val">@(_classProgress?.CompletedCount ?? 0)</span>
+                            </div>
+                            <div class="irp-donut__legend-item">
+                                <div class="irp-donut__legend-dot" style="background:#f29900;"></div>
+                                <span class="irp-donut__legend-label">In Progress</span>
+                                <span class="irp-donut__legend-val">@(_classProgress?.InProgressCount ?? 0)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* ── Row 3: Insight cards ─────────────────────────────────────────── *@
+            <div class="row g-3 mt-1">
+
+                <div class="col-12 col-sm-6">
+                    <div class="irp-insight">
+                        <div class="irp-insight__header">
+                            <div class="irp-insight__icon" style="background:#e6f4ea; color:#1e8e3e;">
+                                <i class="fa fa-check-circle"></i>
+                            </div>
+                            <span class="irp-insight__label">Completion Rate</span>
+                        </div>
+                        <div class="irp-insight__value">@(CpCompletionRate.ToString("F1"))%</div>
+                        <div class="irp-insight__formula">Completed / Active Enrollments x 100</div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                    <div class="irp-insight">
+                        <div class="irp-insight__header">
+                            <div class="irp-insight__icon" style="background:#fde8e8; color:#d93025;">
+                                <i class="fa fa-user-times"></i>
+                            </div>
+                            <span class="irp-insight__label">Drop Rate</span>
+                        </div>
+                        <div class="irp-insight__value">@(CpDropRate.ToString("F1"))%</div>
+                        <div class="irp-insight__formula">(Total Students - Active) / Total Students x 100</div>
+                    </div>
+                </div>
+
+            </div>
+        }
+        else
+        {
+            @* ── Course Outcome Tab ──────────────────────────────────────────── *@
+
+            @* ── Row 1: Score averages + Pass Rate ───────────────────────────── *@
+            <div class="row g-3">
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--blue">
+                            <i class="fa fa-tasks"></i>
+                        </div>
+                        <div class="irp-stat__label">Avg Assignment Score</div>
+                        <div class="irp-stat__value">@((_courseOutcome?.AvgAssignmentScore ?? 0).ToString("F1"))</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--orange">
+                            <i class="fa fa-question-circle"></i>
+                        </div>
+                        <div class="irp-stat__label">Avg Quiz Score</div>
+                        <div class="irp-stat__value">@((_courseOutcome?.AvgQuizScore ?? 0).ToString("F1"))</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--purple">
+                            <i class="fa fa-star"></i>
+                        </div>
+                        <div class="irp-stat__label">Final Score Avg</div>
+                        <div class="irp-stat__value">@((_courseOutcome?.FinalScoreAvg ?? 0).ToString("F1"))</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--green">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="irp-stat__label">Pass Rate</div>
+                        <div class="irp-stat__value">@((_courseOutcome?.PassRate ?? 0).ToString("F1"))%</div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* ── Row 2: Counts + Completion Rate ─────────────────────────────── *@
+            <div class="row g-3 mt-1">
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--blue">
+                            <i class="fa fa-clipboard-check"></i>
+                        </div>
+                        <div class="irp-stat__label">Completion Rate</div>
+                        <div class="irp-stat__value">@((_courseOutcome?.CompletionRate ?? 0).ToString("F1"))%</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--orange">
+                            <i class="fa fa-file-alt"></i>
+                        </div>
+                        <div class="irp-stat__label">Assignments Graded</div>
+                        <div class="irp-stat__value">@(_courseOutcome?.AssignmentGradedCount ?? 0)</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--purple">
+                            <i class="fa fa-list-alt"></i>
+                        </div>
+                        <div class="irp-stat__label">Quizzes Completed</div>
+                        <div class="irp-stat__value">@(_courseOutcome?.QuizCompletedCount ?? 0)</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="irp-stat">
+                        <div class="irp-stat__icon irp-stat__icon--green">
+                            <i class="fa fa-user-graduate"></i>
+                        </div>
+                        <div class="irp-stat__label">Students with Final Score</div>
+                        <div class="irp-stat__value">@(_courseOutcome?.FinalScoreCount ?? 0)</div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* ── Row 3: Score distribution bar chart ─────────────────────────── *@
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <div class="irp-chart-card">
+                        <div class="irp-chart-card__title">Final Score Distribution</div>
+
+                        <div class="irp-vchart__body">
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB0</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB0))px; background:#e8704a;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB26</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB26))px; background:#f29900;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB51</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB51))px; background:#1a73e8;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB76</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB76))px; background:#0d9488;"></div>
+                            </div>
+                            <div class="irp-vchart__col">
+                                <span class="irp-vchart__count">@SdB100</span>
+                                <div class="irp-vchart__bar" style="height:@(SdBarPx(SdB100))px; background:#1e8e3e;"></div>
+                            </div>
+                        </div>
+
+                        <div class="irp-vchart__xlabels">
+                            <span class="irp-vchart__xlabel">0–25</span>
+                            <span class="irp-vchart__xlabel">26–50</span>
+                            <span class="irp-vchart__xlabel">51–75</span>
+                            <span class="irp-vchart__xlabel">76–99</span>
+                            <span class="irp-vchart__xlabel">100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ── Row 4: Last updated ──────────────────────────────────────────── *@
+            @if (_courseOutcome != null)
+            {
+                <div class="row g-3 mt-1">
+                    <div class="col-12">
+                        <div class="irp-insight">
+                            <div class="irp-insight__header">
+                                <div class="irp-insight__icon" style="background:#e8f0fe; color:#1a73e8;">
+                                    <i class="fa fa-clock"></i>
+                                </div>
+                                <span class="irp-insight__label">Last Updated</span>
+                            </div>
+                            <div class="irp-insight__value" style="font-size:1.1rem;">
+                                @_courseOutcome.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                            </div>
+                            <div class="irp-insight__formula">Time of the most recent report recalculation</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+
+</div>

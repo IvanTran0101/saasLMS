@@ -1,31 +1,212 @@
+## syntax=docker/dockerfile:1.7
+##
+# Common multi-stage Dockerfile for building ANY service/app in this solution.
+#
+# Usage examples:
+#   docker build -f Dockerfile.base \
+#     --build-arg PROJECT_PATH=services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj \
+#     --build-arg ENTRY_DLL=saasLMS.IdentityService.HttpApi.Host.dll \
+#     -t mycompanyname/saaslms-service-identity:latest .
+#
+# Notes:
+# - Stage 1 (restore): copies only *.csproj (+ NuGet.Config/common.props) for cacheable restore.
+# - Stage 2 (publish): copies full source and publishes the selected PROJECT_PATH.
+# - Stage 3 (runtime): runs via run-with-secrets.sh to map Docker Swarm secrets -> env vars.
+##
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+ARG DOTNET_SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:10.0
+ARG DOTNET_RUNTIME_IMAGE=mcr.microsoft.com/dotnet/aspnet:10.0
+
+FROM ${DOTNET_SDK_IMAGE} AS restore
 WORKDIR /src
 
-COPY "saasLMS.sln" "saasLMS.sln"
+ARG PROJECT_PATH=""
+ARG CONFIGURATION=Release
+ARG WARM_RESTORE=0
 
-# Applications
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
+    NUGET_XMLDOC_MODE=skip \
+    NUGET_PACKAGES=/root/.nuget/packages
+
+COPY "saasLMS.sln" "NuGet.Config" "common.props" ./
+
+# Copy only project files for a fast, cacheable restore layer.
+# (We intentionally avoid copying full source here.)
 COPY "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj" "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj"
-COPY "apps/public-web/src/saasLMS.PublicWeb/saasLMS.PublicWeb.csproj" "apps/public-web/src/saasLMS.PublicWeb/saasLMS.PublicWeb.csproj"
+COPY "apps/blazor/src/saasLMS.Blazor.Client/saasLMS.Blazor.Client.csproj" "apps/blazor/src/saasLMS.Blazor.Client/saasLMS.Blazor.Client.csproj"
 COPY "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj" "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj"
-# Shared Projects
+COPY "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj" "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj"
+COPY "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj" "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.Application.Contracts/saasLMS.AdministrationService.Application.Contracts.csproj" "services/administration/src/saasLMS.AdministrationService.Application.Contracts/saasLMS.AdministrationService.Application.Contracts.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.Application/saasLMS.AdministrationService.Application.csproj" "services/administration/src/saasLMS.AdministrationService.Application/saasLMS.AdministrationService.Application.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.Domain.Shared/saasLMS.AdministrationService.Domain.Shared.csproj" "services/administration/src/saasLMS.AdministrationService.Domain.Shared/saasLMS.AdministrationService.Domain.Shared.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.Domain/saasLMS.AdministrationService.Domain.csproj" "services/administration/src/saasLMS.AdministrationService.Domain/saasLMS.AdministrationService.Domain.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.EntityFrameworkCore/saasLMS.AdministrationService.EntityFrameworkCore.csproj" "services/administration/src/saasLMS.AdministrationService.EntityFrameworkCore/saasLMS.AdministrationService.EntityFrameworkCore.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.HttpApi.Client/saasLMS.AdministrationService.HttpApi.Client.csproj" "services/administration/src/saasLMS.AdministrationService.HttpApi.Client/saasLMS.AdministrationService.HttpApi.Client.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj" "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.HttpApi/saasLMS.AdministrationService.HttpApi.csproj" "services/administration/src/saasLMS.AdministrationService.HttpApi/saasLMS.AdministrationService.HttpApi.csproj"
+COPY "services/administration/src/saasLMS.AdministrationService.Web/saasLMS.AdministrationService.Web.csproj" "services/administration/src/saasLMS.AdministrationService.Web/saasLMS.AdministrationService.Web.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.Application.Contracts/saasLMS.AssessmentService.Application.Contracts.csproj" "services/assessment/src/saasLMS.AssessmentService.Application.Contracts/saasLMS.AssessmentService.Application.Contracts.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.Application/saasLMS.AssessmentService.Application.csproj" "services/assessment/src/saasLMS.AssessmentService.Application/saasLMS.AssessmentService.Application.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.Blazor/saasLMS.AssessmentService.Blazor.csproj" "services/assessment/src/saasLMS.AssessmentService.Blazor/saasLMS.AssessmentService.Blazor.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.csproj" "services/assessment/src/saasLMS.AssessmentService.Domain.Shared/saasLMS.AssessmentService.Domain.Shared.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.Domain/saasLMS.AssessmentService.Domain.csproj" "services/assessment/src/saasLMS.AssessmentService.Domain/saasLMS.AssessmentService.Domain.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.EntityFrameworkCore/saasLMS.AssessmentService.EntityFrameworkCore.csproj" "services/assessment/src/saasLMS.AssessmentService.EntityFrameworkCore/saasLMS.AssessmentService.EntityFrameworkCore.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.HttpApi.Client/saasLMS.AssessmentService.HttpApi.Client.csproj" "services/assessment/src/saasLMS.AssessmentService.HttpApi.Client/saasLMS.AssessmentService.HttpApi.Client.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj" "services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.HttpApi/saasLMS.AssessmentService.HttpApi.csproj" "services/assessment/src/saasLMS.AssessmentService.HttpApi/saasLMS.AssessmentService.HttpApi.csproj"
+COPY "services/assessment/src/saasLMS.AssessmentService.Web/saasLMS.AssessmentService.Web.csproj" "services/assessment/src/saasLMS.AssessmentService.Web/saasLMS.AssessmentService.Web.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.Application.Contracts/saasLMS.CourseCatalogService.Application.Contracts.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.Application/saasLMS.CourseCatalogService.Application.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.Application/saasLMS.CourseCatalogService.Application.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.Blazor/saasLMS.CourseCatalogService.Blazor.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.Blazor/saasLMS.CourseCatalogService.Blazor.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.Domain.Shared/saasLMS.CourseCatalogService.Domain.Shared.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.Domain.Shared/saasLMS.CourseCatalogService.Domain.Shared.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.Domain/saasLMS.CourseCatalogService.Domain.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.Domain/saasLMS.CourseCatalogService.Domain.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.EntityFrameworkCore/saasLMS.CourseCatalogService.EntityFrameworkCore.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.EntityFrameworkCore/saasLMS.CourseCatalogService.EntityFrameworkCore.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Client/saasLMS.CourseCatalogService.HttpApi.Client.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Client/saasLMS.CourseCatalogService.HttpApi.Client.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi/saasLMS.CourseCatalogService.HttpApi.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi/saasLMS.CourseCatalogService.HttpApi.csproj"
+COPY "services/courseCatalog/src/saasLMS.CourseCatalogService.Web/saasLMS.CourseCatalogService.Web.csproj" "services/courseCatalog/src/saasLMS.CourseCatalogService.Web/saasLMS.CourseCatalogService.Web.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.csproj" "services/enrollment/src/saasLMS.EnrollmentService.Application.Contracts/saasLMS.EnrollmentService.Application.Contracts.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.Application/saasLMS.EnrollmentService.Application.csproj" "services/enrollment/src/saasLMS.EnrollmentService.Application/saasLMS.EnrollmentService.Application.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.Blazor/saasLMS.EnrollmentService.Blazor.csproj" "services/enrollment/src/saasLMS.EnrollmentService.Blazor/saasLMS.EnrollmentService.Blazor.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.Domain.Shared/saasLMS.EnrollmentService.Domain.Shared.csproj" "services/enrollment/src/saasLMS.EnrollmentService.Domain.Shared/saasLMS.EnrollmentService.Domain.Shared.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.Domain/saasLMS.EnrollmentService.Domain.csproj" "services/enrollment/src/saasLMS.EnrollmentService.Domain/saasLMS.EnrollmentService.Domain.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.EntityFrameworkCore/saasLMS.EnrollmentService.EntityFrameworkCore.csproj" "services/enrollment/src/saasLMS.EnrollmentService.EntityFrameworkCore/saasLMS.EnrollmentService.EntityFrameworkCore.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Client/saasLMS.EnrollmentService.HttpApi.Client.csproj" "services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Client/saasLMS.EnrollmentService.HttpApi.Client.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj" "services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.HttpApi/saasLMS.EnrollmentService.HttpApi.csproj" "services/enrollment/src/saasLMS.EnrollmentService.HttpApi/saasLMS.EnrollmentService.HttpApi.csproj"
+COPY "services/enrollment/src/saasLMS.EnrollmentService.Web/saasLMS.EnrollmentService.Web.csproj" "services/enrollment/src/saasLMS.EnrollmentService.Web/saasLMS.EnrollmentService.Web.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.Application.Contracts/saasLMS.IdentityService.Application.Contracts.csproj" "services/identity/src/saasLMS.IdentityService.Application.Contracts/saasLMS.IdentityService.Application.Contracts.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.Application/saasLMS.IdentityService.Application.csproj" "services/identity/src/saasLMS.IdentityService.Application/saasLMS.IdentityService.Application.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.Domain.Shared/saasLMS.IdentityService.Domain.Shared.csproj" "services/identity/src/saasLMS.IdentityService.Domain.Shared/saasLMS.IdentityService.Domain.Shared.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.Domain/saasLMS.IdentityService.Domain.csproj" "services/identity/src/saasLMS.IdentityService.Domain/saasLMS.IdentityService.Domain.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.EntityFrameworkCore/saasLMS.IdentityService.EntityFrameworkCore.csproj" "services/identity/src/saasLMS.IdentityService.EntityFrameworkCore/saasLMS.IdentityService.EntityFrameworkCore.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.HttpApi.Client/saasLMS.IdentityService.HttpApi.Client.csproj" "services/identity/src/saasLMS.IdentityService.HttpApi.Client/saasLMS.IdentityService.HttpApi.Client.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj" "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.HttpApi/saasLMS.IdentityService.HttpApi.csproj" "services/identity/src/saasLMS.IdentityService.HttpApi/saasLMS.IdentityService.HttpApi.csproj"
+COPY "services/identity/src/saasLMS.IdentityService.Web/saasLMS.IdentityService.Web.csproj" "services/identity/src/saasLMS.IdentityService.Web/saasLMS.IdentityService.Web.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.Application.Contracts/saasLMS.LearningProgressService.Application.Contracts.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.Application.Contracts/saasLMS.LearningProgressService.Application.Contracts.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.Application/saasLMS.LearningProgressService.Application.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.Application/saasLMS.LearningProgressService.Application.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.Blazor/saasLMS.LearningProgressService.Blazor.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.Blazor/saasLMS.LearningProgressService.Blazor.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.Domain.Shared/saasLMS.LearningProgressService.Domain.Shared.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.Domain.Shared/saasLMS.LearningProgressService.Domain.Shared.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.Domain/saasLMS.LearningProgressService.Domain.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.Domain/saasLMS.LearningProgressService.Domain.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.EntityFrameworkCore/saasLMS.LearningProgressService.EntityFrameworkCore.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.EntityFrameworkCore/saasLMS.LearningProgressService.EntityFrameworkCore.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Client/saasLMS.LearningProgressService.HttpApi.Client.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Client/saasLMS.LearningProgressService.HttpApi.Client.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi/saasLMS.LearningProgressService.HttpApi.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi/saasLMS.LearningProgressService.HttpApi.csproj"
+COPY "services/learningProgress/src/saasLMS.LearningProgressService.Web/saasLMS.LearningProgressService.Web.csproj" "services/learningProgress/src/saasLMS.LearningProgressService.Web/saasLMS.LearningProgressService.Web.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.Application.Contracts/saasLMS.NotificationService.Application.Contracts.csproj" "services/notification/src/saasLMS.NotificationService.Application.Contracts/saasLMS.NotificationService.Application.Contracts.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.Application/saasLMS.NotificationService.Application.csproj" "services/notification/src/saasLMS.NotificationService.Application/saasLMS.NotificationService.Application.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.Blazor/saasLMS.NotificationService.Blazor.csproj" "services/notification/src/saasLMS.NotificationService.Blazor/saasLMS.NotificationService.Blazor.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.Domain.Shared/saasLMS.NotificationService.Domain.Shared.csproj" "services/notification/src/saasLMS.NotificationService.Domain.Shared/saasLMS.NotificationService.Domain.Shared.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.Domain/saasLMS.NotificationService.Domain.csproj" "services/notification/src/saasLMS.NotificationService.Domain/saasLMS.NotificationService.Domain.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.EntityFrameworkCore/saasLMS.NotificationService.EntityFrameworkCore.csproj" "services/notification/src/saasLMS.NotificationService.EntityFrameworkCore/saasLMS.NotificationService.EntityFrameworkCore.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.HttpApi.Client/saasLMS.NotificationService.HttpApi.Client.csproj" "services/notification/src/saasLMS.NotificationService.HttpApi.Client/saasLMS.NotificationService.HttpApi.Client.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj" "services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.HttpApi/saasLMS.NotificationService.HttpApi.csproj" "services/notification/src/saasLMS.NotificationService.HttpApi/saasLMS.NotificationService.HttpApi.csproj"
+COPY "services/notification/src/saasLMS.NotificationService.Web/saasLMS.NotificationService.Web.csproj" "services/notification/src/saasLMS.NotificationService.Web/saasLMS.NotificationService.Web.csproj"
+COPY "services/product/src/saasLMS.ProductService.Application.Contracts/saasLMS.ProductService.Application.Contracts.csproj" "services/product/src/saasLMS.ProductService.Application.Contracts/saasLMS.ProductService.Application.Contracts.csproj"
+COPY "services/product/src/saasLMS.ProductService.Application/saasLMS.ProductService.Application.csproj" "services/product/src/saasLMS.ProductService.Application/saasLMS.ProductService.Application.csproj"
+COPY "services/product/src/saasLMS.ProductService.Blazor/saasLMS.ProductService.Blazor.csproj" "services/product/src/saasLMS.ProductService.Blazor/saasLMS.ProductService.Blazor.csproj"
+COPY "services/product/src/saasLMS.ProductService.Domain.Shared/saasLMS.ProductService.Domain.Shared.csproj" "services/product/src/saasLMS.ProductService.Domain.Shared/saasLMS.ProductService.Domain.Shared.csproj"
+COPY "services/product/src/saasLMS.ProductService.Domain/saasLMS.ProductService.Domain.csproj" "services/product/src/saasLMS.ProductService.Domain/saasLMS.ProductService.Domain.csproj"
+COPY "services/product/src/saasLMS.ProductService.EntityFrameworkCore/saasLMS.ProductService.EntityFrameworkCore.csproj" "services/product/src/saasLMS.ProductService.EntityFrameworkCore/saasLMS.ProductService.EntityFrameworkCore.csproj"
+COPY "services/product/src/saasLMS.ProductService.HttpApi.Client/saasLMS.ProductService.HttpApi.Client.csproj" "services/product/src/saasLMS.ProductService.HttpApi.Client/saasLMS.ProductService.HttpApi.Client.csproj"
+COPY "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj" "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj"
+COPY "services/product/src/saasLMS.ProductService.HttpApi/saasLMS.ProductService.HttpApi.csproj" "services/product/src/saasLMS.ProductService.HttpApi/saasLMS.ProductService.HttpApi.csproj"
+COPY "services/product/src/saasLMS.ProductService.Web/saasLMS.ProductService.Web.csproj" "services/product/src/saasLMS.ProductService.Web/saasLMS.ProductService.Web.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.Application.Contracts/saasLMS.ReportingService.Application.Contracts.csproj" "services/reporting/src/saasLMS.ReportingService.Application.Contracts/saasLMS.ReportingService.Application.Contracts.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.Application/saasLMS.ReportingService.Application.csproj" "services/reporting/src/saasLMS.ReportingService.Application/saasLMS.ReportingService.Application.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.Blazor/saasLMS.ReportingService.Blazor.csproj" "services/reporting/src/saasLMS.ReportingService.Blazor/saasLMS.ReportingService.Blazor.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.Domain.Shared/saasLMS.ReportingService.Domain.Shared.csproj" "services/reporting/src/saasLMS.ReportingService.Domain.Shared/saasLMS.ReportingService.Domain.Shared.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.Domain/saasLMS.ReportingService.Domain.csproj" "services/reporting/src/saasLMS.ReportingService.Domain/saasLMS.ReportingService.Domain.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.EntityFrameworkCore/saasLMS.ReportingService.EntityFrameworkCore.csproj" "services/reporting/src/saasLMS.ReportingService.EntityFrameworkCore/saasLMS.ReportingService.EntityFrameworkCore.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.HttpApi.Client/saasLMS.ReportingService.HttpApi.Client.csproj" "services/reporting/src/saasLMS.ReportingService.HttpApi.Client/saasLMS.ReportingService.HttpApi.Client.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.csproj" "services/reporting/src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.HttpApi/saasLMS.ReportingService.HttpApi.csproj" "services/reporting/src/saasLMS.ReportingService.HttpApi/saasLMS.ReportingService.HttpApi.csproj"
+COPY "services/reporting/src/saasLMS.ReportingService.Web/saasLMS.ReportingService.Web.csproj" "services/reporting/src/saasLMS.ReportingService.Web/saasLMS.ReportingService.Web.csproj"
+COPY "services/saas/src/saasLMS.SaasService.Application.Contracts/saasLMS.SaasService.Application.Contracts.csproj" "services/saas/src/saasLMS.SaasService.Application.Contracts/saasLMS.SaasService.Application.Contracts.csproj"
+COPY "services/saas/src/saasLMS.SaasService.Application/saasLMS.SaasService.Application.csproj" "services/saas/src/saasLMS.SaasService.Application/saasLMS.SaasService.Application.csproj"
+COPY "services/saas/src/saasLMS.SaasService.Domain.Shared/saasLMS.SaasService.Domain.Shared.csproj" "services/saas/src/saasLMS.SaasService.Domain.Shared/saasLMS.SaasService.Domain.Shared.csproj"
+COPY "services/saas/src/saasLMS.SaasService.Domain/saasLMS.SaasService.Domain.csproj" "services/saas/src/saasLMS.SaasService.Domain/saasLMS.SaasService.Domain.csproj"
+COPY "services/saas/src/saasLMS.SaasService.EntityFrameworkCore/saasLMS.SaasService.EntityFrameworkCore.csproj" "services/saas/src/saasLMS.SaasService.EntityFrameworkCore/saasLMS.SaasService.EntityFrameworkCore.csproj"
+COPY "services/saas/src/saasLMS.SaasService.HttpApi.Client/saasLMS.SaasService.HttpApi.Client.csproj" "services/saas/src/saasLMS.SaasService.HttpApi.Client/saasLMS.SaasService.HttpApi.Client.csproj"
+COPY "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj"
+COPY "services/saas/src/saasLMS.SaasService.HttpApi/saasLMS.SaasService.HttpApi.csproj" "services/saas/src/saasLMS.SaasService.HttpApi/saasLMS.SaasService.HttpApi.csproj"
+COPY "services/saas/src/saasLMS.SaasService.Web/saasLMS.SaasService.Web.csproj" "services/saas/src/saasLMS.SaasService.Web/saasLMS.SaasService.Web.csproj"
 COPY "shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj" "shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj"
-COPY "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj" "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj"
+COPY "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.csproj" "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.csproj"
 COPY "shared/saasLMS.Shared.Hosting.Gateways/saasLMS.Shared.Hosting.Gateways.csproj" "shared/saasLMS.Shared.Hosting.Gateways/saasLMS.Shared.Hosting.Gateways.csproj"
 COPY "shared/saasLMS.Shared.Hosting.Microservices/saasLMS.Shared.Hosting.Microservices.csproj" "shared/saasLMS.Shared.Hosting.Microservices/saasLMS.Shared.Hosting.Microservices.csproj"
-COPY "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.csproj" "shared/saasLMS.Shared.Hosting.AspNetCore/saasLMS.Shared.Hosting.AspNetCore.csproj"
 COPY "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj" "shared/saasLMS.Shared.Hosting/saasLMS.Shared.Hosting.csproj"
 COPY "shared/saasLMS.Shared.Localization/saasLMS.Shared.Localization.csproj" "shared/saasLMS.Shared.Localization/saasLMS.Shared.Localization.csproj"
 
-# Microservices
-COPY "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj" "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj"
-COPY "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj" "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj"
-COPY "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj"
-COPY "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj" "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj"
-# Gateways
-COPY "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj" "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj"
-COPY "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj" "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj"
+# Warm the NuGet cache for the entrypoint projects we build/publish into production images.
+# This is intentionally independent from PROJECT_PATH so CI can reuse this layer across services.
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    --mount=type=cache,target=/root/.local/share/NuGet/v3-cache \
+    if [ "$WARM_RESTORE" = "1" ]; then \
+      dotnet restore "apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj" --nologo \
+      && dotnet restore "apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj" --nologo \
+      && dotnet restore "gateways/web-public/src/saasLMS.PublicWebGateway/saasLMS.PublicWebGateway.csproj" --nologo \
+      && dotnet restore "gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj" --nologo \
+      && dotnet restore "services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/reporting/src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj" --nologo \
+      && dotnet restore "shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj" --nologo; \
+    fi
 
-COPY "NuGet.Config" "NuGet.Config"
+# Restore the selected project (single restore per build).
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    --mount=type=cache,target=/root/.local/share/NuGet/v3-cache \
+    [ -n "$PROJECT_PATH" ] && dotnet restore "$PROJECT_PATH" --nologo \
+    || (echo "PROJECT_PATH is required." && exit 1)
 
-RUN dotnet restore "saasLMS.sln"
+FROM ${DOTNET_SDK_IMAGE} AS publish
+WORKDIR /src
+
+ARG PROJECT_PATH=""
+ARG CONFIGURATION=Release
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
+    NUGET_XMLDOC_MODE=skip \
+    NUGET_PACKAGES=/root/.nuget/packages
+
+# Bring restored assets (obj/project.assets.json) from the restore stage, then overlay full source.
+# NOTE: host-side **/obj is typically .dockerignored, so restored assets remain intact.
+COPY --from=restore /src/ /src/
+COPY . .
+RUN [ -n "$PROJECT_PATH" ] || (echo "PROJECT_PATH is required." && exit 1)
+
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    --mount=type=cache,target=/root/.local/share/NuGet/v3-cache \
+    dotnet publish "$PROJECT_PATH" -c "$CONFIGURATION" -o /app/publish --no-restore \
+  -p:UseAppHost=false \
+  -p:ContinuousIntegrationBuild=true
+
+FROM ${DOTNET_RUNTIME_IMAGE} AS runtime
+WORKDIR /app
+
+ARG ENTRY_DLL=""
+
+ENV ASPNETCORE_URLS=http://+:80 \
+    ENTRY_DLL=${ENTRY_DLL}
+EXPOSE 80
+
+COPY --from=publish /app/publish/ ./
+COPY "etc/docker/entrypoints/run-with-secrets.sh" "/app/run-with-secrets.sh"
+RUN chmod +x "/app/run-with-secrets.sh"
+
+ENTRYPOINT ["/app/run-with-secrets.sh"]
+# JSON-array CMD can't expand env vars. We use a shell wrapper so ENTRY_DLL can be passed via build-arg.
+CMD ["sh", "-c", "test -n \"$ENTRY_DLL\" || { echo 'ENTRY_DLL is required.'; exit 1; }; exec dotnet \"$ENTRY_DLL\""]
+    

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using saasLMS.AssessmentService.Submissions;
@@ -44,5 +45,27 @@ public class SubmissionFileController : AssessmentServiceController
         using var stream = input.File.OpenReadStream();
         var remoteStream = new RemoteStreamContent(stream, input.File.FileName, input.File.ContentType);
         return await _submissionAppService.SubmitFileAsync(input.AssignmentId, remoteStream);
+    }
+
+    /// <summary>
+    /// Download a submission file as Instructor.
+    /// Requires Submissions.View permission (checked inside DownloadSubmissionFileAsync).
+    /// </summary>
+    [HttpGet("{submissionId}/download-file")]
+    public async Task<IActionResult> DownloadSubmissionFileAsync([FromRoute] Guid submissionId)
+    {
+        var input = new DownloadSubmissionFileInput { SubmissionId = submissionId };
+        var file = await _submissionAppService.DownloadSubmissionFileAsync(input);
+        return File(file.GetStream(), file.ContentType ?? "application/octet-stream", file.FileName ?? "submission");
+    }
+
+    /// <summary>
+    /// Grade a submission as Instructor.
+    /// Requires Submissions.Grade permission (checked inside GradeAsync).
+    /// </summary>
+    [HttpPost("{submissionId}/grade")]
+    public async Task<SubmissionDto> GradeAsync([FromRoute] Guid submissionId, [FromBody] GradeSubmissionDto input)
+    {
+        return await _submissionAppService.GradeAsync(submissionId, input);
     }
 }

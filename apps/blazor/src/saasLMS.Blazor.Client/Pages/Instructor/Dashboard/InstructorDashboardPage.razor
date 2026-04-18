@@ -6,6 +6,8 @@
 
 <PageTitle>Instructor Dashboard</PageTitle>
 
+<CreateCourseModal @ref="_createCourseModal" OnCourseCreated="OnCourseCreated" />
+
 <style>
     .idb-hero {
         background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 60%, #1e4976 100%);
@@ -226,6 +228,26 @@
 <div>
 
     @* ── Hero Banner ── *@
+    @* ── Search Bar ── *@
+    <div class="input-group mb-3" style="max-width: 420px;">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="fa fa-search text-muted"></i>
+        </span>
+        <input type="text"
+               class="form-control border-start-0 ps-0"
+               placeholder="Search by title or course ID…"
+               @bind="SearchText"
+               @bind:event="oninput" />
+        @if (!string.IsNullOrEmpty(SearchText))
+        {
+            <button class="btn btn-outline-secondary border-start-0"
+                    type="button"
+                    @onclick="() => SearchText = string.Empty">
+                <i class="fa fa-times"></i>
+            </button>
+        }
+    </div>
+    
     <div class="idb-hero">
         <div class="idb-hero__content">
             <h2 class="idb-hero__title">Welcome back, @(CurrentUser.Name ?? CurrentUser.UserName ?? "Instructor").</h2>
@@ -237,7 +259,7 @@
             <i class="fa fa-star idb-hero__star idb-hero__star--sm"></i>
         </div>
     </div>
-
+    
     @* ── Summary Stats ── *@
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-6">
@@ -296,13 +318,13 @@
 
         @* Create New Course Card *@
         <div class="col-12 col-md-6 col-xl-4">
-            <a href="/courses/create" class="idb-create-card">
+            <div class="idb-create-card" @onclick="OpenCreateCourseModal" role="button">
                 <div class="idb-create-card__icon">
                     <i class="fa fa-plus"></i>
                 </div>
                 <div class="idb-create-card__label">Create New Course</div>
                 <div class="idb-create-card__sub">Start designing your next digital experience</div>
-            </a>
+            </div>
         </div>
 
         @if (_isLoadingCourses)

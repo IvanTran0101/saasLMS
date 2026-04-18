@@ -1,0 +1,214 @@
+﻿@inherits Volo.Abp.AspNetCore.Components.AbpComponentBase
+@using Volo.Abp.AspNetCore.Components
+
+@if (_isVisible)
+{
+    <div class="ccm-backdrop" @onclick="Close"></div>
+
+    <div class="ccm-modal" role="dialog" aria-modal="true" aria-labelledby="ccm-title">
+
+        @* ── Header ── *@
+        <div class="ccm-modal__header">
+            <div>
+                <h5 class="ccm-modal__title" id="ccm-title">Create New Course</h5>
+                <p class="ccm-modal__subtitle">Set up your course basics. You can edit everything later.</p>
+            </div>
+            <button class="ccm-modal__close" @onclick="Close" aria-label="Close">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        @* ── Body ── *@
+        <div class="ccm-modal__body">
+
+            <div class="ccm-field @(_titleError != null ? "ccm-field--error" : "")">
+                <label class="ccm-field__label" for="ccm-title-input">
+                    Course Title <span class="ccm-field__required">*</span>
+                </label>
+                <input id="ccm-title-input"
+                       type="text"
+                       class="ccm-field__input"
+                       placeholder="e.g. Introduction to Machine Learning"
+                       @bind="_title"
+                       @bind:event="oninput"
+                       maxlength="200"
+                       disabled="@_isSaving" />
+                @if (_titleError != null)
+                {
+                    <span class="ccm-field__error-msg">
+                        <i class="fa fa-exclamation-circle me-1"></i>@_titleError
+                    </span>
+                }
+            </div>
+
+            <div class="ccm-field mt-3">
+                <label class="ccm-field__label" for="ccm-desc-input">
+                    Description <span class="ccm-field__optional">(optional)</span>
+                </label>
+                <textarea id="ccm-desc-input"
+                          class="ccm-field__input ccm-field__textarea"
+                          placeholder="Briefly describe what students will learn..."
+                          rows="4"
+                          @bind="_description"
+                          @bind:event="oninput"
+                          maxlength="2000"
+                          disabled="@_isSaving"></textarea>
+                <span class="ccm-field__char-count">@_description.Length / 2000</span>
+            </div>
+
+        </div>
+
+        @* ── Footer ── *@
+        <div class="ccm-modal__footer">
+            <button class="ccm-btn ccm-btn--ghost" @onclick="Close" disabled="@_isSaving">
+                Cancel
+            </button>
+            <button class="ccm-btn ccm-btn--primary" @onclick="SaveDraftAsync" disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span>Saving...</span>
+                }
+                else
+                {
+                    <i class="fa fa-save me-2"></i>
+                    <span>Save Draft</span>
+                }
+            </button>
+        </div>
+
+    </div>
+}
+
+<style>
+    .ccm-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 39, 68, 0.55);
+        backdrop-filter: blur(2px);
+        z-index: 1040;
+    }
+
+    .ccm-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        width: min(540px, 95vw);
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 24px 64px rgba(15, 39, 68, 0.22);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .ccm-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.5rem 1.75rem 1rem;
+        border-bottom: 1px solid #eef0f3;
+    }
+
+    .ccm-modal__title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #0f2744;
+        margin: 0 0 0.2rem;
+    }
+
+    .ccm-modal__subtitle { font-size: 0.82rem; color: #8494a9; margin: 0; }
+
+    .ccm-modal__close {
+        background: none;
+        border: none;
+        color: #8494a9;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        line-height: 1;
+        transition: color 0.15s;
+    }
+    .ccm-modal__close:hover { color: #0f2744; }
+
+    .ccm-modal__body { padding: 1.25rem 1.75rem; }
+
+    .ccm-modal__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.75rem 1.5rem;
+        border-top: 1px solid #eef0f3;
+    }
+
+    .ccm-field { display: flex; flex-direction: column; }
+
+    .ccm-field__label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4a5568;
+        margin-bottom: 0.4rem;
+    }
+
+    .ccm-field__required { color: #e53e3e; margin-left: 2px; }
+
+    .ccm-field__optional {
+        font-weight: 400;
+        color: #a0aec0;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 0.78rem;
+    }
+
+    .ccm-field__input {
+        border: 1.5px solid #d1d9e0;
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.92rem;
+        color: #1a202c;
+        background: #f8fafc;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+        resize: none;
+    }
+
+    .ccm-field__input:focus {
+        border-color: #1a6db5;
+        box-shadow: 0 0 0 3px rgba(26, 109, 181, 0.12);
+        background: #fff;
+    }
+
+    .ccm-field__textarea { min-height: 100px; }
+    .ccm-field--error .ccm-field__input { border-color: #e53e3e; }
+
+    .ccm-field__error-msg { font-size: 0.8rem; color: #e53e3e; margin-top: 0.3rem; }
+
+    .ccm-field__char-count {
+        font-size: 0.75rem;
+        color: #a0aec0;
+        text-align: right;
+        margin-top: 0.25rem;
+    }
+
+    .ccm-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s, opacity 0.15s;
+    }
+    .ccm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .ccm-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .ccm-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
+    .ccm-btn--primary { background: #0f2744; color: #fff; }
+    .ccm-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+</style>

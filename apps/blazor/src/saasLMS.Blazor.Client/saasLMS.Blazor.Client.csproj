@@ -49,6 +49,8 @@
     <ProjectReference Include="..\..\..\..\services\learningProgress\src\saasLMS.LearningProgressService.HttpApi.Client\saasLMS.LearningProgressService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\notification\src\saasLMS.NotificationService.HttpApi.Client\saasLMS.NotificationService.HttpApi.Client.csproj" />
     <ProjectReference Include="..\..\..\..\services\reporting\src\saasLMS.ReportingService.HttpApi.Client\saasLMS.ReportingService.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\services\enrollment\src\saasLMS.EnrollmentService.Blazor\saasLMS.EnrollmentService.Blazor.csproj" />
+    <ProjectReference Include="..\..\..\..\services\courseCatalog\src\saasLMS.CourseCatalogService.Blazor\saasLMS.CourseCatalogService.Blazor.csproj" />
   </ItemGroup>
   
 </Project>

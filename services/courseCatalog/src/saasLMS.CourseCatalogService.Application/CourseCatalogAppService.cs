@@ -1773,27 +1773,50 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         var safeFileName = Path.GetFileName(file.FileName);
         ValidateMaterialUpload(safeFileName, file.ContentType, file.ContentLength);
 
-        var existingMaterial = await GetMaterialAsync(
-            input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
-        if (!string.IsNullOrWhiteSpace(existingMaterial.StorageKey))
+        if (input.MaterialId == Guid.Empty)
         {
-            await _blobContainer.DeleteAsync(existingMaterial.StorageKey);
-        }
+            Check.NotNullOrWhiteSpace(input.Title, nameof(input.Title));
 
-        var storageKey = $"materials/{input.CourseId}/{input.MaterialId}/{safeFileName}";
-        await _blobContainer.SaveAsync(storageKey, file.GetStream());
-        await UpdateFileMaterialAsync(new UpdateFileMaterialInput()
+            var newMaterialId = GuidGenerator.Create();
+            var storageKey = $"materials/{input.CourseId}/{newMaterialId}/{safeFileName}";
+            await _blobContainer.SaveAsync(storageKey, file.GetStream());
+
+            return await CreateFileMaterialAsync(new CreateFileMaterialInput
+            {
+                CourseId   = input.CourseId,
+                ChapterId  = input.ChapterId,
+                LessonId   = input.LessonId,
+                Title      = input.Title!,
+                StorageKey = storageKey,
+                FileName   = safeFileName,
+                MimeType   = file.ContentType ?? string.Empty,
+                FileSize   = file.ContentLength ?? 0
+            });
+        }
+        else
         {
-            CourseId = input.CourseId,
-            ChapterId = input.ChapterId,
-            LessonId = input.LessonId,
-            MaterialId = input.MaterialId,
-            StorageKey = storageKey,
-            FileName = safeFileName,
-            MimeType = file.ContentType,
-            FileSize = file.ContentLength
-        });
-        return await GetMaterialAsync(input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
+            var existingMaterial = await GetMaterialAsync(
+                input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
+            if (!string.IsNullOrWhiteSpace(existingMaterial.StorageKey))
+            {
+                await _blobContainer.DeleteAsync(existingMaterial.StorageKey);
+            }
+
+            var storageKey = $"materials/{input.CourseId}/{input.MaterialId}/{safeFileName}";
+            await _blobContainer.SaveAsync(storageKey, file.GetStream());
+            await UpdateFileMaterialAsync(new UpdateFileMaterialInput
+            {
+                CourseId   = input.CourseId,
+                ChapterId  = input.ChapterId,
+                LessonId   = input.LessonId,
+                MaterialId = input.MaterialId,
+                StorageKey = storageKey,
+                FileName   = safeFileName,
+                MimeType   = file.ContentType,
+                FileSize   = file.ContentLength
+            });
+            return await GetMaterialAsync(input.CourseId, input.ChapterId, input.LessonId, input.MaterialId);
+        }
     }
     [Authorize(CourseCatalogServicePermissions.Materials.View)]
     public async Task<IRemoteStreamContent> DownloadMaterialFileAsync(DownloadMaterialFileInput input)

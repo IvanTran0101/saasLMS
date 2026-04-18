@@ -1,5 +1,73 @@
-﻿<h3>VideoViewer</h3>
+@using saasLMS.CourseCatalogService.Materials.Dtos.Outputs
 
-@code {
-    
+@if (!string.IsNullOrWhiteSpace(_embedUrl))
+{
+    <div class="vv-wrap">
+        @if (_isIframe)
+        {
+            <div class="vv-embed-container">
+                <iframe src="@_embedUrl"
+                        title="@Material?.Title"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+            </div>
+        }
+        else
+        {
+            <div class="vv-embed-container">
+                <video controls preload="metadata">
+                    <source src="@_embedUrl" />
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        }
+    </div>
 }
+else
+{
+    <div class="vv-placeholder">
+        <i class="fa fa-play-circle vv-placeholder__icon"></i>
+        <span>No video URL provided for this material.</span>
+    </div>
+}
+
+<style>
+    .vv-wrap { margin-bottom: 1.25rem; }
+
+    .vv-embed-container {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 */
+        background: #0d1117;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .vv-embed-container iframe,
+    .vv-embed-container video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .vv-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px dashed #ced4da;
+        color: #8a93a2;
+        font-size: 0.88rem;
+    }
+
+    .vv-placeholder__icon {
+        font-size: 2.5rem;
+        opacity: 0.4;
+    }
+</style>

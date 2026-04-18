@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using saasLMS.AssessmentService.Assignments;
+using Volo.Abp.Application.Services;
 using Volo.Abp.Content;
 
 namespace saasLMS.AssessmentService.Submissions;
 
-public interface ISubmissionAppService
+public interface ISubmissionAppService : IApplicationService
 {
     Task<SubmissionDto> SubmitAsync(SubmitSubmissionDto input);
     Task<SubmissionDto> GradeAsync(Guid submissionId, GradeSubmissionDto input);

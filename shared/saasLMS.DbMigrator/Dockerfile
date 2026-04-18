@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 
-FROM mycompanyname/saaslms-base:1.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY . .
@@ -13,4 +13,7 @@ FROM build AS publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "saasLMS.DbMigrator.dll"]
+COPY etc/docker/entrypoints/run-with-secrets.sh /app/run-with-secrets.sh
+RUN chmod +x /app/run-with-secrets.sh
+ENTRYPOINT ["/app/run-with-secrets.sh", "dotnet", "saasLMS.DbMigrator.dll"]
+
