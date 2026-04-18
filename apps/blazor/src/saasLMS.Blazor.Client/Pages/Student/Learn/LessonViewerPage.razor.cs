@@ -114,7 +114,10 @@ public partial class LessonViewerPage : AbpComponentBase
             _resumeResult      = resumeTask.Result;
             _courseProgress    = cpTask.Result;
 
-            // Load assignments (non-fatal if the endpoint is unavailable)
+            // Load published/closed assignments visible to students.
+            // Uses the student-specific endpoint (ViewPublished permission) — different from
+            // the instructor side which uses GetListByCourseAsync (View permission, all statuses).
+            // Non-fatal: a 404/403 from the Assessment Service just leaves the list empty.
             try
             {
                 var assignments = await AssignmentAppService.GetListByCourseStudentAsync(CourseId);
@@ -122,9 +125,9 @@ public partial class LessonViewerPage : AbpComponentBase
                     .GroupBy(a => a.LessonId)
                     .ToDictionary(g => g.Key, g => g.ToList());
             }
-            catch
+            catch (Exception)
             {
-                _assignmentsByLesson = new();
+                _assignmentsByLesson = new Dictionary<Guid, List<AssignmentListItemDto>>();
             }
 
             BuildDerivedState();
