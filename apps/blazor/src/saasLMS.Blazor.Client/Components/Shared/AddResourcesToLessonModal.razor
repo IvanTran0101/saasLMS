@@ -118,7 +118,7 @@
                         }
                         <InputFile OnChange="OnFileSelected"
                                    class="arm-dropzone__input"
-                                   accept=".pdf,.pptx,.docx,.zip"
+                                   accept=".pptx,.docx,.zip"
                                    disabled="@_isSaving" />
                     </div>
                     @if (_fileError != null)
@@ -130,7 +130,6 @@
                     <div class="arm-formats mt-2">
                         <span class="arm-field__label">Supported Formats</span>
                         <div class="arm-formats__badges">
-                            <span class="arm-format-badge arm-format-badge--pdf">PDF</span>
                             <span class="arm-format-badge arm-format-badge--pptx">PPTX</span>
                             <span class="arm-format-badge arm-format-badge--docx">DOCX</span>
                             <span class="arm-format-badge arm-format-badge--zip">ZIP</span>
@@ -680,7 +679,6 @@
 
     .arm-formats__badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
     .arm-format-badge { padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.76rem; font-weight: 700; }
-    .arm-format-badge--pdf  { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
     .arm-format-badge--pptx { background: #fff4ec; color: #d35400; border: 1px solid #fad7be; }
     .arm-format-badge--docx { background: #edf4fd; color: #1a6db5; border: 1px solid #bdd6f0; }
     .arm-format-badge--zip  { background: #f5f0fd; color: #6b46c1; border: 1px solid #d6c8f7; }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using saasLMS.AssessmentService.Assignments;
 using saasLMS.Blazor.Client.Authorization;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
@@ -30,6 +31,7 @@ public partial class LessonViewerPage : AbpComponentBase
 
     [Inject] private ICourseCatalogAppService     CourseCatalogAppService     { get; set; } = default!;
     [Inject] private ILearningProgressAppService  LearningProgressAppService  { get; set; } = default!;
+    [Inject] private IAssignmentAppService        AssignmentAppService        { get; set; } = default!;
     [Inject] private NavigationManager            NavigationManager           { get; set; } = default!;
 
     // ── Raw data ──────────────────────────────────────────────────────────────
@@ -43,22 +45,28 @@ public partial class LessonViewerPage : AbpComponentBase
 
     private HashSet<Guid>             _completedLessonIds = new();
     private HashSet<Guid>             _expandedChapters   = new();
-    private List<LessonInChapterDto>  _flatLessons        = new(); // ordered flat list
+    private HashSet<Guid>             _expandedLessons    = new();
+    private List<LessonInChapterDto>  _flatLessons        = new();
+
+    private Dictionary<Guid, List<AssignmentListItemDto>> _assignmentsByLesson = new();
 
     private ChapterDto?              _selectedChapter;
     private LessonInChapterDto?      _selectedLesson;
     private LessonInChapterDto?      _prevLesson;
     private LessonInChapterDto?      _nextLesson;
 
+    // ── Resource selection state ──────────────────────────────────────────────
+
+    /// Currently viewed individual material (null = show lesson overview).
+    private MaterialInLessonDto?      _selectedMaterial;
+
+    /// Currently viewed assignment (null = show lesson overview).
+    private AssignmentListItemDto?    _selectedAssignment;
+
     // ── Computed lesson status flags ──────────────────────────────────────────
 
-    /// True when there is no completed lesson yet (course not started at all).
     private bool _hasCourseStarted => _completedLessonIds.Count > 0 || _resumeResult?.LessonStatus == LessonProgressStatus.InProgress;
-
-    /// True when the currently selected lesson is the "resume" lesson (InProgress or the next to start).
-    private bool _isResumeLesson => _selectedLesson is not null && _resumeResult?.LessonId == _selectedLesson.Id;
-
-    /// True when the currently selected lesson is fully completed.
+    private bool _isResumeLesson   => _selectedLesson is not null && _resumeResult?.LessonId == _selectedLesson.Id;
     private bool _isLessonCompleted => _selectedLesson is not null && _completedLessonIds.Contains(_selectedLesson.Id);
 
     // ── UI state ──────────────────────────────────────────────────────────────
@@ -83,7 +91,6 @@ public partial class LessonViewerPage : AbpComponentBase
 
     protected override async Task OnParametersSetAsync()
     {
-        // Called when navigating between lessons (URL changes but component stays mounted)
         if (!_isLoading)
             await SelectLessonFromRouteParamAsync();
     }
@@ -95,7 +102,6 @@ public partial class LessonViewerPage : AbpComponentBase
         _isLoading = true;
         try
         {
-            // Load everything in parallel
             var courseTask    = CourseCatalogAppService.GetCourseDetailStudentAsync(CourseId);
             var progressTask  = LearningProgressAppService.GetMyProgressAsync(CourseId);
             var resumeTask    = LearningProgressAppService.GetResumePositionAsync(CourseId);
@@ -107,6 +113,19 @@ public partial class LessonViewerPage : AbpComponentBase
             _lessonProgresses  = progressTask.Result;
             _resumeResult      = resumeTask.Result;
             _courseProgress    = cpTask.Result;
+
+            // Load assignments (non-fatal if the endpoint is unavailable)
+            try
+            {
+                var assignments = await AssignmentAppService.GetListByCourseAsync(CourseId);
+                _assignmentsByLesson = assignments
+                    .GroupBy(a => a.LessonId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+            catch
+            {
+                _assignmentsByLesson = new();
+            }
 
             BuildDerivedState();
             await SelectLessonFromRouteParamAsync();
@@ -125,20 +144,17 @@ public partial class LessonViewerPage : AbpComponentBase
     {
         if (_courseDetail is null) return;
 
-        // Build flat, ordered lesson list
         _flatLessons = _courseDetail.Chapters
             .OrderBy(c => c.OrderNo)
             .SelectMany(c => c.Lessons.OrderBy(l => l.SortOrder))
             .ToList();
 
-        // Build set of completed lesson IDs
         _completedLessonIds = _lessonProgresses
             .Where(p => p.Status == LessonProgressStatus.Completed)
             .Select(p => p.LessonId)
             .ToHashSet();
     }
 
-    /// Decides which lesson to show based on: URL param → resume → first lesson.
     private async Task SelectLessonFromRouteParamAsync()
     {
         if (_courseDetail is null) return;
@@ -146,40 +162,35 @@ public partial class LessonViewerPage : AbpComponentBase
         LessonInChapterDto? target = null;
 
         if (LessonId.HasValue)
-        {
-            // Explicitly requested via URL
             target = _flatLessons.FirstOrDefault(l => l.Id == LessonId.Value);
-        }
 
         if (target is null && _resumeResult?.LessonId.HasValue == true)
-        {
-            // Fall back to resume position
             target = _flatLessons.FirstOrDefault(l => l.Id == _resumeResult.LessonId!.Value);
-        }
 
         if (target is null)
-        {
-            // Fall back to first lesson
             target = _flatLessons.FirstOrDefault();
-        }
 
         if (target is not null)
             await SelectLessonAsync(target, updateUrl: false);
     }
 
-    // ── Lesson selection ──────────────────────────────────────────────────────
+    // ── Lesson & resource selection ───────────────────────────────────────────
 
     public async Task SelectLessonAsync(LessonInChapterDto lesson, bool updateUrl = true)
     {
         _selectedLesson  = lesson;
+        _selectedMaterial   = null;
+        _selectedAssignment = null;
+
         _selectedChapter = _courseDetail?.Chapters
             .FirstOrDefault(c => c.Lessons.Any(l => l.Id == lesson.Id));
 
-        // Expand the containing chapter
         if (_selectedChapter is not null)
             _expandedChapters.Add(_selectedChapter.Id);
 
-        // Compute prev/next
+        // Auto-expand the selected lesson in the sidebar
+        _expandedLessons.Add(lesson.Id);
+
         var idx = _flatLessons.IndexOf(lesson);
         _prevLesson = idx > 0 ? _flatLessons[idx - 1] : null;
         _nextLesson = idx >= 0 && idx < _flatLessons.Count - 1 ? _flatLessons[idx + 1] : null;
@@ -198,9 +209,37 @@ public partial class LessonViewerPage : AbpComponentBase
             _expandedChapters.Add(chapterId);
     }
 
+    private void ToggleLesson(Guid lessonId)
+    {
+        if (_expandedLessons.Contains(lessonId))
+            _expandedLessons.Remove(lessonId);
+        else
+            _expandedLessons.Add(lessonId);
+    }
+
+    private void SelectResourceAsync(MaterialInLessonDto material)
+    {
+        _selectedMaterial   = material;
+        _selectedAssignment = null;
+    }
+
+    private void SelectAssignmentAsync(AssignmentListItemDto assignment)
+    {
+        _selectedAssignment = assignment;
+        _selectedMaterial   = null;
+    }
+
+    private void BackToLessonOverview()
+    {
+        _selectedMaterial   = null;
+        _selectedAssignment = null;
+    }
+
+    private IReadOnlyList<AssignmentListItemDto> GetLessonAssignments(Guid lessonId) =>
+        _assignmentsByLesson.TryGetValue(lessonId, out var list) ? list : Array.Empty<AssignmentListItemDto>();
+
     // ── Learning actions ──────────────────────────────────────────────────────
 
-    /// Called by the "Start Learning" / "Resume Learning" button.
     public async Task ResumeLessonAsync()
     {
         if (_selectedLesson is null || _isActing) return;
@@ -208,17 +247,15 @@ public partial class LessonViewerPage : AbpComponentBase
         _isActing = true;
         try
         {
-            var totalCount = _flatLessons.Count;
             await LearningProgressAppService.StartLessonAsync(new StartLessonInput
             {
                 CourseId           = CourseId,
                 LessonId           = _selectedLesson.Id,
-                TotalLessonsCount  = totalCount
+                TotalLessonsCount  = _flatLessons.Count
             });
 
-            // Refresh progress so the resume position updates
-            _resumeResult     = await LearningProgressAppService.GetResumePositionAsync(CourseId);
-            _courseProgress   = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
+            _resumeResult   = await LearningProgressAppService.GetResumePositionAsync(CourseId);
+            _courseProgress = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
         }
         catch (Exception ex)
         {
@@ -230,7 +267,6 @@ public partial class LessonViewerPage : AbpComponentBase
         }
     }
 
-    /// Called by the "Mark as Complete" button.
     public async Task CompleteLessonAsync()
     {
         if (_selectedLesson is null || _isActing) return;
@@ -238,25 +274,21 @@ public partial class LessonViewerPage : AbpComponentBase
         _isActing = true;
         try
         {
-            var totalCount = _flatLessons.Count;
             await LearningProgressAppService.CompleteLessonAsync(new CompleteLessonInput
             {
                 CourseId           = CourseId,
                 LessonId           = _selectedLesson.Id,
-                TotalLessonsCount  = totalCount
+                TotalLessonsCount  = _flatLessons.Count
             });
 
-            // Update local state immediately for responsiveness
             _completedLessonIds.Add(_selectedLesson.Id);
 
-            // Refresh all progress
             _lessonProgresses = await LearningProgressAppService.GetMyProgressAsync(CourseId);
             _courseProgress   = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
             _resumeResult     = await LearningProgressAppService.GetResumePositionAsync(CourseId);
 
             BuildDerivedState();
 
-            // Auto-advance to next lesson if available
             if (_nextLesson is not null)
                 await SelectLessonAsync(_nextLesson);
         }
@@ -306,5 +338,13 @@ public partial class LessonViewerPage : AbpComponentBase
         MaterialType.Text      => "Reading",
         MaterialType.File      => "File",
         _                      => "Material"
+    };
+
+    private static string GetResourceIconCss(MaterialType type) => type switch
+    {
+        MaterialType.VideoLink => "text-primary",
+        MaterialType.Text      => "text-danger",
+        MaterialType.File      => "text-success",
+        _                      => "text-secondary"
     };
 }

@@ -4,6 +4,7 @@
 @layout CourseLearnLayout
 @inherits AbpComponentBase
 
+@using saasLMS.AssessmentService.Assignments
 @using saasLMS.CourseCatalogService.Courses
 @using saasLMS.CourseCatalogService.Courses.Dtos.Outputs
 @using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs
@@ -27,8 +28,8 @@
 
     /* ── LEFT SIDEBAR ─────────────────────────────────────────────────────── */
     .slp-sidebar {
-        width: 260px;
-        min-width: 260px;
+        width: 270px;
+        min-width: 270px;
         background: #fff;
         border-right: 1px solid #e9ecef;
         display: flex;
@@ -129,7 +130,7 @@
         transition: transform 0.2s;
     }
 
-    /* Lesson items */
+    /* Lesson items — now act as sub-dropdowns */
     .slp-lessons {
         padding: 0.25rem 0;
         background: #fafbfc;
@@ -139,10 +140,11 @@
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.5rem 1rem 0.5rem 1.4rem;
+        padding: 0.5rem 0.75rem 0.5rem 1.4rem;
         cursor: pointer;
         transition: background 0.15s;
         position: relative;
+        user-select: none;
     }
 
     .slp-lesson:hover {
@@ -157,6 +159,10 @@
     .slp-lesson--active .slp-lesson__title {
         color: #1a73e8;
         font-weight: 600;
+    }
+
+    .slp-lesson--has-active-resource {
+        background: #f0f5ff;
     }
 
     .slp-lesson__icon {
@@ -174,6 +180,79 @@
         white-space: nowrap;
         flex: 1;
     }
+
+    .slp-lesson__chevron {
+        font-size: 0.6rem;
+        color: #8a93a2;
+        flex-shrink: 0;
+        transition: transform 0.2s;
+        padding: 0.15rem 0.25rem;
+        border-radius: 3px;
+    }
+
+    .slp-lesson__chevron:hover {
+        background: #dee2e6;
+    }
+
+    /* Resource items under a lesson */
+    .slp-resources {
+        background: #f5f7fa;
+        border-top: 1px solid #edf0f3;
+    }
+
+    .slp-resource {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem 0.4rem 2.6rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
+    }
+
+    .slp-resource:hover {
+        background: #e9ecef;
+    }
+
+    .slp-resource--active {
+        background: #dde8fe;
+        border-right: 3px solid #1a73e8;
+    }
+
+    .slp-resource--active .slp-resource__title {
+        color: #1a73e8;
+        font-weight: 600;
+    }
+
+    .slp-resource__icon {
+        font-size: 0.72rem;
+        width: 14px;
+        flex-shrink: 0;
+        text-align: center;
+    }
+
+    .slp-resource__title {
+        font-size: 0.75rem;
+        color: #444;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+
+    .slp-resource__type-badge {
+        font-size: 0.6rem;
+        font-weight: 600;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .slp-resource__type-badge--video    { background: #e8f0fe; color: #1a73e8; }
+    .slp-resource__type-badge--text     { background: #fce8e6; color: #d93025; }
+    .slp-resource__type-badge--file     { background: #e6f4ea; color: #1e8e3e; }
+    .slp-resource__type-badge--assign   { background: #fff3e0; color: #e37400; }
 
     /* ── MAIN CONTENT ─────────────────────────────────────────────────────── */
     .slp-main {
@@ -198,6 +277,7 @@
         display: flex;
         align-items: center;
         gap: 0.25rem;
+        flex-wrap: wrap;
     }
 
     .slp-breadcrumb__chapter {
@@ -206,6 +286,16 @@
         letter-spacing: 0.06em;
         color: #1a73e8;
         font-size: 0.7rem;
+    }
+
+    .slp-breadcrumb__lesson {
+        color: #495057;
+        cursor: pointer;
+    }
+
+    .slp-breadcrumb__lesson:hover {
+        color: #1a73e8;
+        text-decoration: underline;
     }
 
     /* Lesson header */
@@ -222,6 +312,41 @@
         font-weight: 700;
         color: #0d1117;
         line-height: 1.3;
+        margin: 0;
+    }
+
+    .slp-resource-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .slp-btn-back {
+        background: transparent;
+        border: 1px solid #ced4da;
+        color: #495057;
+        border-radius: 7px;
+        padding: 0.38rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: border-color 0.15s, color 0.15s;
+        flex-shrink: 0;
+    }
+
+    .slp-btn-back:hover {
+        border-color: #1a73e8;
+        color: #1a73e8;
+    }
+
+    .slp-resource-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #0d1117;
         margin: 0;
     }
 
@@ -292,11 +417,12 @@
         background: #fff;
         margin-bottom: 0.6rem;
         transition: box-shadow 0.15s, border-color 0.15s;
+        cursor: pointer;
     }
 
     .slp-material:hover {
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border-color: #d0d7de;
+        border-color: #1a73e8;
     }
 
     .slp-material__icon-wrap {
@@ -346,6 +472,55 @@
 
     .slp-material__action {
         flex-shrink: 0;
+    }
+
+    /* Assignment card in overview */
+    .slp-assignment-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid #ffd87a;
+        border-radius: 10px;
+        background: #fffbf0;
+        margin-bottom: 0.6rem;
+        transition: box-shadow 0.15s, border-color 0.15s;
+        cursor: pointer;
+    }
+
+    .slp-assignment-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-color: #e37400;
+    }
+
+    .slp-assignment-card__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #fff3e0;
+        color: #e37400;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .slp-assignment-card__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .slp-assignment-card__title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0d1117;
+        margin-bottom: 0.15rem;
+    }
+
+    .slp-assignment-card__meta {
+        font-size: 0.76rem;
+        color: #8a93a2;
     }
 
     /* Empty / loading states */
@@ -481,16 +656,21 @@ else
                         <div class="slp-lessons">
                             @foreach (var lesson in chapter.Lessons.OrderBy(l => l.SortOrder))
                             {
-                                var isActive   = _selectedLesson?.Id == lesson.Id;
-                                var isDone     = _completedLessonIds.Contains(lesson.Id);
-                                <div class="slp-lesson @(isActive ? "slp-lesson--active" : "")"
-                                     @onclick="() => SelectLessonAsync(lesson)">
-                                    <span class="slp-lesson__icon">
+                                var isLessonSelected  = _selectedLesson?.Id == lesson.Id;
+                                var isDone            = _completedLessonIds.Contains(lesson.Id);
+                                var isLessonExpanded  = _expandedLessons.Contains(lesson.Id);
+                                var hasActiveResource = isLessonSelected && (_selectedMaterial != null || _selectedAssignment != null);
+                                var lessonAssignments = GetLessonAssignments(lesson.Id);
+
+                                @* Lesson header row *@
+                                <div class="slp-lesson @(isLessonSelected && !hasActiveResource ? "slp-lesson--active" : "") @(hasActiveResource ? "slp-lesson--has-active-resource" : "")">
+                                    @* Status icon (click → select lesson / show overview) *@
+                                    <span class="slp-lesson__icon" @onclick="() => SelectLessonAsync(lesson)">
                                         @if (isDone)
                                         {
                                             <i class="fa fa-check-circle text-success"></i>
                                         }
-                                        else if (isActive)
+                                        else if (isLessonSelected)
                                         {
                                             <i class="fa fa-play-circle text-primary"></i>
                                         }
@@ -499,8 +679,58 @@ else
                                             <i class="fa fa-circle-o text-muted" style="font-size:0.7rem;"></i>
                                         }
                                     </span>
-                                    <span class="slp-lesson__title" title="@lesson.Title">@lesson.Title</span>
+
+                                    @* Title (click → select lesson overview) *@
+                                    <span class="slp-lesson__title"
+                                          title="@lesson.Title"
+                                          @onclick="() => SelectLessonAsync(lesson)">
+                                        @lesson.Title
+                                    </span>
+
+                                    @* Chevron (click → toggle resources expansion) *@
+                                    @if (lesson.Materials.Any() || lessonAssignments.Any())
+                                    {
+                                        <span class="slp-lesson__chevron"
+                                              @onclick:stopPropagation="true"
+                                              @onclick="() => ToggleLesson(lesson.Id)">
+                                            <i class="fa fa-chevron-@(isLessonExpanded ? "up" : "down")"></i>
+                                        </span>
+                                    }
                                 </div>
+
+                                @* Resources list (expanded) *@
+                                @if (isLessonExpanded)
+                                {
+                                    <div class="slp-resources">
+                                        @foreach (var material in lesson.Materials.OrderBy(m => m.SortOrder))
+                                        {
+                                            var isMaterialActive = isLessonSelected && _selectedMaterial?.Id == material.Id;
+                                            <div class="slp-resource @(isMaterialActive ? "slp-resource--active" : "")"
+                                                 @onclick="async () => { await SelectLessonAsync(lesson, false); SelectResourceAsync(material); }">
+                                                <span class="slp-resource__icon @GetResourceIconCss(material.Type)">
+                                                    <i class="fa @GetMaterialIcon(material.Type)"></i>
+                                                </span>
+                                                <span class="slp-resource__title" title="@material.Title">@material.Title</span>
+                                                <span class="slp-resource__type-badge slp-resource__type-badge--@(material.Type == MaterialType.VideoLink ? "video" : material.Type == MaterialType.Text ? "text" : "file")">
+                                                    @GetMaterialTypeLabel(material.Type)
+                                                </span>
+                                            </div>
+                                        }
+
+                                        @foreach (var assignment in lessonAssignments)
+                                        {
+                                            var isAssignActive = isLessonSelected && _selectedAssignment?.Id == assignment.Id;
+                                            <div class="slp-resource @(isAssignActive ? "slp-resource--active" : "")"
+                                                 @onclick="async () => { await SelectLessonAsync(lesson, false); SelectAssignmentAsync(assignment); }">
+                                                <span class="slp-resource__icon" style="color:#e37400;">
+                                                    <i class="fa fa-pencil-square-o"></i>
+                                                </span>
+                                                <span class="slp-resource__title" title="@assignment.Title">@assignment.Title</span>
+                                                <span class="slp-resource__type-badge slp-resource__type-badge--assign">Assignment</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             }
                         </div>
                     }
@@ -519,6 +749,72 @@ else
                     </div>
                 </div>
             }
+
+            @* ── Resource viewer: Individual Material ── *@
+            else if (_selectedMaterial is not null)
+            {
+                <div class="slp-main-inner">
+                    @* Breadcrumb *@
+                    <div class="slp-breadcrumb">
+                        <span class="slp-breadcrumb__chapter">@_selectedChapter?.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span class="slp-breadcrumb__lesson" @onclick="BackToLessonOverview">@_selectedLesson.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span>@_selectedMaterial.Title</span>
+                    </div>
+
+                    <div class="slp-resource-header">
+                        <button class="slp-btn-back" @onclick="BackToLessonOverview">
+                            <i class="fa fa-arrow-left"></i> Back to Lesson
+                        </button>
+                        <h2 class="slp-resource-title">@_selectedMaterial.Title</h2>
+                    </div>
+
+                    @if (_selectedMaterial.Type == MaterialType.VideoLink)
+                    {
+                        <VideoViewer Material="_selectedMaterial" />
+                    }
+                    else if (_selectedMaterial.Type == MaterialType.Text)
+                    {
+                        <TextViewer Material="_selectedMaterial" />
+                    }
+                    else
+                    {
+                        @* File download *@
+                        <MaterialViewer Lesson="_selectedLesson"
+                                        CourseId="CourseId"
+                                        ChapterId="@(_selectedChapter?.Id ?? Guid.Empty)"
+                                        OnDone="BackToLessonOverview" />
+                    }
+                </div>
+            }
+
+            @* ── Resource viewer: Assignment ── *@
+            else if (_selectedAssignment is not null)
+            {
+                <div class="slp-main-inner">
+                    @* Breadcrumb *@
+                    <div class="slp-breadcrumb">
+                        <span class="slp-breadcrumb__chapter">@_selectedChapter?.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span class="slp-breadcrumb__lesson" @onclick="BackToLessonOverview">@_selectedLesson.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span>@_selectedAssignment.Title</span>
+                    </div>
+
+                    <div class="slp-resource-header">
+                        <button class="slp-btn-back" @onclick="BackToLessonOverview">
+                            <i class="fa fa-arrow-left"></i> Back to Lesson
+                        </button>
+                        <h2 class="slp-resource-title">@_selectedAssignment.Title</h2>
+                    </div>
+
+                    <AssignmentViewer AssignmentId="_selectedAssignment.Id"
+                                      OnDone="BackToLessonOverview" />
+                </div>
+            }
+
+            @* ── Lesson overview (default) ── *@
             else
             {
                 <div class="slp-main-inner">
@@ -567,7 +863,12 @@ else
                     </div>
 
                     @* Materials list *@
-                    @if (_selectedLesson.Materials.Count == 0)
+                    @{
+                        var lessonMaterials  = _selectedLesson.Materials.OrderBy(m => m.SortOrder).ToList();
+                        var lessonAssignList = GetLessonAssignments(_selectedLesson.Id);
+                    }
+
+                    @if (!lessonMaterials.Any() && !lessonAssignList.Any())
                     {
                         <div class="slp-empty" style="padding:1.5rem 0;">
                             <div class="slp-empty__icon"><i class="fa fa-folder-open-o"></i></div>
@@ -576,32 +877,58 @@ else
                     }
                     else
                     {
-                        <div class="slp-section-label">Lesson Material</div>
-                        @foreach (var material in _selectedLesson.Materials.OrderBy(m => m.SortOrder))
+                        @if (lessonMaterials.Any())
                         {
-                            <div class="slp-material">
-                                <div class="slp-material__icon-wrap @GetMaterialIconClass(material.Type)">
-                                    <i class="fa @GetMaterialIcon(material.Type)"></i>
-                                </div>
-                                <div class="slp-material__info">
-                                    <div class="slp-material__title">@material.Title</div>
-                                    <div class="slp-material__meta">
-                                        <span>@GetMaterialTypeLabel(material.Type)</span>
-                                        @if (_isLessonCompleted)
-                                        {
-                                            <span class="slp-material__completed-badge">
-                                                <i class="fa fa-check-circle"></i> Completed
-                                            </span>
-                                        }
+                            <div class="slp-section-label">Lesson Materials</div>
+                            @foreach (var material in lessonMaterials)
+                            {
+                                <div class="slp-material" @onclick="() => SelectResourceAsync(material)">
+                                    <div class="slp-material__icon-wrap @GetMaterialIconClass(material.Type)">
+                                        <i class="fa @GetMaterialIcon(material.Type)"></i>
+                                    </div>
+                                    <div class="slp-material__info">
+                                        <div class="slp-material__title">@material.Title</div>
+                                        <div class="slp-material__meta">
+                                            <span>@GetMaterialTypeLabel(material.Type)</span>
+                                            @if (_isLessonCompleted)
+                                            {
+                                                <span class="slp-material__completed-badge">
+                                                    <i class="fa fa-check-circle"></i> Completed
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="slp-material__action">
+                                        <i class="fa fa-chevron-right text-muted" style="font-size:0.75rem;"></i>
                                     </div>
                                 </div>
-                                <div class="slp-material__action">
-                                    @if (_isLessonCompleted)
-                                    {
-                                        <i class="fa fa-check-circle text-success fa-lg"></i>
-                                    }
+                            }
+                        }
+
+                        @if (lessonAssignList.Any())
+                        {
+                            <div class="slp-section-label" style="margin-top:1.25rem;">Assignments</div>
+                            @foreach (var assignment in lessonAssignList)
+                            {
+                                <div class="slp-assignment-card" @onclick="() => SelectAssignmentAsync(assignment)">
+                                    <div class="slp-assignment-card__icon">
+                                        <i class="fa fa-pencil-square-o"></i>
+                                    </div>
+                                    <div class="slp-assignment-card__info">
+                                        <div class="slp-assignment-card__title">@assignment.Title</div>
+                                        <div class="slp-assignment-card__meta">
+                                            Assignment
+                                            @if (assignment.Deadline.HasValue)
+                                            {
+                                                <span>&bull; Due @assignment.Deadline.Value.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         }
                     }
 
