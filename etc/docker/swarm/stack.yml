@@ -80,7 +80,7 @@ secrets:
 
 services:
   dbmigrator:
-    image: youngmizh/saaslms-db-migrator:latest
+    image: youngmizh/saaslms-dbmigrator:latest
     environment:
       <<: *env_common
       DbMigrator__Redis__Configuration: 10.0.1.118:6379
