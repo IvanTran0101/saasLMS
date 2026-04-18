@@ -16,9 +16,10 @@ x-env-common: &env_common
   RabbitMQ__Connections__Default__Port: "5672"
   RabbitMQ__EventBus__ExchangeName: saasLMS
   ElasticSearch__Url: http://10.0.1.118:9200
-  # Internal service-to-service calls go via the gateway service DNS name (no TLS).
-  # NOTE: In Docker Swarm stacks, services are addressable as "<stack>_<service>" unless you add network aliases.
-  RemoteServices__Default__BaseUrl: http://saaslms_gateway:80
+  # Internal service-to-service calls go via the gateway (no TLS).
+  # In Swarm stacks, the in-network DNS name is the service key (e.g. "gateway"),
+  # not the full service object name "saaslms_gateway".
+  RemoteServices__Default__BaseUrl: http://gateway:80
   IdentityClients__Default__Authority: https://auth.trananhminh.uk
   IdentityClients__Default__RequireHttps: "true"
 
@@ -142,17 +143,17 @@ services:
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_WebGateway
       # Override localhost dev destinations from yarp.json to internal service DNS names.
-      ReverseProxy__Clusters__AuthServer__Destinations__AuthServer__Address: http://saaslms_authserver:80/
-      ReverseProxy__Clusters__Administration__Destinations__Administration__Address: http://saaslms_administrationservice:80/
-      ReverseProxy__Clusters__Identity__Destinations__Identity__Address: http://saaslms_identityservice:80/
-      ReverseProxy__Clusters__Saas__Destinations__Saas__Address: http://saaslms_saasservice:80/
-      ReverseProxy__Clusters__Product__Destinations__Product__Address: http://saaslms_productservice:80/
-      ReverseProxy__Clusters__CourseCatalog__Destinations__CourseCatalog__Address: http://saaslms_coursecatalogservice:80/
-      ReverseProxy__Clusters__Enrollment__Destinations__Enrollment__Address: http://saaslms_enrollmentservice:80/
-      ReverseProxy__Clusters__Assessment__Destinations__Assessment__Address: http://saaslms_assessmentservice:80/
-      ReverseProxy__Clusters__LearningProgress__Destinations__LearningProgress__Address: http://saaslms_learningprogressservice:80/
-      ReverseProxy__Clusters__Notification__Destinations__Notification__Address: http://saaslms_notificationservice:80/
-      ReverseProxy__Clusters__Reporting__Destinations__Reporting__Address: http://saaslms_reportingservice:80/
+      ReverseProxy__Clusters__AuthServer__Destinations__AuthServer__Address: http://authserver:80/
+      ReverseProxy__Clusters__Administration__Destinations__Administration__Address: http://administrationservice:80/
+      ReverseProxy__Clusters__Identity__Destinations__Identity__Address: http://identityservice:80/
+      ReverseProxy__Clusters__Saas__Destinations__Saas__Address: http://saasservice:80/
+      ReverseProxy__Clusters__Product__Destinations__Product__Address: http://productservice:80/
+      ReverseProxy__Clusters__CourseCatalog__Destinations__CourseCatalog__Address: http://coursecatalogservice:80/
+      ReverseProxy__Clusters__Enrollment__Destinations__Enrollment__Address: http://enrollmentservice:80/
+      ReverseProxy__Clusters__Assessment__Destinations__Assessment__Address: http://assessmentservice:80/
+      ReverseProxy__Clusters__LearningProgress__Destinations__LearningProgress__Address: http://learningprogressservice:80/
+      ReverseProxy__Clusters__Notification__Destinations__Notification__Address: http://notificationservice:80/
+      ReverseProxy__Clusters__Reporting__Destinations__Reporting__Address: http://reportingservice:80/
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -185,7 +186,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AdministrationService
-      RemoteServices__AbpIdentity__BaseUrl: http://saaslms_gateway:80/
+      RemoteServices__AbpIdentity__BaseUrl: http://gateway:80/
       RemoteServices__AbpIdentity__UseCurrentAccessToken: "false"
     secrets:
       - abplicensecode
@@ -247,7 +248,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_CourseCatalogService
-      RemoteServices__EnrollmentService__BaseUrl: http://saaslms_gateway:80
+      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
       RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
       RemoteServices__EnrollmentService__IdentityClient: Default
     secrets:
@@ -268,7 +269,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_EnrollmentService
-      RemoteServices__course-catalog__BaseUrl: http://saaslms_gateway:80
+      RemoteServices__course-catalog__BaseUrl: http://gateway:80
       RemoteServices__course-catalog__UseCurrentAccessToken: "false"
       RemoteServices__course-catalog__IdentityClient: Default
     secrets:
@@ -289,7 +290,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AssessmentService
-      RemoteServices__course-catalog__BaseUrl: http://saaslms_gateway:80
+      RemoteServices__course-catalog__BaseUrl: http://gateway:80
       RemoteServices__course-catalog__UseCurrentAccessToken: "true"
     secrets:
       - abplicensecode
@@ -310,7 +311,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_LearningProgressService
-      RemoteServices__EnrollmentService__BaseUrl: http://saaslms_gateway:80
+      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
       RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
       RemoteServices__EnrollmentService__IdentityClient: Default
     secrets:
