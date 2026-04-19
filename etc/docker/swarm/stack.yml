@@ -93,25 +93,6 @@ services:
     # NOTE: This service is pinned to the manager node (`deploy_manager`) so the host path is stable.
     volumes:
       - /opt/saaslms/swarm/blazor-libs:/app/wwwroot/libs:ro
-    # The app's `App.razor` references `/_framework/blazor.web.js`, but .NET 10's WASM bootstrap
-    # file is named `blazor.webassembly.js`. Create a compatible symlink on startup.
-    # NOTE: Do not create `.br/.gz` links; they'll be served without correct Content-Encoding and
-    # break in browsers with "Invalid or unexpected token".
-    command:
-      - sh
-      - -lc
-      - >-
-        set -eu;
-        cd /app/wwwroot/_framework;
-        ln -sf blazor.webassembly.js blazor.web.js;
-        rm -f blazor.web.js.br blazor.web.js.gz;
-        DLL="/app/saasLMS.Blazor.dll";
-        if [ ! -f "$DLL" ]; then
-          echo "Expected entry dll not found: $DLL" >&2;
-          ls -la /app/*.dll || true;
-          exit 1;
-        fi;
-        exec dotnet "$DLL"
     environment:
       <<: *env_common
       App__SelfUrl: https://app.trananhminh.uk
