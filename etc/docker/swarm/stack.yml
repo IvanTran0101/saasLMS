@@ -113,6 +113,12 @@ services:
     image: youngmizh/saaslms-dbmigrator:latest
     environment:
       <<: *env_common
+      OpenIddict__Applications__AuthServer__RootUrl: https://auth.trananhminh.uk/
+      OpenIddict__Applications__Web__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
+      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk/
+      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk/
       DbMigrator__Redis__Configuration: 10.0.1.118:6379
       DbMigrator__ElasticSearch__Url: http://10.0.1.118:9200
     secrets:
