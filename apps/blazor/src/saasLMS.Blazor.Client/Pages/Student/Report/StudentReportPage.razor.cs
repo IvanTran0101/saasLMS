@@ -22,7 +22,7 @@ namespace saasLMS.Blazor.Client.Pages.Student.Report;
 [Authorize(Roles = LmsRoles.Student)]
 public partial class StudentReportPage : AbpComponentBase
 {
-    [Inject]
+    [Inject] 
     private ICourseCatalogAppService CourseCatalogAppService { get; set; } = default!;
 
     [Inject]
