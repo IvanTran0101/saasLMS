@@ -59,7 +59,8 @@ public partial class QuizViewer : AbpComponentBase
         _isLoading = true;
         try
         {
-            _attempts = await QuizAttemptAppService.GetListByQuizAsync(Quiz.Id) ?? new();
+            var myAttempt = await QuizAttemptAppService.GetMyAttemptByQuizAsync(Quiz.Id);
+            _attempts = myAttempt is not null ? new() { myAttempt } : new();
         }
         catch
         {
