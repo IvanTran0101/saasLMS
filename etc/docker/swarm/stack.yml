@@ -105,8 +105,13 @@ services:
         cd /app/wwwroot/_framework;
         ln -sf blazor.webassembly.js blazor.web.js;
         rm -f blazor.web.js.br blazor.web.js.gz;
-        DLL="${ENTRY_DLL:-saasLMS.Blazor.dll}";
-        exec dotnet "/app/$DLL"
+        DLL="/app/saasLMS.Blazor.dll";
+        if [ ! -f "$DLL" ]; then
+          echo "Expected entry dll not found: $DLL" >&2;
+          ls -la /app/*.dll || true;
+          exit 1;
+        fi;
+        exec dotnet "$DLL"
     environment:
       <<: *env_common
       App__SelfUrl: https://app.trananhminh.uk
