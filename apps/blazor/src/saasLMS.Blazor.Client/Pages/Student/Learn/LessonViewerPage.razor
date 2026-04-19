@@ -5,6 +5,7 @@
 @inherits AbpComponentBase
 
 @using saasLMS.AssessmentService.Assignments
+@using saasLMS.AssessmentService.Quizzes
 @using saasLMS.CourseCatalogService.Courses
 @using saasLMS.CourseCatalogService.Courses.Dtos.Outputs
 @using saasLMS.CourseCatalogService.Chapters.Dtos.Outputs
@@ -253,6 +254,56 @@
     .slp-resource__type-badge--text     { background: #fce8e6; color: #d93025; }
     .slp-resource__type-badge--file     { background: #e6f4ea; color: #1e8e3e; }
     .slp-resource__type-badge--assign   { background: #fff3e0; color: #e37400; }
+    .slp-resource__type-badge--quiz     { background: #f3e8fd; color: #9c27b0; }
+
+    /* Quiz card in overview */
+    .slp-quiz-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid #e1c4f7;
+        border-radius: 10px;
+        background: #fdf5ff;
+        margin-bottom: 0.6rem;
+        transition: box-shadow 0.15s, border-color 0.15s;
+        cursor: pointer;
+    }
+
+    .slp-quiz-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        border-color: #9c27b0;
+    }
+
+    .slp-quiz-card__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #f3e8fd;
+        color: #9c27b0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .slp-quiz-card__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .slp-quiz-card__title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0d1117;
+        margin-bottom: 0.15rem;
+    }
+
+    .slp-quiz-card__meta {
+        font-size: 0.76rem;
+        color: #8a93a2;
+    }
 
     /* ── MAIN CONTENT ─────────────────────────────────────────────────────── */
     .slp-main {
@@ -659,8 +710,9 @@ else
                                 var isLessonSelected  = _selectedLesson?.Id == lesson.Id;
                                 var isDone            = _completedLessonIds.Contains(lesson.Id);
                                 var isLessonExpanded  = _expandedLessons.Contains(lesson.Id);
-                                var hasActiveResource = isLessonSelected && (_selectedMaterial != null || _selectedAssignment != null);
+                                var hasActiveResource = isLessonSelected && (_selectedMaterial != null || _selectedAssignment != null || _selectedQuiz != null);
                                 var lessonAssignments = GetLessonAssignments(lesson.Id);
+                                var lessonQuizzes     = GetLessonQuizzes(lesson.Id);
 
                                 @* Lesson header row *@
                                 <div class="slp-lesson @(isLessonSelected && !hasActiveResource ? "slp-lesson--active" : "") @(hasActiveResource ? "slp-lesson--has-active-resource" : "")">
@@ -688,7 +740,7 @@ else
                                     </span>
 
                                     @* Chevron (click → toggle resources expansion) *@
-                                    @if (lesson.Materials.Any() || lessonAssignments.Any())
+                                    @if (lesson.Materials.Any() || lessonAssignments.Any() || lessonQuizzes.Any())
                                     {
                                         <span class="slp-lesson__chevron"
                                               @onclick:stopPropagation="true"
@@ -727,6 +779,19 @@ else
                                                 </span>
                                                 <span class="slp-resource__title" title="@assignment.Title">@assignment.Title</span>
                                                 <span class="slp-resource__type-badge slp-resource__type-badge--assign">Assignment</span>
+                                            </div>
+                                        }
+
+                                        @foreach (var quiz in lessonQuizzes)
+                                        {
+                                            var isQuizActive = isLessonSelected && _selectedQuiz?.Id == quiz.Id;
+                                            <div class="slp-resource @(isQuizActive ? "slp-resource--active" : "")"
+                                                 @onclick="async () => { await SelectLessonAsync(lesson, false); SelectQuizAsync(quiz); }">
+                                                <span class="slp-resource__icon" style="color:#9c27b0;">
+                                                    <i class="fa fa-question-circle"></i>
+                                                </span>
+                                                <span class="slp-resource__title" title="@quiz.Title">@quiz.Title</span>
+                                                <span class="slp-resource__type-badge slp-resource__type-badge--quiz">Quiz</span>
                                             </div>
                                         }
                                     </div>
@@ -814,6 +879,30 @@ else
                 </div>
             }
 
+            @* ── Resource viewer: Quiz ── *@
+            else if (_selectedQuiz is not null)
+            {
+                <div class="slp-main-inner">
+                    @* Breadcrumb *@
+                    <div class="slp-breadcrumb">
+                        <span class="slp-breadcrumb__chapter">@_selectedChapter?.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span class="slp-breadcrumb__lesson" @onclick="BackToLessonOverview">@_selectedLesson.Title</span>
+                        <i class="fa fa-chevron-right" style="font-size:0.6rem;"></i>
+                        <span>@_selectedQuiz.Title</span>
+                    </div>
+
+                    <div class="slp-resource-header">
+                        <button class="slp-btn-back" @onclick="BackToLessonOverview">
+                            <i class="fa fa-arrow-left"></i> Back to Lesson
+                        </button>
+                        <h2 class="slp-resource-title">@_selectedQuiz.Title</h2>
+                    </div>
+
+                    <QuizViewer Quiz="_selectedQuiz" OnDone="BackToLessonOverview" />
+                </div>
+            }
+
             @* ── Lesson overview (default) ── *@
             else
             {
@@ -866,9 +955,10 @@ else
                     @{
                         var lessonMaterials  = _selectedLesson.Materials.OrderBy(m => m.SortOrder).ToList();
                         var lessonAssignList = GetLessonAssignments(_selectedLesson.Id);
+                        var lessonQuizList   = GetLessonQuizzes(_selectedLesson.Id);
                     }
 
-                    @if (!lessonMaterials.Any() && !lessonAssignList.Any())
+                    @if (!lessonMaterials.Any() && !lessonAssignList.Any() && !lessonQuizList.Any())
                     {
                         <div class="slp-empty" style="padding:1.5rem 0;">
                             <div class="slp-empty__icon"><i class="fa fa-folder-open-o"></i></div>
@@ -922,6 +1012,33 @@ else
                                             {
                                                 <span>&bull; Due @assignment.Deadline.Value.ToLocalTime().ToString("MMM dd, yyyy")</span>
                                             }
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <i class="fa fa-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                                    </div>
+                                </div>
+                            }
+                        }
+
+                        @if (lessonQuizList.Any())
+                        {
+                            <div class="slp-section-label" style="margin-top:1.25rem;">Quizzes</div>
+                            @foreach (var quiz in lessonQuizList)
+                            {
+                                <div class="slp-quiz-card" @onclick="() => SelectQuizAsync(quiz)">
+                                    <div class="slp-quiz-card__icon">
+                                        <i class="fa fa-question-circle"></i>
+                                    </div>
+                                    <div class="slp-quiz-card__info">
+                                        <div class="slp-quiz-card__title">@quiz.Title</div>
+                                        <div class="slp-quiz-card__meta">
+                                            Quiz
+                                            @if (quiz.TimeLimitMinutes.HasValue)
+                                            {
+                                                <span>&bull; @quiz.TimeLimitMinutes min</span>
+                                            }
+                                            <span>&bull; Max: @quiz.MaxScore.ToString("G") pts</span>
                                         </div>
                                     </div>
                                     <div>
