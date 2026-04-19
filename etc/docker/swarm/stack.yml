@@ -82,6 +82,8 @@ secrets:
 
 services:
   blazor:
+    # NOTE: Pin this to a concrete tag when troubleshooting frontend boot issues
+    # (e.g. missing /_framework/blazor.boot.json).
     image: youngmizh/saaslms-blazor:latest
     ports:
       - target: 80
