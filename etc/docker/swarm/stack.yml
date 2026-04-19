@@ -110,7 +110,7 @@ services:
       <<: *deploy_manager
 
   dbmigrator:
-    image: youngmizh/saaslms-dbmigrator:latest
+    image: image: youngmizh/saaslms-dbmigrator:scopefix-20260419
     environment:
       <<: *env_common
       # IMPORTANT: keep RootUrl without a trailing slash to avoid seeding redirect URIs like
