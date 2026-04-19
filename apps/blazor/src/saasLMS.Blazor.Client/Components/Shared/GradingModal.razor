@@ -55,7 +55,7 @@
                                 </div>
                                 <div class="gm-student-info">
                                     <span class="gm-student-info__name">
-                                        Student <span class="gm-student-info__id">@sub.StudentId.ToString()[..8]…</span>
+                                        @GetStudentName(sub.StudentId)
                                     </span>
                                     <span class="gm-student-info__file">
                                         @if (!string.IsNullOrEmpty(sub.FileName))
@@ -266,11 +266,6 @@
         font-size: 0.88rem;
         font-weight: 600;
         color: #2d3748;
-    }
-    .gm-student-info__id {
-        font-family: monospace;
-        font-size: 0.78rem;
-        color: #8494a9;
     }
     .gm-student-info__file {
         font-size: 0.78rem;

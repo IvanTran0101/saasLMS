@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -143,6 +144,14 @@ public class saasLMSMenuContributor : IMenuContributor
         //Administration
         var administration = context.Menu.GetAdministration();
         administration.Order = 6;
+
+        // Hide Identity management from non-admin users (permission granted only for name lookup)
+        if (!currentUser.IsInRole(LmsRoles.Admin))
+        {
+            var identityItem = administration.Items.FirstOrDefault(i => i.Name == IdentityProMenus.GroupName);
+            if (identityItem != null)
+                administration.Items.Remove(identityItem);
+        }
 
         //Administration->Identity
         administration.SetSubItemOrder(IdentityProMenus.GroupName, 1);

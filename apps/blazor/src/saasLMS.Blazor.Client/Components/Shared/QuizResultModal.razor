@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="qrm-student-info">
                                     <span class="qrm-student-info__name">
-                                        Student <span class="qrm-student-info__id">@attempt.StudentId.ToString()[..8]…</span>
+                                        @GetStudentName(attempt.StudentId)
                                     </span>
                                     <span class="qrm-student-info__meta">
                                         @if (attempt.CompletedAt.HasValue)

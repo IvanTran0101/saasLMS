@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using saasLMS.AssessmentService.Submissions;
 using Volo.Abp.AspNetCore.Components;
+using Volo.Abp.Identity;
 
 namespace saasLMS.Blazor.Client.Components.Shared;
 
@@ -19,6 +20,9 @@ public partial class GradingModal : AbpComponentBase
 
     [Inject]
     private ISubmissionAppService SubmissionAppService { get; set; } = default!;
+
+    [Inject]
+    private IIdentityUserAppService IdentityUserAppService { get; set; } = default!;
 
     [Inject]
     private IHttpClientFactory HttpClientFactory { get; set; } = default!;
@@ -41,7 +45,8 @@ public partial class GradingModal : AbpComponentBase
     private string  _assignmentTitle = string.Empty;
     private decimal _maxScore;
 
-    private List<SubmissionListItemDto> _submissions = new();
+    private List<SubmissionListItemDto>  _submissions    = new();
+    private Dictionary<Guid, string>    _studentNameMap = new();
 
     /// <summary>Raw text input per submission ID (before parsing to decimal).</summary>
     private readonly Dictionary<Guid, string> _scoreInputs = new();
@@ -58,6 +63,7 @@ public partial class GradingModal : AbpComponentBase
         _maxScore        = maxScore;
         _isVisible       = true;
         _submissions     = new List<SubmissionListItemDto>();
+        _studentNameMap  = new Dictionary<Guid, string>();
         _scoreInputs.Clear();
         _gradingSubmissionId = null;
 
@@ -88,6 +94,8 @@ public partial class GradingModal : AbpComponentBase
             {
                 _scoreInputs[sub.Id] = sub.Score!.Value.ToString("G");
             }
+
+            await LoadStudentNamesAsync();
         }
         catch (Exception ex)
         {
@@ -140,6 +148,32 @@ public partial class GradingModal : AbpComponentBase
             await HandleErrorAsync(ex);
         }
     }
+
+    private async Task LoadStudentNamesAsync()
+    {
+        var studentIds = _submissions.Select(s => s.StudentId).Distinct().ToList();
+        if (studentIds.Count == 0) return;
+
+        var tasks = studentIds.Select(async id =>
+        {
+            try
+            {
+                var user = await IdentityUserAppService.GetAsync(id);
+                var fullName = $"{user.Name} {user.Surname}".Trim();
+                return (id, name: string.IsNullOrEmpty(fullName) ? user.UserName : fullName);
+            }
+            catch
+            {
+                return (id, name: "Student");
+            }
+        });
+
+        var results = await Task.WhenAll(tasks);
+        _studentNameMap = results.ToDictionary(r => r.id, r => r.name);
+    }
+
+    private string GetStudentName(Guid studentId)
+        => _studentNameMap.TryGetValue(studentId, out var name) ? name : "Student";
 
     private async Task GradeSubmissionAsync(Guid submissionId)
     {

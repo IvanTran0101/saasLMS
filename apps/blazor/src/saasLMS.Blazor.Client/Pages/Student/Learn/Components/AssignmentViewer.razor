@@ -314,23 +314,6 @@
         color: #1a73e8;
     }
 
-    .av-btn-done {
-        background: #1a73e8;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 0.5rem 1.5rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        transition: background 0.15s;
-    }
-
-    .av-btn-done:hover { background: #1557b0; }
-
     .av-closed-banner {
         background: #fff3cd;
         border: 1px solid #ffc107;
@@ -458,25 +441,15 @@
                 }
             </div>
 
-            @* Edit + Done ── *@
-            <div class="av-actions">
-                @if (_assignment.Status != AssignmentStatus.Closed)
-                {
+            @* Edit ── *@
+            @if (_assignment.Status != AssignmentStatus.Closed)
+            {
+                <div class="av-actions">
                     <button class="av-btn-edit" @onclick="() => _isEditing = true">
                         <i class="fa fa-pencil"></i> Edit Submission
                     </button>
-                }
-                else
-                {
-                    <span></span>
-                }
-                @if (OnDone.HasDelegate)
-                {
-                    <button class="av-btn-done" @onclick="OnDone">
-                        <i class="fa fa-check"></i> Done
-                    </button>
-                }
-            </div>
+                </div>
+            }
         }
 
         @* ── Upload zone (new or editing) ── *@
@@ -534,28 +507,20 @@
                 {
                     <span></span>
                 }
-                <div class="d-flex gap-2">
-                    <button class="av-btn-submit"
-                            @onclick="SubmitAsync"
-                            disabled="@(_isSubmitting || _selectedFile is null)">
-                        @if (_isSubmitting)
-                        {
-                            <span class="spinner-border spinner-border-sm"></span>
-                            <span>Uploading...</span>
-                        }
-                        else
-                        {
-                            <i class="fa fa-paper-plane"></i>
-                            <span>Submit</span>
-                        }
-                    </button>
-                    @if (OnDone.HasDelegate)
+                <button class="av-btn-submit"
+                        @onclick="SubmitAsync"
+                        disabled="@(_isSubmitting || _selectedFile is null)">
+                    @if (_isSubmitting)
                     {
-                        <button class="av-btn-done" @onclick="OnDone">
-                            <i class="fa fa-check"></i> Done
-                        </button>
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Uploading...</span>
                     }
-                </div>
+                    else
+                    {
+                        <i class="fa fa-paper-plane"></i>
+                        <span>Submit</span>
+                    }
+                </button>
             </div>
         }
     }

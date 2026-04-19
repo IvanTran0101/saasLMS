@@ -148,6 +148,9 @@ public partial class AssignmentViewer : AbpComponentBase
 
             _isEditing = false;
             ClearFile();
+
+            if (OnDone.HasDelegate)
+                await OnDone.InvokeAsync();
         }
         catch (Exception ex)
         {

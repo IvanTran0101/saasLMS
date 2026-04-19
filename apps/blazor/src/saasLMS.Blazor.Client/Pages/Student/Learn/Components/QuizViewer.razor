@@ -417,7 +417,7 @@
                 <span></span>
             }
 
-            @if (Quiz.Status == QuizStatus.Published)
+            @if (Quiz.Status == QuizStatus.Published && _attempts.Count == 0)
             {
                 <button class="qv-btn-start"
                         @onclick="StartQuizAsync"
