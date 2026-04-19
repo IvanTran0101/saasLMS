@@ -135,6 +135,60 @@
             }
           }
         },
+        "saasLMS.AssessmentService.QuizAttemptAppService": {
+          "controllerName": "QuizAttempt",
+          "controllerGroupName": "QuizAttempt",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.AssessmentService.QuizAttemptAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.AssessmentService.QuizAttempts.IQuizAttemptAppService",
+              "name": "IQuizAttemptAppService",
+              "methods": [
+                { "name": "StartAsync", "parametersOnMethod": [{ "name": "input", "typeAsString": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto" } },
+                { "name": "GetMyAttemptByQuizAsync", "parametersOnMethod": [{ "name": "quizId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }], "returnValue": { "type": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto" } }
+              ]
+            }
+          ],
+          "actions": {
+            "StartAsyncByInput": {
+              "uniqueName": "StartAsyncByInput",
+              "name": "StartAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/quiz-attempt/start",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.StartQuizAttemptDto", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.QuizAttempts.IQuizAttemptAppService"
+            },
+            "GetMyAttemptByQuizAsyncByQuizId": {
+              "uniqueName": "GetMyAttemptByQuizAsyncByQuizId",
+              "name": "GetMyAttemptByQuizAsync",
+              "httpMethod": "GET",
+              "url": "api/assessment/quiz-attempt/my-attempt-by-quiz/{quizId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "quizId", "typeAsString": "System.Guid, System.Private.CoreLib", "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "quizId", "name": "quizId", "jsonName": null, "type": "System.Guid", "typeSimple": "string", "isOptional": false, "defaultValue": null, "constraintTypes": [], "bindingSourceId": "Path", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto", "typeSimple": "saasLMS.AssessmentService.QuizAttempts.QuizAttemptDto" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.QuizAttempts.IQuizAttemptAppService"
+            }
+          }
+        },
         "saasLMS.AssessmentService.QuizCsvController": {
           "controllerName": "QuizCsv",
           "controllerGroupName": "QuizCsv",
