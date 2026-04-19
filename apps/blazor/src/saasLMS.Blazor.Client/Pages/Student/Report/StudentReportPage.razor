@@ -1,0 +1,943 @@
+@page "/student/report"
+@inherits AbpComponentBase
+
+@using saasLMS.LearningProgressService.CourseProgresses
+
+<PageTitle>My Report</PageTitle>
+
+<style>
+    /* ── Shared skeleton / shimmer ──────────────────────────────────────────── */
+    .srp-skeleton {
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        min-height: 220px;
+    }
+
+    .srp-skeleton__thumb {
+        height: 140px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: srp-shimmer 1.4s infinite;
+    }
+
+    .srp-skeleton__body { padding: 0.875rem 1rem; }
+
+    .srp-skeleton__line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: srp-shimmer 1.4s infinite;
+        margin-bottom: 0.5rem;
+    }
+
+    .srp-skeleton__line--short { width: 40%; }
+
+    @@keyframes srp-shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* ── Course card (report variant) ──────────────────────────────────────── */
+    .srp-course-card {
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        height: 100%;
+        transition: box-shadow 0.2s, transform 0.2s;
+        cursor: pointer;
+    }
+
+    .srp-course-card:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+        transform: translateY(-2px);
+    }
+
+    .srp-course-card__thumbnail {
+        position: relative;
+        height: 150px;
+        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .srp-course-card__thumbnail-icon {
+        color: rgba(255,255,255,0.15);
+        font-size: 3.5rem;
+    }
+
+    .srp-course-card__body { padding: 0.9rem 1rem; }
+
+    .srp-course-card__title {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #0d1117;
+        margin-bottom: 0.5rem;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .srp-course-card__hint {
+        font-size: 0.75rem;
+        color: #1a73e8;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-top: 0.5rem;
+    }
+
+    /* ── Progress track in card ─────────────────────────────────────────────── */
+    .srp-progress-wrap { margin-bottom: 0.25rem; }
+
+    .srp-progress-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.72rem;
+        color: #8a93a2;
+        margin-bottom: 4px;
+    }
+
+    .srp-progress-track {
+        height: 6px;
+        border-radius: 3px;
+        background: #f0f2f5;
+        overflow: hidden;
+    }
+
+    .srp-progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #1a73e8, #34a853);
+        transition: width 0.4s ease;
+    }
+
+    .srp-progress-fill--completed {
+        background: linear-gradient(90deg, #1e8e3e, #34a853);
+    }
+
+    /* ── Page header ────────────────────────────────────────────────────────── */
+    .srp-header { margin-bottom: 1.5rem; }
+
+    .srp-header__title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.25rem;
+    }
+
+    .srp-header__sub {
+        font-size: 0.88rem;
+        color: #8a93a2;
+    }
+
+    /* ── Report detail area ─────────────────────────────────────────────────── */
+    .srp-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #1a73e8;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        margin-bottom: 1.25rem;
+        text-decoration: none;
+    }
+
+    .srp-back-btn:hover { text-decoration: underline; color: #1557b0; }
+
+    .srp-report-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #0d1117;
+        margin-bottom: 0.75rem;
+    }
+
+    /* ── Compact tabs ───────────────────────────────────────────────────────── */
+    .srp-tabs {
+        display: inline-flex;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 1.5rem;
+        gap: 0;
+    }
+
+    .srp-tab-btn {
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #8a93a2;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+        white-space: nowrap;
+    }
+
+    .srp-tab-btn:hover { color: #0d1117; }
+
+    .srp-tab-btn--active {
+        color: #1a73e8;
+        border-bottom-color: #1a73e8;
+    }
+
+    /* ── Stat cards ─────────────────────────────────────────────────────────── */
+    .srp-stat {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .srp-stat__label {
+        font-size: 0.72rem;
+        color: #8a93a2;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.3rem;
+    }
+
+    .srp-stat__value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.1;
+    }
+
+    .srp-stat__icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .srp-stat__icon--blue   { background: #e8f0fe; color: #1a73e8; }
+    .srp-stat__icon--green  { background: #e6f4ea; color: #1e8e3e; }
+    .srp-stat__icon--orange { background: #fef3e2; color: #f29900; }
+    .srp-stat__icon--purple { background: #f0ebff; color: #7c4dff; }
+
+    /* ── Chart card wrapper ─────────────────────────────────────────────────── */
+    .srp-chart-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        height: 100%;
+    }
+
+    .srp-chart-card__title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Horizontal progress bars ───────────────────────────────────────────── */
+    .srp-hbar { margin-bottom: 1.1rem; }
+
+    .srp-hbar:last-child { margin-bottom: 0; }
+
+    .srp-hbar__header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+
+    .srp-hbar__label { font-weight: 600; color: #0d1117; }
+    .srp-hbar__pct   { color: #8a93a2; font-weight: 600; }
+
+    .srp-hbar__track {
+        height: 10px;
+        border-radius: 5px;
+        background: #f0f2f5;
+        overflow: hidden;
+    }
+
+    .srp-hbar__fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.5s ease;
+    }
+
+    /* ── SVG donut chart ────────────────────────────────────────────────────── */
+    .srp-donut-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .srp-donut__svg {
+        width: 100%;
+        max-width: 180px;
+        display: block;
+        margin: 0 auto 0.75rem;
+    }
+
+    .srp-donut__legend {
+        display: flex;
+        gap: 1.25rem;
+        justify-content: center;
+        font-size: 0.78rem;
+        flex-wrap: wrap;
+    }
+
+    .srp-donut__legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .srp-donut__legend-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .srp-donut__legend-label { color: #5f6368; }
+    .srp-donut__legend-val   { font-weight: 700; color: #0d1117; }
+
+    /* ── Insight card ───────────────────────────────────────────────────────── */
+    .srp-insight {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        padding: 1.1rem 1.3rem;
+        height: 100%;
+    }
+
+    .srp-insight__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .srp-insight__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .srp-insight__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .srp-insight__value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0d1117;
+        line-height: 1.1;
+        margin-bottom: 0.25rem;
+    }
+
+    .srp-insight__sub {
+        font-size: 0.72rem;
+        color: #8a93a2;
+    }
+
+    /* ── Loading overlay ────────────────────────────────────────────────────── */
+    .srp-loading-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        color: #8a93a2;
+        font-size: 0.9rem;
+        gap: 0.6rem;
+    }
+
+    .srp-section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .srp-section-header__title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 0;
+        color: #0d1117;
+    }
+
+    .srp-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 260px;
+        color: #8a93a2;
+        gap: 0.75rem;
+        text-align: center;
+    }
+
+    .srp-empty__icon { font-size: 2.5rem; opacity: 0.4; }
+    .srp-empty__text { font-size: 0.92rem; }
+</style>
+
+<div>
+
+    @if (_selectedCourse == null)
+    {
+        @* ── Course List View ──────────────────────────────────────────────── *@
+
+        <div class="srp-header">
+            <h4 class="srp-header__title">My Report</h4>
+            <p class="srp-header__sub">Select a course to view your detailed progress report.</p>
+        </div>
+
+        <div class="srp-section-header">
+            <h5 class="srp-section-header__title">Enrolled Courses</h5>
+        </div>
+
+        <div class="row g-3">
+
+            @if (_isLoadingCourses)
+            {
+                @for (var i = 0; i < 6; i++)
+                {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="srp-skeleton">
+                            <div class="srp-skeleton__thumb"></div>
+                            <div class="srp-skeleton__body">
+                                <div class="srp-skeleton__line"></div>
+                                <div class="srp-skeleton__line srp-skeleton__line--short"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else if (_enrolledCourses.Count == 0)
+            {
+                <div class="col-12">
+                    <div class="srp-empty">
+                        <i class="fa fa-book-open srp-empty__icon"></i>
+                        <p class="srp-empty__text">You are not enrolled in any courses yet.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var course in _enrolledCourses)
+                {
+                    var pct   = CourseProgressPct(course.CourseId);
+                    var color = CourseProgressColor(course.CourseId);
+                    var isCompleted = _progressMap.TryGetValue(course.CourseId, out var cp)
+                                      && cp.Status == CourseProgressStatus.Completed;
+
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="srp-course-card" @onclick="() => SelectCourse(course)">
+                            <div class="srp-course-card__thumbnail">
+                                <i class="fa fa-desktop srp-course-card__thumbnail-icon"></i>
+                            </div>
+                            <div class="srp-course-card__body">
+                                <div class="srp-course-card__title">@course.Title</div>
+
+                                <div class="srp-progress-wrap">
+                                    <div class="srp-progress-header">
+                                        <span>Progress</span>
+                                        <span>@pct%</span>
+                                    </div>
+                                    <div class="srp-progress-track">
+                                        <div class="srp-progress-fill @(isCompleted ? "srp-progress-fill--completed" : "")"
+                                             style="width: @pct%; background: @color;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="srp-course-card__hint">
+                                    <i class="fa fa-chart-line"></i> View Report
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+    }
+    else
+    {
+        @* ── Report Detail View ────────────────────────────────────────────── *@
+
+        <button class="srp-back-btn" @onclick="ClearSelection">
+            <i class="fa fa-arrow-left"></i> Back to Courses
+        </button>
+
+        <h4 class="srp-report-title">@_selectedCourse.Title</h4>
+
+        @* ── Tabs ────────────────────────────────────────────────────────────── *@
+        <div class="srp-tabs">
+            <button class="srp-tab-btn @(_activeTab == StudentReportTab.Overview ? "srp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(StudentReportTab.Overview)'>
+                <i class="fa fa-tachometer-alt me-1"></i> Overview
+            </button>
+            <button class="srp-tab-btn @(_activeTab == StudentReportTab.Assignments ? "srp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(StudentReportTab.Assignments)'>
+                <i class="fa fa-tasks me-1"></i> Assignments
+            </button>
+            <button class="srp-tab-btn @(_activeTab == StudentReportTab.Quizzes ? "srp-tab-btn--active" : "")"
+                    @onclick='() => SetTab(StudentReportTab.Quizzes)'>
+                <i class="fa fa-question-circle me-1"></i> Quizzes
+            </button>
+        </div>
+
+        @* ── Tab Content ─────────────────────────────────────────────────────── *@
+
+        @if (_isLoadingReport)
+        {
+            <div class="srp-loading-overlay">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                Loading report data...
+            </div>
+        }
+        else if (_studentProgress == null)
+        {
+            <div class="srp-loading-overlay">
+                <i class="fa fa-info-circle me-2"></i>
+                No progress data available for this course yet.
+            </div>
+        }
+        else if (_activeTab == StudentReportTab.Overview)
+        {
+            @* ── Overview Tab ─────────────────────────────────────────────────── *@
+
+            @* Row 1: Key stat cards *@
+            <div class="row g-3">
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--blue">
+                            <i class="fa fa-book"></i>
+                        </div>
+                        <div class="srp-stat__label">Lessons Completed</div>
+                        <div class="srp-stat__value">
+                            @_studentProgress.CompletedLessonsCount
+                            <span style="font-size:0.9rem;font-weight:400;color:#8a93a2;">
+                                / @_studentProgress.TotalLessonsCount
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--green">
+                            <i class="fa fa-flag-checkered"></i>
+                        </div>
+                        <div class="srp-stat__label">Overall Progress</div>
+                        <div class="srp-stat__value">@OverallPct%</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--orange">
+                            <i class="fa fa-tasks"></i>
+                        </div>
+                        <div class="srp-stat__label">Assignments Graded</div>
+                        <div class="srp-stat__value">
+                            @_studentProgress.AssignmentGradedCount
+                            <span style="font-size:0.9rem;font-weight:400;color:#8a93a2;">
+                                / @_studentProgress.TotalAssignmentsCount
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--purple">
+                            <i class="fa fa-question-circle"></i>
+                        </div>
+                        <div class="srp-stat__label">Quizzes Completed</div>
+                        <div class="srp-stat__value">
+                            @_studentProgress.QuizCompletedCount
+                            <span style="font-size:0.9rem;font-weight:400;color:#8a93a2;">
+                                / @_studentProgress.TotalQuizzesCount
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Row 2: Progress bars + Donut chart *@
+            <div class="row g-3 mt-1">
+
+                <div class="col-12 col-md-7">
+                    <div class="srp-chart-card">
+                        <div class="srp-chart-card__title">Completion Breakdown</div>
+
+                        <div class="srp-hbar">
+                            <div class="srp-hbar__header">
+                                <span class="srp-hbar__label"><i class="fa fa-book me-1 text-primary"></i> Lessons</span>
+                                <span class="srp-hbar__pct">@LessonPct%</span>
+                            </div>
+                            <div class="srp-hbar__track">
+                                <div class="srp-hbar__fill" style="width:@LessonPct%; background:linear-gradient(90deg,#1a73e8,#4a9af4);"></div>
+                            </div>
+                        </div>
+
+                        <div class="srp-hbar">
+                            <div class="srp-hbar__header">
+                                <span class="srp-hbar__label"><i class="fa fa-tasks me-1 text-warning"></i> Assignments</span>
+                                <span class="srp-hbar__pct">@AssignmentPct%</span>
+                            </div>
+                            <div class="srp-hbar__track">
+                                <div class="srp-hbar__fill" style="width:@AssignmentPct%; background:linear-gradient(90deg,#f29900,#ffc107);"></div>
+                            </div>
+                        </div>
+
+                        <div class="srp-hbar">
+                            <div class="srp-hbar__header">
+                                <span class="srp-hbar__label"><i class="fa fa-question-circle me-1 text-purple"></i> Quizzes</span>
+                                <span class="srp-hbar__pct">@QuizPct%</span>
+                            </div>
+                            <div class="srp-hbar__track">
+                                <div class="srp-hbar__fill" style="width:@QuizPct%; background:linear-gradient(90deg,#7c4dff,#b47cff);"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-5">
+                    <div class="srp-chart-card srp-donut-wrap">
+                        <div class="srp-chart-card__title">Overall Progress</div>
+
+                        <svg class="srp-donut__svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f2f5" stroke-width="18"/>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#1a73e8" stroke-width="18"
+                                    stroke-dasharray="@DonutDash(OverallPct)" stroke-dashoffset="0"
+                                    transform="rotate(-90 50 50)"/>
+                            <text x="50" y="47" text-anchor="middle"
+                                  font-size="13" font-weight="700" fill="#0d1117">@OverallPct%</text>
+                            <text x="50" y="57" text-anchor="middle"
+                                  font-size="6.5" fill="#8a93a2">Progress</text>
+                        </svg>
+
+                        <div class="srp-donut__legend">
+                            <div class="srp-donut__legend-item">
+                                <div class="srp-donut__legend-dot" style="background:#1a73e8;"></div>
+                                <span class="srp-donut__legend-label">Completed</span>
+                                <span class="srp-donut__legend-val">@OverallPct%</span>
+                            </div>
+                            <div class="srp-donut__legend-item">
+                                <div class="srp-donut__legend-dot" style="background:#f0f2f5;"></div>
+                                <span class="srp-donut__legend-label">Remaining</span>
+                                <span class="srp-donut__legend-val">@(100 - OverallPct)%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Row 3: Last accessed info *@
+            <div class="row g-3 mt-1">
+
+                @if (_studentProgress.LastAccessedAt.HasValue)
+                {
+                    <div class="col-12 col-sm-6">
+                        <div class="srp-insight">
+                            <div class="srp-insight__header">
+                                <div class="srp-insight__icon" style="background:#e8f0fe; color:#1a73e8;">
+                                    <i class="fa fa-clock"></i>
+                                </div>
+                                <span class="srp-insight__label">Last Accessed</span>
+                            </div>
+                            <div class="srp-insight__value" style="font-size:1.1rem;">
+                                @_studentProgress.LastAccessedAt.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                            </div>
+                            <div class="srp-insight__sub">Most recent learning session</div>
+                        </div>
+                    </div>
+                }
+
+                <div class="col-12 col-sm-6">
+                    <div class="srp-insight">
+                        <div class="srp-insight__header">
+                            <div class="srp-insight__icon" style="background:#e6f4ea; color:#1e8e3e;">
+                                <i class="fa fa-sync-alt"></i>
+                            </div>
+                            <span class="srp-insight__label">Report Updated</span>
+                        </div>
+                        <div class="srp-insight__value" style="font-size:1.1rem;">
+                            @_studentProgress.LastUpdatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                        </div>
+                        <div class="srp-insight__sub">Time of the most recent data recalculation</div>
+                    </div>
+                </div>
+
+            </div>
+        }
+        else if (_activeTab == StudentReportTab.Assignments)
+        {
+            @* ── Assignments Tab ──────────────────────────────────────────────── *@
+
+            @* Row 1: Stat cards *@
+            <div class="row g-3">
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--blue">
+                            <i class="fa fa-clipboard-check"></i>
+                        </div>
+                        <div class="srp-stat__label">Graded</div>
+                        <div class="srp-stat__value">
+                            @_studentProgress.AssignmentGradedCount
+                            <span style="font-size:0.9rem;font-weight:400;color:#8a93a2;">
+                                / @_studentProgress.TotalAssignmentsCount
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--green">
+                            <i class="fa fa-star"></i>
+                        </div>
+                        <div class="srp-stat__label">Avg Score</div>
+                        <div class="srp-stat__value">@_studentProgress.AvgAssignmentScore.ToString("F1")</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--orange">
+                            <i class="fa fa-sigma"></i>
+                        </div>
+                        <div class="srp-stat__label">Total Score</div>
+                        <div class="srp-stat__value">@_studentProgress.AssignmentScoreSum.ToString("F0")</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--purple">
+                            <i class="fa fa-percentage"></i>
+                        </div>
+                        <div class="srp-stat__label">Completion</div>
+                        <div class="srp-stat__value">@AssignmentPct%</div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Row 2: Progress visual *@
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-7">
+                    <div class="srp-chart-card">
+                        <div class="srp-chart-card__title">Assignment Completion</div>
+                        <div class="srp-hbar">
+                            <div class="srp-hbar__header">
+                                <span class="srp-hbar__label">Assignments Graded</span>
+                                <span class="srp-hbar__pct">@AssignmentPct%</span>
+                            </div>
+                            <div class="srp-hbar__track">
+                                <div class="srp-hbar__fill" style="width:@AssignmentPct%; background:linear-gradient(90deg,#f29900,#ffc107);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-5">
+                    <div class="srp-chart-card srp-donut-wrap">
+                        <div class="srp-chart-card__title">Graded vs Pending</div>
+                        <svg class="srp-donut__svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f2f5" stroke-width="18"/>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f29900" stroke-width="18"
+                                    stroke-dasharray="@DonutDash(AssignmentPct)" stroke-dashoffset="0"
+                                    transform="rotate(-90 50 50)"/>
+                            <text x="50" y="47" text-anchor="middle"
+                                  font-size="13" font-weight="700" fill="#0d1117">@AssignmentPct%</text>
+                            <text x="50" y="57" text-anchor="middle"
+                                  font-size="6.5" fill="#8a93a2">Graded</text>
+                        </svg>
+                        <div class="srp-donut__legend">
+                            <div class="srp-donut__legend-item">
+                                <div class="srp-donut__legend-dot" style="background:#f29900;"></div>
+                                <span class="srp-donut__legend-label">Graded</span>
+                                <span class="srp-donut__legend-val">@_studentProgress.AssignmentGradedCount</span>
+                            </div>
+                            <div class="srp-donut__legend-item">
+                                <div class="srp-donut__legend-dot" style="background:#f0f2f5;"></div>
+                                <span class="srp-donut__legend-label">Pending</span>
+                                <span class="srp-donut__legend-val">@(_studentProgress.TotalAssignmentsCount - _studentProgress.AssignmentGradedCount)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Row 3: Average score insight *@
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <div class="srp-insight">
+                        <div class="srp-insight__header">
+                            <div class="srp-insight__icon" style="background:#e6f4ea; color:#1e8e3e;">
+                                <i class="fa fa-star"></i>
+                            </div>
+                            <span class="srp-insight__label">Average Assignment Score</span>
+                        </div>
+                        <div class="srp-insight__value">@_studentProgress.AvgAssignmentScore.ToString("F1")</div>
+                        <div class="srp-insight__sub">
+                            Total score sum: @_studentProgress.AssignmentScoreSum.ToString("F0") across
+                            @_studentProgress.AssignmentGradedCount graded assignment(s)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @* ── Quizzes Tab ──────────────────────────────────────────────────── *@
+
+            @* Row 1: Stat cards *@
+            <div class="row g-3">
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--purple">
+                            <i class="fa fa-check-square"></i>
+                        </div>
+                        <div class="srp-stat__label">Completed</div>
+                        <div class="srp-stat__value">
+                            @_studentProgress.QuizCompletedCount
+                            <span style="font-size:0.9rem;font-weight:400;color:#8a93a2;">
+                                / @_studentProgress.TotalQuizzesCount
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--green">
+                            <i class="fa fa-star"></i>
+                        </div>
+                        <div class="srp-stat__label">Avg Score</div>
+                        <div class="srp-stat__value">@_studentProgress.AvgQuizScore.ToString("F1")</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--orange">
+                            <i class="fa fa-sigma"></i>
+                        </div>
+                        <div class="srp-stat__label">Total Score</div>
+                        <div class="srp-stat__value">@_studentProgress.QuizScoreSum.ToString("F0")</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="srp-stat">
+                        <div class="srp-stat__icon srp-stat__icon--blue">
+                            <i class="fa fa-percentage"></i>
+                        </div>
+                        <div class="srp-stat__label">Completion</div>
+                        <div class="srp-stat__value">@QuizPct%</div>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Row 2: Progress visual *@
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-7">
+                    <div class="srp-chart-card">
+                        <div class="srp-chart-card__title">Quiz Completion</div>
+                        <div class="srp-hbar">
+                            <div class="srp-hbar__header">
+                                <span class="srp-hbar__label">Quizzes Completed</span>
+                                <span class="srp-hbar__pct">@QuizPct%</span>
+                            </div>
+                            <div class="srp-hbar__track">
+                                <div class="srp-hbar__fill" style="width:@QuizPct%; background:linear-gradient(90deg,#7c4dff,#b47cff);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-5">
+                    <div class="srp-chart-card srp-donut-wrap">
+                        <div class="srp-chart-card__title">Completed vs Pending</div>
+                        <svg class="srp-donut__svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f2f5" stroke-width="18"/>
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#7c4dff" stroke-width="18"
+                                    stroke-dasharray="@DonutDash(QuizPct)" stroke-dashoffset="0"
+                                    transform="rotate(-90 50 50)"/>
+                            <text x="50" y="47" text-anchor="middle"
+                                  font-size="13" font-weight="700" fill="#0d1117">@QuizPct%</text>
+                            <text x="50" y="57" text-anchor="middle"
+                                  font-size="6.5" fill="#8a93a2">Done</text>
+                        </svg>
+                        <div class="srp-donut__legend">
+                            <div class="srp-donut__legend-item">
+                                <div class="srp-donut__legend-dot" style="background:#7c4dff;"></div>
+                                <span class="srp-donut__legend-label">Completed</span>
+                                <span class="srp-donut__legend-val">@_studentProgress.QuizCompletedCount</span>
+                            </div>
+                            <div class="srp-donut__legend-item">
+                                <div class="srp-donut__legend-dot" style="background:#f0f2f5;"></div>
+                                <span class="srp-donut__legend-label">Pending</span>
+                                <span class="srp-donut__legend-val">@(_studentProgress.TotalQuizzesCount - _studentProgress.QuizCompletedCount)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Row 3: Average score insight *@
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <div class="srp-insight">
+                        <div class="srp-insight__header">
+                            <div class="srp-insight__icon" style="background:#f0ebff; color:#7c4dff;">
+                                <i class="fa fa-star"></i>
+                            </div>
+                            <span class="srp-insight__label">Average Quiz Score</span>
+                        </div>
+                        <div class="srp-insight__value">@_studentProgress.AvgQuizScore.ToString("F1")</div>
+                        <div class="srp-insight__sub">
+                            Total score sum: @_studentProgress.QuizScoreSum.ToString("F0") across
+                            @_studentProgress.QuizCompletedCount completed quiz(zes)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+</div>
