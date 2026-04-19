@@ -92,6 +92,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://app.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_Blazor
+      # The container image currently doesn't ship `/app/wwwroot/libs`.
+      # ABP checks this folder by default and returns HTTP 500 if missing.
+      AbpMvcLibsOptions__CheckLibs: "false"
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
