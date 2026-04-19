@@ -84,7 +84,7 @@ services:
   blazor:
     # NOTE: Pin this to a concrete tag when troubleshooting frontend boot issues
     # (e.g. missing /_framework/blazor.boot.json).
-    image: youngmizh/saaslms-blazor:latest
+    image: youngmizh/saaslms-blazor:bootfix5-20260420
     ports:
       - target: 80
         published: 8083
@@ -112,7 +112,7 @@ services:
       <<: *deploy_manager
 
   dbmigrator:
-    image: image: youngmizh/saaslms-dbmigrator:scopefix-20260419
+    image: youngmizh/saaslms-dbmigrator:scopefix-20260419
     environment:
       <<: *env_common
       # IMPORTANT: keep RootUrl without a trailing slash to avoid seeding redirect URIs like
