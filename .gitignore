@@ -425,6 +425,7 @@ bin/Debug/
 # Optional local tooling caches
 *.pid
 *.seed
+.buildx-cache/
 
 **/bin/
 **/obj/

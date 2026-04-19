@@ -81,6 +81,26 @@ secrets:
     external: true
 
 services:
+  blazor:
+    image: youngmizh/saaslms-blazor:latest
+    ports:
+      - target: 80
+        published: 8083
+        protocol: tcp
+        mode: host
+    environment:
+      <<: *env_common
+      App__SelfUrl: https://app.trananhminh.uk
+      RabbitMQ__EventBus__ClientName: saasLMS_Blazor
+    secrets:
+      - abplicensecode
+      - stringencryption_defaultpassphrase
+      - identityclients_default_clientsecret
+    networks:
+      - saaslms-app
+    deploy:
+      <<: *deploy_manager
+
   dbmigrator:
     image: youngmizh/saaslms-dbmigrator:latest
     environment:
