@@ -96,6 +96,14 @@ public class saasLMSMenuContributor : IMenuContributor
                     icon: "fa fa-graduation-cap",
                     order: 1
                 ));
+
+                context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.StudentReport,
+                    l["Menu:StudentReport"],
+                    "/student/report",
+                    icon: "fa fa-chart-line",
+                    order: 2
+                ));
             }
 
             context.Menu.AddItem(new ApplicationMenuItem(

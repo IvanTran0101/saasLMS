@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using saasLMS.AssessmentService.Assignments;
+using saasLMS.AssessmentService.Quizzes;
 using saasLMS.Blazor.Client.Authorization;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
@@ -32,6 +33,7 @@ public partial class LessonViewerPage : AbpComponentBase
     [Inject] private ICourseCatalogAppService     CourseCatalogAppService     { get; set; } = default!;
     [Inject] private ILearningProgressAppService  LearningProgressAppService  { get; set; } = default!;
     [Inject] private IAssignmentAppService        AssignmentAppService        { get; set; } = default!;
+    [Inject] private IQuizAppService              QuizAppService              { get; set; } = default!;
     [Inject] private NavigationManager            NavigationManager           { get; set; } = default!;
 
     // ── Raw data ──────────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ public partial class LessonViewerPage : AbpComponentBase
     private List<LessonInChapterDto>  _flatLessons        = new();
 
     private Dictionary<Guid, List<AssignmentListItemDto>> _assignmentsByLesson = new();
+    private Dictionary<Guid, List<QuizListItemDto>>      _quizzesByLesson     = new();
 
     private ChapterDto?              _selectedChapter;
     private LessonInChapterDto?      _selectedLesson;
@@ -62,6 +65,9 @@ public partial class LessonViewerPage : AbpComponentBase
 
     /// Currently viewed assignment (null = show lesson overview).
     private AssignmentListItemDto?    _selectedAssignment;
+
+    /// Currently viewed quiz (null = show lesson overview).
+    private QuizListItemDto?          _selectedQuiz;
 
     // ── Computed lesson status flags ──────────────────────────────────────────
 
@@ -130,6 +136,18 @@ public partial class LessonViewerPage : AbpComponentBase
                 _assignmentsByLesson = new Dictionary<Guid, List<AssignmentListItemDto>>();
             }
 
+            try
+            {
+                var quizzes = await QuizAppService.GetListByCourseStudentAsync(CourseId);
+                _quizzesByLesson = quizzes
+                    .GroupBy(q => q.LessonId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+            catch (Exception)
+            {
+                _quizzesByLesson = new Dictionary<Guid, List<QuizListItemDto>>();
+            }
+
             BuildDerivedState();
             await SelectLessonFromRouteParamAsync();
         }
@@ -184,6 +202,7 @@ public partial class LessonViewerPage : AbpComponentBase
         _selectedLesson  = lesson;
         _selectedMaterial   = null;
         _selectedAssignment = null;
+        _selectedQuiz       = null;
 
         _selectedChapter = _courseDetail?.Chapters
             .FirstOrDefault(c => c.Lessons.Any(l => l.Id == lesson.Id));
@@ -230,16 +249,28 @@ public partial class LessonViewerPage : AbpComponentBase
     {
         _selectedAssignment = assignment;
         _selectedMaterial   = null;
+        _selectedQuiz       = null;
+    }
+
+    private void SelectQuizAsync(QuizListItemDto quiz)
+    {
+        _selectedQuiz       = quiz;
+        _selectedMaterial   = null;
+        _selectedAssignment = null;
     }
 
     private void BackToLessonOverview()
     {
         _selectedMaterial   = null;
         _selectedAssignment = null;
+        _selectedQuiz       = null;
     }
 
     private IReadOnlyList<AssignmentListItemDto> GetLessonAssignments(Guid lessonId) =>
         _assignmentsByLesson.TryGetValue(lessonId, out var list) ? list : Array.Empty<AssignmentListItemDto>();
+
+    private IReadOnlyList<QuizListItemDto> GetLessonQuizzes(Guid lessonId) =>
+        _quizzesByLesson.TryGetValue(lessonId, out var list) ? list : Array.Empty<QuizListItemDto>();
 
     // ── Learning actions ──────────────────────────────────────────────────────
 
