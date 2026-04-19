@@ -175,6 +175,7 @@ WORKDIR /src
 
 ARG PROJECT_PATH=""
 ARG CONFIGURATION=Release
+ARG PUBLISH_EXTRA_ARGS=""
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
@@ -191,7 +192,8 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
     --mount=type=cache,target=/root/.local/share/NuGet/v3-cache \
     dotnet publish "$PROJECT_PATH" -c "$CONFIGURATION" -o /app/publish --no-restore \
   -p:UseAppHost=false \
-  -p:ContinuousIntegrationBuild=true
+  -p:ContinuousIntegrationBuild=true \
+  $PUBLISH_EXTRA_ARGS
 
 FROM ${DOTNET_RUNTIME_IMAGE} AS runtime
 WORKDIR /app
