@@ -113,12 +113,15 @@ services:
     image: youngmizh/saaslms-dbmigrator:latest
     environment:
       <<: *env_common
-      OpenIddict__Applications__AuthServer__RootUrl: https://auth.trananhminh.uk/
-      OpenIddict__Applications__Web__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
-      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk/
-      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk/
+      # IMPORTANT: keep RootUrl without a trailing slash to avoid seeding redirect URIs like
+      # "https://app.trananhminh.uk//authentication/login-callback" (double slash), which then
+      # fails OpenIddict redirect_uri validation and results in /Error?httpStatusCode=400.
+      OpenIddict__Applications__AuthServer__RootUrl: https://auth.trananhminh.uk
+      OpenIddict__Applications__Web__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk
       DbMigrator__Redis__Configuration: 10.0.1.118:6379
       DbMigrator__ElasticSearch__Url: http://10.0.1.118:9200
     secrets:
@@ -152,7 +155,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://auth.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AuthServer
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -240,12 +243,12 @@ services:
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_IdentityService
       # Prevent OpenIddict seeding from crashing due to missing RootUrl keys.
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
-      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk/
-      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__PublicWeb__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__PublicWebGateway__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__PublicWeb__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__PublicWebGateway__RootUrl: https://api.trananhminh.uk
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
