@@ -290,7 +290,7 @@ services:
       <<: *deploy_worker
 
   coursecatalogservice:
-    image: youngmizh/saaslms-coursecatalog:latest
+    image: youngmizh/saaslms-coursecatalog:awsfix-20260420
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
