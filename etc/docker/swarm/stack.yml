@@ -287,7 +287,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_CourseCatalogService
-      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
+      # Service-to-service calls must point directly to the target service.
+      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
+      RemoteServices__EnrollmentService__BaseUrl: http://enrollmentservice:80
       RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
       RemoteServices__EnrollmentService__IdentityClient: Default
     secrets:
@@ -308,7 +310,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_EnrollmentService
-      RemoteServices__course-catalog__BaseUrl: http://gateway:80
+      # Service-to-service calls must point directly to the target service.
+      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
+      RemoteServices__course-catalog__BaseUrl: http://coursecatalogservice:80
       RemoteServices__course-catalog__UseCurrentAccessToken: "false"
       RemoteServices__course-catalog__IdentityClient: Default
     secrets:
@@ -329,7 +333,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AssessmentService
-      RemoteServices__course-catalog__BaseUrl: http://gateway:80
+      # Service-to-service calls must point directly to the target service.
+      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
+      RemoteServices__course-catalog__BaseUrl: http://coursecatalogservice:80
       RemoteServices__course-catalog__UseCurrentAccessToken: "true"
     secrets:
       - abplicensecode
@@ -350,7 +356,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_LearningProgressService
-      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
+      # Service-to-service calls must point directly to the target service.
+      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
+      RemoteServices__EnrollmentService__BaseUrl: http://enrollmentservice:80
       RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
       RemoteServices__EnrollmentService__IdentityClient: Default
     secrets:
