@@ -312,19 +312,19 @@
 
         if (user.IsInRole(LmsRoles.Admin))
         {
-            NavigationManager.NavigateTo("/admin/dashboard", true);
+            NavigationManager.NavigateTo("/admin/dashboard");
             return;
         }
 
         if (user.IsInRole(LmsRoles.Instructor))
         {
-            NavigationManager.NavigateTo("/instructor/dashboard", true);
+            NavigationManager.NavigateTo("/instructor/dashboard");
             return;
         }
 
         if (user.IsInRole(LmsRoles.Student))
         {
-            NavigationManager.NavigateTo("/student/dashboard", true);
+            NavigationManager.NavigateTo("/student/dashboard");
         }
     }
 }

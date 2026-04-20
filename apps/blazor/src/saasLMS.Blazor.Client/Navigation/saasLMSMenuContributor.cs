@@ -55,6 +55,14 @@ public class saasLMSMenuContributor : IMenuContributor
             order: 0
         ));
 
+        // Hide Home menu item from Student and Instructor (they are redirected to their own dashboard)
+        if (currentUser.IsInRole(LmsRoles.Student) || currentUser.IsInRole(LmsRoles.Instructor))
+        {
+            var homeItem = context.Menu.Items.FirstOrDefault(i => i.Name == saasLMSMenus.Home);
+            if (homeItem != null)
+                context.Menu.Items.Remove(homeItem);
+        }
+
         // ── Role-based LMS Navigation ──────────────────────────────────────────
         if (currentUser.IsAuthenticated)
         {

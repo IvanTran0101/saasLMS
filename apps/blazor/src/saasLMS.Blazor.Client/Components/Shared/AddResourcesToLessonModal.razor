@@ -164,19 +164,6 @@
                         }
                     </div>
 
-                    <div class="arm-field mt-3">
-                        <label class="arm-field__label" for="arm-video-notes">
-                            Instructor Notes <span class="arm-field__optional">(optional)</span>
-                        </label>
-                        <textarea id="arm-video-notes"
-                                  class="arm-field__input arm-field__textarea"
-                                  placeholder="Briefly explain how students should use this resource..."
-                                  rows="3"
-                                  @bind="_videoNotes"
-                                  @bind:event="oninput"
-                                  disabled="@_isSaving"></textarea>
-                    </div>
-
                     @{
                         var embedUrl = _isEditMode && !string.IsNullOrWhiteSpace(_videoUrl)
                             ? GetEmbedUrl(_videoUrl)

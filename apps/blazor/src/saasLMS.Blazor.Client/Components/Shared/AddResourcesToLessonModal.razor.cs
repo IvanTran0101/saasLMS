@@ -104,7 +104,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     // ── Fields: Video Link ────────────────────────────────────────────────────────
 
     private string _videoUrl      = string.Empty;
-    private string _videoNotes    = string.Empty;   // UI-only, không gửi lên server (DTO không có field này)
     private string? _videoUrlError;
 
     // ── Fields: Text ──────────────────────────────────────────────────────────────
@@ -231,7 +230,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _existingFileName = string.Empty;
 
         _videoUrl      = string.Empty;
-        _videoNotes    = string.Empty;
         _videoUrlError = null;
 
         _textContent = string.Empty;
