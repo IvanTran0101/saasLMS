@@ -1,0 +1,9 @@
+{
+  "RemoteServices": {
+    "course-catalog": {
+      "BaseUrl": "http://coursecatalogservice:80",
+      "UseCurrentAccessToken": "true"
+    }
+  }
+}
+
