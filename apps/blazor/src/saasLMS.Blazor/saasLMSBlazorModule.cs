@@ -9,6 +9,7 @@ using Volo.Abp.Modularity;
 using Volo.Abp.AuditLogging.Blazor.WebAssembly.Bundling;
 using Volo.Saas.Host.Blazor.WebAssembly.Bundling;
 using Volo.Abp.Account.Pro.Public.Blazor.WebAssembly.Bundling;
+using Volo.Abp.AspNetCore.Mvc.Libs;
 using Volo.Abp.Ui.LayoutHooks;
 
 namespace saasLMS.Blazor;
@@ -34,6 +35,14 @@ public class saasLMSBlazorModule : AbpModule
         // Add services to the container.
         context.Services.AddRazorComponents()
             .AddInteractiveWebAssemblyComponents();
+
+        // In containerized deployments we may mount `/app/wwwroot/libs` from the host.
+        // Disable the startup-time libs check to avoid 500s when the folder is empty/missing.
+        Configure<AbpMvcLibsOptions>(options =>
+        {
+            options.CheckLibs = false;
+        });
+
         Configure<AbpLayoutHookOptions>(hookOptions =>
         {
             hookOptions.Add(

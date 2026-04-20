@@ -80,9 +80,19 @@ secrets:
   connectionstrings_saasservice:
     external: true
 
+configs:
+  # Swarm configs are used for settings keys that cannot be reliably passed via env vars
+  # because they contain '-' (e.g. RemoteServices:course-catalog:*).
+  assessment_appsettings_production:
+    file: ./appsettings/assessment.appsettings.Production.json
+  enrollment_appsettings_production:
+    file: ./appsettings/enrollment.appsettings.Production.json
+
 services:
   blazor:
-    image: youngmizh/saaslms-blazor:latest
+    # NOTE: Pin this to a concrete tag when troubleshooting frontend boot issues
+    # (e.g. missing /_framework/blazor.boot.json).
+    image: youngmizh/saaslms-blazor:authredirect-20260420-2
     ports:
       - target: 80
         published: 8083
@@ -110,9 +120,18 @@ services:
       <<: *deploy_manager
 
   dbmigrator:
-    image: youngmizh/saaslms-dbmigrator:latest
+    image: youngmizh/saaslms-dbmigrator:scopefix-20260419
     environment:
       <<: *env_common
+      # IMPORTANT: keep RootUrl without a trailing slash to avoid seeding redirect URIs like
+      # "https://app.trananhminh.uk//authentication/login-callback" (double slash), which then
+      # fails OpenIddict redirect_uri validation and results in /Error?httpStatusCode=400.
+      OpenIddict__Applications__AuthServer__RootUrl: https://auth.trananhminh.uk
+      OpenIddict__Applications__Web__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk
       DbMigrator__Redis__Configuration: 10.0.1.118:6379
       DbMigrator__ElasticSearch__Url: http://10.0.1.118:9200
     secrets:
@@ -146,7 +165,7 @@ services:
       <<: *env_common
       App__SelfUrl: https://auth.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AuthServer
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -234,12 +253,12 @@ services:
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_IdentityService
       # Prevent OpenIddict seeding from crashing due to missing RootUrl keys.
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk/
-      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk/
-      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__PublicWeb__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk/
-      OpenIddict__Applications__PublicWebGateway__RootUrl: https://api.trananhminh.uk/
+      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__PublicWeb__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__PublicWebGateway__RootUrl: https://api.trananhminh.uk
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -271,12 +290,24 @@ services:
       <<: *deploy_worker
 
   coursecatalogservice:
-    image: youngmizh/saaslms-coursecatalog:latest
+    image: youngmizh/saaslms-coursecatalog:awsfix-20260420-3
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_CourseCatalogService
-      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
+      # Use EC2 instance profile credentials (IMDS) via the AWS SDK default credential chain.
+      # ABP's AwsBlobProvider uses:
+      # - UseCredentials=true + empty ProfileName => AmazonS3Client(region) (no explicit creds) => IMDS works.
+      # - ProfileName set => tries to load from shared credentials file and may throw "Not found aws credentials".
+      CourseCatalogService__Aws__UseCredentials: "true"
+      CourseCatalogService__Aws__ProfileName: ""
+      CourseCatalogService__Aws__ProfilesLocation: ""
+      CourseCatalogService__Aws__Region: ap-southeast-1
+      CourseCatalogService__Aws__ContainerName: lms-course-mat-dev-213325653412-ap-southeast-1-an
+      CourseCatalogService__Aws__CreateContainerIfNotExists: "false"
+      # Service-to-service calls must point directly to the target service.
+      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
+      RemoteServices__EnrollmentService__BaseUrl: http://enrollmentservice:80
       RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
       RemoteServices__EnrollmentService__IdentityClient: Default
     secrets:
@@ -297,9 +328,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_EnrollmentService
-      RemoteServices__course-catalog__BaseUrl: http://gateway:80
-      RemoteServices__course-catalog__UseCurrentAccessToken: "false"
-      RemoteServices__course-catalog__IdentityClient: Default
+    configs:
+      - source: enrollment_appsettings_production
+        target: /app/appsettings.Production.json
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -318,8 +349,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AssessmentService
-      RemoteServices__course-catalog__BaseUrl: http://gateway:80
-      RemoteServices__course-catalog__UseCurrentAccessToken: "true"
+    configs:
+      - source: assessment_appsettings_production
+        target: /app/appsettings.Production.json
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -339,7 +371,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_LearningProgressService
-      RemoteServices__EnrollmentService__BaseUrl: http://gateway:80
+      # Service-to-service calls must point directly to the target service.
+      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
+      RemoteServices__EnrollmentService__BaseUrl: http://enrollmentservice:80
       RemoteServices__EnrollmentService__UseCurrentAccessToken: "false"
       RemoteServices__EnrollmentService__IdentityClient: Default
     secrets:

@@ -39,4 +39,14 @@
         </Content>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Remove="appsettings.secrets.json" />
+        <Content Include="appsettings.secrets.json">
+            <!-- Needed when launching the built binary from bin/Debug/... -->
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <!-- Avoid accidentally publishing secrets -->
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
+
 </Project>

@@ -1,10 +1,23 @@
-FROM mycompanyname/saaslms-base:1.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY . .
-RUN dotnet publish -c Release -o /app 
 
-FROM nginx:alpine AS final
-COPY apps/blazor/src/saasLMS.Blazor.Client/nginx.conf  /etc/nginx/conf.d/default.conf
-WORKDIR /usr/share/nginx/html
-COPY --from=build /app/wwwroot .
+# ABP Blazor (host) project references the client project; publishing the host is enough.
+# Note: Our runtime uses `_framework/blazor.web.js` (Blazor Web App) so `blazor.boot.json`
+# is not required to exist as a standalone file.
+RUN dotnet publish apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj \
+    -c Release \
+    -o /app/publish \
+    -p:PublishTrimmed=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
+
+COPY --from=build /app/publish .
+COPY etc/docker/entrypoints/run-with-secrets.sh /app/run-with-secrets.sh
+RUN chmod +x /app/run-with-secrets.sh
+
+ENTRYPOINT ["/app/run-with-secrets.sh", "dotnet", "saasLMS.Blazor.dll"]
