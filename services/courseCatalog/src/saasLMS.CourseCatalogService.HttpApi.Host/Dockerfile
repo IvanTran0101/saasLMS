@@ -1,18 +1,33 @@
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-WORKDIR /app
-EXPOSE 80
-ENV ASPNETCORE_URLS=http://+:80
+## syntax=docker/dockerfile:1.7
 
-FROM mycompanyname/saaslms-base:1.0 AS build
+ARG DOTNET_SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:10.0
+ARG DOTNET_RUNTIME_IMAGE=mcr.microsoft.com/dotnet/aspnet:10.0
+
+FROM ${DOTNET_SDK_IMAGE} AS build
 WORKDIR /src
 
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
+    NUGET_XMLDOC_MODE=skip
+
 COPY . .
-WORKDIR "/src/services/product/src/saasLMS.CourseCatalogService.HttpApi.Host"
-RUN dotnet publish -c Release -o /app
 
-FROM build AS publish
+RUN dotnet publish "services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj" \
+    -c Release \
+    -o /app/publish \
+    -p:UseAppHost=false \
+    -p:ContinuousIntegrationBuild=true
 
-FROM base AS final
+FROM ${DOTNET_RUNTIME_IMAGE} AS final
 WORKDIR /app
-COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "saasLMS.CourseCatalogService.HttpApi.Host.dll"]
+
+ENV ASPNETCORE_URLS=http://+:80 \
+    ENTRY_DLL=saasLMS.CourseCatalogService.HttpApi.Host.dll
+EXPOSE 80
+
+COPY --from=build /app/publish/ ./
+COPY "etc/docker/entrypoints/run-with-secrets.sh" "/app/run-with-secrets.sh"
+RUN chmod +x "/app/run-with-secrets.sh"
+
+ENTRYPOINT ["/app/run-with-secrets.sh"]
+CMD ["sh", "-c", "test -n \"$ENTRY_DLL\" || { echo 'ENTRY_DLL is required.'; exit 1; }; exec dotnet \"$ENTRY_DLL\""]

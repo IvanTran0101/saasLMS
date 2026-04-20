@@ -71,12 +71,23 @@ public class CourseCatalogServiceHttpApiHostModule : AbpModule
                 container.UseAws(aws =>
                 {
                     var awsSection = configuration.GetSection("CourseCatalogService:Aws");
-                    aws.UseCredentials = awsSection.GetValue("UseCredentials", true);
-                    aws.ProfileName = awsSection.GetValue("ProfileName", "default");
-                    aws.ProfilesLocation = awsSection.GetValue("ProfilesLocation", "/Users/yourname/.aws/credentials");
-                    aws.Region = awsSection.GetValue("Region", "ap-southeast-1");
-                    aws.ContainerName = awsSection.GetValue("ContainerName", "your-coursecatalog-bucket");
-                    aws.CreateContainerIfNotExists = awsSection.GetValue("CreateContainerIfNotExists", false);
+                    aws.UseCredentials = awsSection.GetValue<bool>("UseCredentials");
+                    aws.Region = awsSection.GetValue<string>("Region") ?? "ap-southeast-1";
+                    aws.ContainerName = awsSection.GetValue<string>("ContainerName") ?? "your-coursecatalog-bucket";
+                    aws.CreateContainerIfNotExists = awsSection.GetValue<bool>("CreateContainerIfNotExists");
+
+                    var profileName = awsSection.GetValue<string>("ProfileName");
+                    var profilesLocation = awsSection.GetValue<string>("ProfilesLocation");
+
+                    if (!string.IsNullOrWhiteSpace(profileName))
+                    {
+                        aws.ProfileName = profileName;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(profilesLocation))
+                    {
+                        aws.ProfilesLocation = profilesLocation;
+                    }
                 });
             });
         });
