@@ -349,6 +349,14 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AssessmentService
+      # Use EC2 instance profile credentials (IMDS) via the AWS SDK default credential chain.
+      # When UseCredentials=false, ABP's AwsBlobProvider expects explicit AccessKeyId/SecretAccessKey.
+      AssessmentService__Aws__UseCredentials: "true"
+      AssessmentService__Aws__ProfileName: ""
+      AssessmentService__Aws__ProfilesLocation: ""
+      AssessmentService__Aws__Region: ap-southeast-1
+      AssessmentService__Aws__ContainerName: lms-assess-sub-dev-213325653412-ap-southeast-1-an
+      AssessmentService__Aws__CreateContainerIfNotExists: "false"
     configs:
       - source: assessment_appsettings_production
         target: /app/appsettings.Production.json
