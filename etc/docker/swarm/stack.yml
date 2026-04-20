@@ -80,6 +80,14 @@ secrets:
   connectionstrings_saasservice:
     external: true
 
+configs:
+  # Swarm configs are used for settings keys that cannot be reliably passed via env vars
+  # because they contain '-' (e.g. RemoteServices:course-catalog:*).
+  assessment_appsettings_production:
+    file: ./appsettings/assessment.appsettings.Production.json
+  enrollment_appsettings_production:
+    file: ./appsettings/enrollment.appsettings.Production.json
+
 services:
   blazor:
     # NOTE: Pin this to a concrete tag when troubleshooting frontend boot issues
@@ -310,11 +318,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_EnrollmentService
-      # Service-to-service calls must point directly to the target service.
-      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
-      RemoteServices__course-catalog__BaseUrl: http://coursecatalogservice:80
-      RemoteServices__course-catalog__UseCurrentAccessToken: "false"
-      RemoteServices__course-catalog__IdentityClient: Default
+    configs:
+      - source: enrollment_appsettings_production
+        target: /app/appsettings.Production.json
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
@@ -333,10 +339,9 @@ services:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_AssessmentService
-      # Service-to-service calls must point directly to the target service.
-      # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
-      RemoteServices__course-catalog__BaseUrl: http://coursecatalogservice:80
-      RemoteServices__course-catalog__UseCurrentAccessToken: "true"
+    configs:
+      - source: assessment_appsettings_production
+        target: /app/appsettings.Production.json
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
