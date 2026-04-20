@@ -18,6 +18,9 @@ RUN dotnet publish "services/courseCatalog/src/saasLMS.CourseCatalogService.Http
     -p:UseAppHost=false \
     -p:ContinuousIntegrationBuild=true
 
+# Hard safety: appsettings.secrets.json is dev-only and must not ship in production images.
+RUN rm -f /app/publish/appsettings.secrets.json
+
 FROM ${DOTNET_RUNTIME_IMAGE} AS final
 WORKDIR /app
 
