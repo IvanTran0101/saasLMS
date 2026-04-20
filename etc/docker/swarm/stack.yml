@@ -344,7 +344,7 @@ services:
       <<: *deploy_worker
 
   assessmentservice:
-    image: youngmizh/saaslms-assessment:latest
+    image: youngmizh/saaslms-assessment:awsfix-20260420-2
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
