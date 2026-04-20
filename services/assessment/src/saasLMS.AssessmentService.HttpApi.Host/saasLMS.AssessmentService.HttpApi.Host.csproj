@@ -41,9 +41,21 @@
         <None Remove="bin\**;obj\**" />
     </ItemGroup>
 
+    <!-- appsettings.secrets.json is for local/dev and should not be published into production containers.
+         In production we pass secrets via Docker Swarm secrets/env/configs. -->
     <ItemGroup>
+        <Content Remove="appsettings.secrets.json" />
+        <None Remove="appsettings.secrets.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Update="appsettings.secrets.json">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </Content>
         <None Update="appsettings.secrets.json">
             <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
     </ItemGroup>
 
