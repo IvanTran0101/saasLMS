@@ -290,14 +290,18 @@ services:
       <<: *deploy_worker
 
   coursecatalogservice:
-    image: youngmizh/saaslms-coursecatalog:awsfix-20260420
+    image: youngmizh/saaslms-coursecatalog:awsfix-20260420-2
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
       RabbitMQ__EventBus__ClientName: saasLMS_CourseCatalogService
-      # Use EC2 instance profile credentials (IMDS) instead of local AWS profile files.
-      # This avoids dev-only settings like ProfilesLocation=/Users/... which don't exist in containers.
-      CourseCatalogService__Aws__UseCredentials: "false"
+      # Use EC2 instance profile credentials (IMDS) via the AWS SDK default credential chain.
+      # ABP's AwsBlobProvider uses:
+      # - UseCredentials=true + empty ProfileName => AmazonS3Client(region) (no explicit creds) => IMDS works.
+      # - ProfileName set => tries to load from shared credentials file and may throw "Not found aws credentials".
+      CourseCatalogService__Aws__UseCredentials: "true"
+      CourseCatalogService__Aws__ProfileName: ""
+      CourseCatalogService__Aws__ProfilesLocation: ""
       CourseCatalogService__Aws__Region: ap-southeast-1
       CourseCatalogService__Aws__ContainerName: lms-course-mat-dev-213325653412-ap-southeast-1-an
       CourseCatalogService__Aws__CreateContainerIfNotExists: "false"
