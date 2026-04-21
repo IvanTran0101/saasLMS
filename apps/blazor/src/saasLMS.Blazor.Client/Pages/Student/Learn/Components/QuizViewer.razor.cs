@@ -85,11 +85,21 @@ public partial class QuizViewer : AbpComponentBase, IAsyncDisposable
     private bool         _showLeaveConfirm = false;
     private IDisposable? _locationChangingReg;
 
+    // ── Identity tracking (prevents re-init on every parent render) ───────────
+
+    private Guid _loadedQuizId = Guid.Empty;
+
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     protected override async Task OnParametersSetAsync()
     {
-        // Quiz parameter changed (or first load) — reset everything cleanly.
+        // Blazor calls OnParametersSetAsync on every parent render, not only when
+        // parameters actually changed.  Guard against redundant resets that would
+        // cause an infinite render loop (InvokeAsync → parent re-renders → repeat).
+        if (Quiz.Id == _loadedQuizId) return;
+        _loadedQuizId = Quiz.Id;
+
+        // Quiz actually changed — tear down any active session cleanly.
         await StopCountdownAsync();
         _locationChangingReg?.Dispose();
         _locationChangingReg = null;
@@ -103,8 +113,9 @@ public partial class QuizViewer : AbpComponentBase, IAsyncDisposable
         _showLeaveConfirm = false;
         _isTimedOut       = false;
 
-        if (OnTakingQuizChanged.HasDelegate)
-            await OnTakingQuizChanged.InvokeAsync(false);
+        // Do NOT invoke OnTakingQuizChanged here — the parent already knows the
+        // value is false (it chose the new quiz), and calling InvokeAsync would
+        // trigger a parent re-render → OnParametersSetAsync again → loop.
 
         await LoadAttemptsAsync();
     }
