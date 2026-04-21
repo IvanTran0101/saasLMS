@@ -418,52 +418,6 @@
         margin: 0;
     }
 
-    .slp-btn-resume {
-        background: #7132f5;
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        padding: 0.55rem 1.35rem;
-        font-size: 0.88rem;
-        font-weight: 600;
-        white-space: nowrap;
-        cursor: pointer;
-        transition: background 0.15s, transform 0.1s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        flex-shrink: 0;
-    }
-
-    .slp-btn-resume:hover {
-        background: #5741d8;
-        transform: translateY(-1px);
-    }
-
-    .slp-btn-resume:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .slp-btn-review {
-        background: transparent;
-        color: #495057;
-        border: 1px solid #dedee5;
-        border-radius: 12px;
-        padding: 0.45rem 1.1rem;
-        font-size: 0.82rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: border-color 0.15s, color 0.15s;
-        white-space: nowrap;
-    }
-
-    .slp-btn-review:hover {
-        border-color: #7132f5;
-        color: #7132f5;
-    }
-
     /* Material section label */
     .slp-section-label {
         font-size: 0.88rem;
@@ -936,7 +890,7 @@ else
                         <span>@_selectedLesson.Title</span>
                     </div>
 
-                    @* Lesson header + action button *@
+                    @* Lesson header *@
                     <div class="slp-lesson-header">
                         <h1 class="slp-lesson-title">@_selectedLesson.Title</h1>
 
@@ -945,31 +899,6 @@ else
                             <span class="slp-completed-chip">
                                 <i class="fa fa-check-circle"></i> Completed
                             </span>
-                        }
-                        else if (_isResumeLesson)
-                        {
-                            <button class="slp-btn-resume" @onclick="ResumeLessonAsync" disabled="@_isActing">
-                                @if (_isActing)
-                                {
-                                    <span class="spinner-border spinner-border-sm"></span>
-                                }
-                                else if (!_hasCourseStarted)
-                                {
-                                    <i class="fa fa-play"></i>
-                                    <span>Start Learning</span>
-                                }
-                                else
-                                {
-                                    <i class="fa fa-play"></i>
-                                    <span>Resume Learning</span>
-                                }
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="slp-btn-review" @onclick="ResumeLessonAsync">
-                                <i class="fa fa-eye me-1"></i> Review
-                            </button>
                         }
                     </div>
 

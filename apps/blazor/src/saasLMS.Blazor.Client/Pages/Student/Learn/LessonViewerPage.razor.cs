@@ -73,8 +73,6 @@ public partial class LessonViewerPage : AbpComponentBase
 
     // ── Computed lesson status flags ──────────────────────────────────────────
 
-    private bool _hasCourseStarted => _completedLessonIds.Count > 0 || _resumeResult?.LessonStatus == LessonProgressStatus.InProgress;
-    private bool _isResumeLesson   => _selectedLesson is not null && _resumeResult?.LessonId == _selectedLesson.Id;
     private bool _isLessonCompleted => _selectedLesson is not null && _completedLessonIds.Contains(_selectedLesson.Id);
 
     // ── UI state ──────────────────────────────────────────────────────────────
@@ -296,33 +294,6 @@ public partial class LessonViewerPage : AbpComponentBase
 
     // ── Learning actions ──────────────────────────────────────────────────────
 
-    public async Task ResumeLessonAsync()
-    {
-        if (_selectedLesson is null || _isActing) return;
-
-        _isActing = true;
-        try
-        {
-            await LearningProgressAppService.StartLessonAsync(new StartLessonInput
-            {
-                CourseId           = CourseId,
-                LessonId           = _selectedLesson.Id,
-                TotalLessonsCount  = _flatLessons.Count
-            });
-
-            _resumeResult   = await LearningProgressAppService.GetResumePositionAsync(CourseId);
-            _courseProgress = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
-        }
-        catch (Exception ex)
-        {
-            await HandleErrorAsync(ex);
-        }
-        finally
-        {
-            _isActing = false;
-        }
-    }
-
     public async Task CompleteLessonAsync()
     {
         if (_selectedLesson is null || _isActing) return;
@@ -341,7 +312,6 @@ public partial class LessonViewerPage : AbpComponentBase
 
             _lessonProgresses = await LearningProgressAppService.GetMyProgressAsync(CourseId);
             _courseProgress   = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
-            _resumeResult     = await LearningProgressAppService.GetResumePositionAsync(CourseId);
 
             BuildDerivedState();
 
