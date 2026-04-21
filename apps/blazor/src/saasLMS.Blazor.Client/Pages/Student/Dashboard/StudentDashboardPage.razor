@@ -160,6 +160,125 @@
         100% { background-position: -200% 0; }
     }
 
+    /* ── Search Bar ── */
+    .sdb-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0 14px;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .sdb-search-bar:focus-within {
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113,50,245,0.08);
+    }
+
+    .sdb-search-bar__icon {
+        color: #9497a9;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .sdb-search-bar__input {
+        border: none;
+        outline: none;
+        background: transparent;
+        flex: 1;
+        padding: 10px 0;
+        font-size: 0.875rem;
+        color: #101114;
+        min-width: 0;
+    }
+
+    .sdb-search-bar__input::placeholder {
+        color: #9497a9;
+    }
+
+    .sdb-search-bar__clear {
+        background: none;
+        border: none;
+        color: #9497a9;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        transition: color 0.12s;
+    }
+
+    .sdb-search-bar__clear:hover {
+        color: #686b82;
+    }
+
+    /* ── Browse CTA ── */
+    .sdb-browse-cta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .sdb-browse-cta__left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sdb-browse-cta__icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: rgba(133,91,251,0.12);
+        color: #7132f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .sdb-browse-cta__title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #101114;
+        margin: 0 0 2px;
+    }
+
+    .sdb-browse-cta__sub {
+        font-size: 0.78rem;
+        color: #9497a9;
+        margin: 0;
+    }
+
+    .sdb-browse-cta__btn {
+        background: #7132f5;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 9px 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s;
+        flex-shrink: 0;
+    }
+
+    .sdb-browse-cta__btn:hover {
+        background: #5741d8;
+        color: #fff;
+    }
+
     /* ── Notification Bell ── */
     .sdb-topbar {
         display: flex;
@@ -425,20 +544,18 @@
     @* ── Top Bar: Search + Notification Bell ── *@
     <div class="sdb-topbar">
         <div class="sdb-topbar__search">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0">
-                    <i class="fa fa-search text-muted"></i>
-                </span>
-                <input type="text"
-                       class="form-control border-start-0 ps-0"
-                       placeholder="Search courses…"
+            <div class="sdb-search-bar">
+                <i class="fa fa-search sdb-search-bar__icon"></i>
+                <input class="sdb-search-bar__input"
+                       type="text"
+                       placeholder="Search my courses…"
                        @bind="SearchText"
                        @bind:event="oninput" />
                 @if (!string.IsNullOrEmpty(SearchText))
                 {
-                    <button class="btn btn-outline-secondary border-start-0"
-                            type="button"
-                            @onclick="() => SearchText = string.Empty">
+                    <button class="sdb-search-bar__clear" type="button"
+                            @onclick="() => SearchText = string.Empty"
+                            title="Clear">
                         <i class="fa fa-times"></i>
                     </button>
                 }
@@ -672,63 +789,23 @@
         }
     </div>
 
-    @* ── Other Courses ── *@
-    <div class="sdb-section-header">
-        <h5 class="sdb-section-header__title">
-            <i class="fa fa-th-large me-2 text-muted"></i>Other Courses
-        </h5>
-        @if (!_isLoadingCourses)
-        {
-            <span class="sdb-section-header__badge">@_filteredOtherCourses.Count</span>
-        }
-    </div>
-
-    <div class="row g-3 mb-4">
-        @if (_isLoadingCourses)
-        {
-            @for (var i = 0; i < 3; i++)
-            {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="sdb-skeleton">
-                        <div class="sdb-skeleton__thumb"></div>
-                        <div class="sdb-skeleton__body">
-                            <div class="sdb-skeleton__line"></div>
-                            <div class="sdb-skeleton__line sdb-skeleton__line--short"></div>
-                        </div>
-                    </div>
+    @* ── Browse Courses CTA ── *@
+    @if (string.IsNullOrEmpty(SearchText))
+    {
+        <div class="sdb-browse-cta mb-4">
+            <div class="sdb-browse-cta__left">
+                <div class="sdb-browse-cta__icon">
+                    <i class="fa fa-th-large"></i>
                 </div>
-            }
-        }
-        else if (_filteredOtherCourses.Count == 0)
-        {
-            <div class="col-12">
-                <div class="sdb-empty">
-                    <div class="sdb-empty__icon"><i class="fa fa-search"></i></div>
-                    <div class="sdb-empty__text">
-                        @if (string.IsNullOrEmpty(SearchText))
-                        {
-                            <span>No other courses available at the moment.</span>
-                        }
-                        else
-                        {
-                            <span>No courses match "<strong>@SearchText</strong>".</span>
-                        }
-                    </div>
+                <div>
+                    <p class="sdb-browse-cta__title">Explore More Courses</p>
+                    <p class="sdb-browse-cta__sub">Browse all available courses and enroll in new ones.</p>
                 </div>
             </div>
-        }
-        else
-        {
-            @foreach (var course in _filteredOtherCourses)
-            {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <StudentCourseCard Course="course"
-                                       IsEnrolled="false"
-                                       InstructorName="@GetInstructorName(course.InstructorId)"
-                                       OnEnroll="EnrollFromCardAsync" />
-                </div>
-            }
-        }
-    </div>
+            <a href="/student/courses" class="sdb-browse-cta__btn">
+                <i class="fa fa-arrow-right"></i> Browse Courses
+            </a>
+        </div>
+    }
 
 </div>

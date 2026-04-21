@@ -107,11 +107,19 @@ public class saasLMSMenuContributor : IMenuContributor
                 ));
 
                 context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.StudentCourses,
+                    l["Menu:StudentCourses"],
+                    "/student/courses",
+                    icon: "fa fa-th-large",
+                    order: 2
+                ));
+
+                context.Menu.AddItem(new ApplicationMenuItem(
                     saasLMSMenus.StudentReport,
                     l["Menu:StudentReport"],
                     "/student/report",
                     icon: "fa fa-chart-line",
-                    order: 2
+                    order: 3
                 ));
             }
 

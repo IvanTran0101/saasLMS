@@ -163,7 +163,7 @@
               "uniqueName": "MarkAsReadAsyncByNotificationId",
               "name": "MarkAsReadAsync",
               "httpMethod": "POST",
-              "url": "api/notification/notification/{notificationId}/mark-as-read",
+              "url": "api/notification/notification/mark-as-read/{notificationId}",
               "supportedVersions": [],
               "parametersOnMethod": [
                 {

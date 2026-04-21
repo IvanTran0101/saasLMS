@@ -223,26 +223,77 @@
         0%   { background-position: 200% 0; }
         100% { background-position: -200% 0; }
     }
+
+    .idb-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0 14px;
+        max-width: 420px;
+        margin-bottom: 1rem;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .idb-search-bar:focus-within {
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113,50,245,0.08);
+    }
+
+    .idb-search-bar__icon {
+        color: #9497a9;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .idb-search-bar__input {
+        border: none;
+        outline: none;
+        background: transparent;
+        flex: 1;
+        padding: 10px 0;
+        font-size: 0.875rem;
+        color: #101114;
+    }
+
+    .idb-search-bar__input::placeholder {
+        color: #9497a9;
+    }
+
+    .idb-search-bar__clear {
+        background: none;
+        border: none;
+        color: #9497a9;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        transition: color 0.12s;
+    }
+
+    .idb-search-bar__clear:hover {
+        color: #686b82;
+    }
 </style>
 
 <div>
 
-    @* ── Hero Banner ── *@
     @* ── Search Bar ── *@
-    <div class="input-group mb-3" style="max-width: 420px;">
-        <span class="input-group-text bg-white border-end-0">
-            <i class="fa fa-search text-muted"></i>
-        </span>
-        <input type="text"
-               class="form-control border-start-0 ps-0"
+    <div class="idb-search-bar">
+        <i class="fa fa-search idb-search-bar__icon"></i>
+        <input class="idb-search-bar__input"
+               type="text"
                placeholder="Search by title or course ID…"
                @bind="SearchText"
                @bind:event="oninput" />
         @if (!string.IsNullOrEmpty(SearchText))
         {
-            <button class="btn btn-outline-secondary border-start-0"
-                    type="button"
-                    @onclick="() => SearchText = string.Empty">
+            <button class="idb-search-bar__clear" type="button"
+                    @onclick="() => SearchText = string.Empty"
+                    title="Clear">
                 <i class="fa fa-times"></i>
             </button>
         }

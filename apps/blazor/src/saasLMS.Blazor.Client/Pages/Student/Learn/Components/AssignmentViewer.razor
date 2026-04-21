@@ -325,6 +325,31 @@
         align-items: center;
         gap: 0.4rem;
     }
+
+    .av-expired-banner {
+        background: #fff0e6;
+        border: 1px solid #fb8c00;
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        font-size: 0.82rem;
+        color: #bf360c;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .av-submit-warning {
+        flex: 1;
+        background: #fce8e6;
+        border: 1px solid #f28b82;
+        border-radius: 12px;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        color: #c62828;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
 </style>
 
 <div class="av-root">
@@ -353,9 +378,13 @@
                 </span>
                 @if (_assignment.Deadline.HasValue)
                 {
-                    <span class="av-header__meta-item">
+                    <span class="av-header__meta-item" style="@(_isExpired ? "color:#bf360c;" : "")">
                         <i class="fa fa-calendar"></i>
-                        Due: @_assignment.Deadline.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                        Due: @ToLocalDisplay(_assignment.Deadline.Value)
+                        @if (_isExpired)
+                        {
+                            <strong>&nbsp;(Expired)</strong>
+                        }
                     </span>
                 }
                 <span class="av-header__meta-item">
@@ -369,11 +398,17 @@
             }
         </div>
 
-        @* ── Closed banner ── *@
+        @* ── Status banners ── *@
         @if (_assignment.Status == AssignmentStatus.Closed)
         {
             <div class="av-closed-banner">
                 <i class="fa fa-lock"></i> This assignment is closed. No more submissions are accepted.
+            </div>
+        }
+        else if (_isExpired)
+        {
+            <div class="av-expired-banner">
+                <i class="fa fa-clock-o"></i> The deadline for this assignment has passed. Submissions are no longer accepted.
             </div>
         }
 
@@ -415,7 +450,7 @@
                 <div class="av-submission__info">
                     <span class="av-submission__info-item">
                         <i class="fa fa-clock-o"></i>
-                        Submitted: @_submission.SubmittedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                        Submitted: @ToLocalDisplay(_submission.SubmittedAt)
                     </span>
                 </div>
 
@@ -428,7 +463,7 @@
                         @if (_submission.GradedAt.HasValue)
                         {
                             <span style="font-weight:400;font-size:0.75rem;">
-                                &nbsp;· Graded @_submission.GradedAt.Value.ToLocalTime().ToString("MMM dd, yyyy")
+                                &nbsp;· Graded @ToLocalDisplay(_submission.GradedAt.Value, "MMM dd, yyyy")
                             </span>
                         }
                     </div>
@@ -442,7 +477,7 @@
             </div>
 
             @* Edit ── *@
-            @if (_assignment.Status != AssignmentStatus.Closed)
+            @if (!_isLocked)
             {
                 <div class="av-actions">
                     <button class="av-btn-edit" @onclick="() => _isEditing = true">
@@ -453,7 +488,7 @@
         }
 
         @* ── Upload zone (new or editing) ── *@
-        @if (_submission is null || _isEditing)
+        @if ((_submission is null || _isEditing) && !_isLocked)
         {
             <div class="av-upload-zone">
                 <div class="av-upload-zone__label">
@@ -506,6 +541,12 @@
                 else
                 {
                     <span></span>
+                }
+                @if (!string.IsNullOrEmpty(_submitWarning))
+                {
+                    <div class="av-submit-warning">
+                        <i class="fa fa-exclamation-triangle"></i> @_submitWarning
+                    </div>
                 }
                 <button class="av-btn-submit"
                         @onclick="SubmitAsync"

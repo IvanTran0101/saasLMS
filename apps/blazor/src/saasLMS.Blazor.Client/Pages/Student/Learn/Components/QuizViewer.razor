@@ -1,5 +1,6 @@
 @using saasLMS.AssessmentService.Quizzes
 @using saasLMS.AssessmentService.QuizAttempts
+@using saasLMS.AssessmentService.Shared
 
 @inherits AbpComponentBase
 
@@ -249,6 +250,43 @@
         font-weight: 600;
         margin-bottom: 0.25rem;
     }
+
+    .qv-closed-banner {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        font-size: 0.82rem;
+        color: #856404;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .qv-start-warning {
+        flex: 1;
+        background: #fce8e6;
+        border: 1px solid #f28b82;
+        border-radius: 12px;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        color: #c62828;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .qv-info-note {
+        background: #f8f9fa;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
 </style>
 
 <div class="qv-root">
@@ -341,6 +379,14 @@
             </div>
         }
 
+        @* Closed banner *@
+        @if (_isLocked)
+        {
+            <div class="qv-closed-banner">
+                <i class="fa fa-lock"></i> This quiz is closed. No new attempts are accepted.
+            </div>
+        }
+
         @* Header *@
         <div class="qv-header">
             <div class="qv-header__title">@Quiz.Title</div>
@@ -375,7 +421,7 @@
                 @foreach (var attempt in _attempts.OrderBy(a => a.AttemptNumber))
                 {
                     var durationMins = attempt.CompletedAt.HasValue
-                        ? (int)(attempt.CompletedAt.Value - attempt.StartedAt).TotalMinutes
+                        ? (int)(EnsureUtc(attempt.CompletedAt.Value) - EnsureUtc(attempt.StartedAt)).TotalMinutes
                         : (int?)null;
 
                     <div class="qv-attempt-row">
@@ -387,7 +433,7 @@
                             }
                         </span>
                         <span class="qv-attempt-row__time">
-                            @attempt.StartedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                            @ToLocalDisplay(attempt.StartedAt)
                         </span>
                         @if (attempt.Status == QuizAttemptStatus.Completed)
                         {
@@ -417,7 +463,20 @@
                 <span></span>
             }
 
-            @if (Quiz.Status == QuizStatus.Published && _attempts.Count == 0)
+            @if (!string.IsNullOrEmpty(_startWarning))
+            {
+                <div class="qv-start-warning">
+                    <i class="fa fa-exclamation-triangle"></i> @_startWarning
+                </div>
+            }
+            else if (!_isLocked && !_canStart && _attempts.Count > 0 && Quiz.AttemptPolicy == AttemptPolicy.OneTime)
+            {
+                <div class="qv-info-note">
+                    <i class="fa fa-info-circle"></i> You have already submitted this quiz.
+                </div>
+            }
+
+            @if (_canStart)
             {
                 <button class="qv-btn-start"
                         @onclick="StartQuizAsync"
@@ -430,7 +489,7 @@
                     else
                     {
                         <i class="fa fa-play"></i>
-                        <span>Start Quiz</span>
+                        <span>@(_attempts.Count > 0 ? "Retake Quiz" : "Start Quiz")</span>
                     }
                 </button>
             }

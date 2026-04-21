@@ -40,8 +40,25 @@
     }
 
     .slp-sidebar__header {
-        padding: 1rem 1rem 0.75rem;
+        padding: 0.75rem 1rem 0.75rem;
         border-bottom: 1px solid #f0f2f5;
+    }
+
+    .slp-sidebar__back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #9497a9;
+        text-decoration: none;
+        margin-bottom: 0.6rem;
+        padding: 0.2rem 0;
+        transition: color 0.15s;
+    }
+
+    .slp-sidebar__back:hover {
+        color: #7132f5;
     }
 
     .slp-sidebar__course-title {
@@ -683,6 +700,9 @@ else
         @* ── LEFT SIDEBAR ── *@
         <div class="slp-sidebar">
             <div class="slp-sidebar__header">
+                <a href="/student/dashboard" class="slp-sidebar__back">
+                    <i class="fa fa-arrow-left"></i> Back to Dashboard
+                </a>
                 <div class="slp-sidebar__course-title">@_courseDetail.Title</div>
                 <div class="slp-sidebar__progress-bar">
                     <div class="slp-sidebar__progress-fill" style="width:@_progressPct%"></div>
@@ -1010,7 +1030,7 @@ else
                                             Assignment
                                             @if (assignment.Deadline.HasValue)
                                             {
-                                                <span>&bull; Due @assignment.Deadline.Value.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                                                <span>&bull; Due @(DateTime.SpecifyKind(assignment.Deadline.Value, DateTimeKind.Utc).ToLocalTime().ToString("MMM dd, yyyy"))</span>
                                             }
                                         </div>
                                     </div>

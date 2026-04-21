@@ -56,32 +56,54 @@
     }
 
     .cll-topbar__brand i {
-        color: #1a73e8;
+        color: #7132f5;
         font-size: 1.1rem;
     }
 
     .cll-topbar__actions {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem;
     }
 
     .cll-topbar__link {
         font-size: 0.85rem;
-        font-weight: 600;
-        color: #0f2744;
+        font-weight: 500;
+        color: #6c757d;
         text-decoration: none;
         display: flex;
         align-items: center;
         gap: 0.35rem;
         padding: 0.35rem 0.75rem;
         border-radius: 8px;
-        transition: background 0.15s;
+        transition: background 0.15s, color 0.15s;
     }
 
     .cll-topbar__link:hover {
         background: #f0f2f5;
-        color: #1a73e8;
+        color: #101114;
+    }
+
+    .cll-topbar__back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #7132f5;
+        background: rgba(113,50,245,0.08);
+        border: 1.5px solid rgba(113,50,245,0.25);
+        border-radius: 10px;
+        padding: 0.35rem 0.9rem;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+        white-space: nowrap;
+    }
+
+    .cll-topbar__back-btn:hover {
+        background: rgba(113,50,245,0.16);
+        border-color: #7132f5;
+        color: #7132f5;
     }
 
     .cll-body {
@@ -101,6 +123,10 @@
             <a href="/student/dashboard" class="cll-topbar__link">
                 <i class="fa fa-th-large"></i>
                 My Learning
+            </a>
+            <a href="/student/dashboard" class="cll-topbar__back-btn">
+                <i class="fa fa-arrow-left"></i>
+                Back to Dashboard
             </a>
         </div>
     </header>

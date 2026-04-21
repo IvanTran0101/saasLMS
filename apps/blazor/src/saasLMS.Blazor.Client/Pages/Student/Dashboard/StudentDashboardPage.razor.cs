@@ -8,7 +8,7 @@ using saasLMS.Blazor.Client.Authorization;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
 using saasLMS.EnrollmentService.Enrollments;
-using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs;
+using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs; // GetMyEnrollmentsInput
 using saasLMS.EnrollmentService.Enrollments.Dtos.Outputs;
 using saasLMS.LearningProgressService.CourseProgresses;
 using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs;
@@ -63,12 +63,10 @@ public partial class StudentDashboardPage : AbpComponentBase
 
     // Derived lists (all, before search filter)
     private List<CourseListItemDto> _enrolledCourses = new();
-    private List<CourseListItemDto> _otherCourses = new();
     private List<CourseListItemDto> _recentlyAccessed = new();
 
-    // Filtered lists (after search)
+    // Filtered list (after search)
     private List<CourseListItemDto> _filteredEnrolledCourses = new();
-    private List<CourseListItemDto> _filteredOtherCourses = new();
 
     // Stats
     private int _totalEnrolled;
@@ -151,10 +149,6 @@ public partial class StudentDashboardPage : AbpComponentBase
         _enrolledCourses = _allTenantCourses
             .Where(c => enrolledIds.Contains(c.CourseId))
             .ToList();
-
-        _otherCourses = _allTenantCourses
-            .Where(c => !enrolledIds.Contains(c.CourseId))
-            .ToList();
     }
 
     private async Task LoadProgressAndResumeAsync()
@@ -231,29 +225,6 @@ public partial class StudentDashboardPage : AbpComponentBase
 
     private string GetInstructorName(Guid instructorId)
         => _instructorNameMap.TryGetValue(instructorId, out var name) ? name : "Instructor";
-
-    private async Task EnrollFromCardAsync(Guid courseId)
-    {
-        try
-        {
-            await EnrollmentAppService.EnrollAsync(new EnrollCourseInput { CourseId = courseId });
-
-            // Move the course from Other to My Learning in-memory
-            var course = _otherCourses.FirstOrDefault(c => c.CourseId == courseId);
-            if (course != null)
-            {
-                _otherCourses.Remove(course);
-                _enrolledCourses.Add(course);
-                _totalEnrolled++;
-                ApplySearch();
-                StateHasChanged();
-            }
-        }
-        catch (Exception ex)
-        {
-            await HandleErrorAsync(ex);
-        }
-    }
 
     private async Task LoadUnreadCountAsync()
     {
@@ -359,18 +330,11 @@ public partial class StudentDashboardPage : AbpComponentBase
         if (string.IsNullOrEmpty(term))
         {
             _filteredEnrolledCourses = _enrolledCourses;
-            _filteredOtherCourses    = _otherCourses;
             return;
         }
 
-        var termLower = term.ToLowerInvariant();
-
         _filteredEnrolledCourses = _enrolledCourses
-            .Where(c => c.Title.Contains(termLower, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        _filteredOtherCourses = _otherCourses
-            .Where(c => c.Title.Contains(termLower, StringComparison.OrdinalIgnoreCase))
+            .Where(c => c.Title.Contains(term, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
