@@ -32,7 +32,9 @@ x-deploy-worker: &deploy_worker
     window: 60s
   placement:
     constraints:
+      # Require both Swarm role and explicit node label set by Ansible swarm-worker role.
       - node.role == worker
+      - node.labels.role == worker
 
 x-deploy-manager: &deploy_manager
   replicas: 1
@@ -43,7 +45,9 @@ x-deploy-manager: &deploy_manager
     window: 60s
   placement:
     constraints:
+      # Require both Swarm role and explicit node label set by Ansible swarm-manager role.
       - node.role == manager
+      - node.labels.role == manager
 
 networks:
   saaslms-app:
@@ -92,7 +96,7 @@ services:
   blazor:
     # NOTE: Pin this to a concrete tag when troubleshooting frontend boot issues
     # (e.g. missing /_framework/blazor.boot.json).
-    image: youngmizh/saaslms-blazor:authredirect-20260420-2
+    image: ${BLAZOR_IMAGE}
     ports:
       - target: 80
         published: 8083
@@ -120,7 +124,7 @@ services:
       <<: *deploy_manager
 
   dbmigrator:
-    image: youngmizh/saaslms-dbmigrator:scopefix-20260419
+    image: ${DBMIGRATOR_IMAGE}
     environment:
       <<: *env_common
       # IMPORTANT: keep RootUrl without a trailing slash to avoid seeding redirect URIs like
@@ -155,7 +159,7 @@ services:
       <<: *deploy_worker
 
   authserver:
-    image: youngmizh/saaslms-authserver:latest
+    image: ${AUTHSERVER_IMAGE}
     ports:
       - target: 80
         published: 8082
@@ -179,7 +183,7 @@ services:
       <<: *deploy_manager
 
   gateway:
-    image: youngmizh/saaslms-gateway-web:latest
+    image: ${GATEWAY_IMAGE}
     ports:
       - target: 80
         published: 8080
@@ -211,7 +215,7 @@ services:
       <<: *deploy_manager
 
   saasservice:
-    image: youngmizh/saaslms-saas:latest
+    image: ${SAAS_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -228,7 +232,7 @@ services:
       <<: *deploy_worker
 
   administrationservice:
-    image: youngmizh/saaslms-administration:latest
+    image: ${ADMINISTRATION_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -247,7 +251,7 @@ services:
       <<: *deploy_worker
 
   identityservice:
-    image: youngmizh/saaslms-identity:latest
+    image: ${IDENTITY_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -272,7 +276,7 @@ services:
       <<: *deploy_worker
 
   productservice:
-    image: youngmizh/saaslms-product:latest
+    image: ${PRODUCT_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -290,7 +294,7 @@ services:
       <<: *deploy_worker
 
   coursecatalogservice:
-    image: youngmizh/saaslms-coursecatalog:awsfix-20260420-3
+    image: ${COURSECATALOG_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -323,7 +327,7 @@ services:
       <<: *deploy_worker
 
   enrollmentservice:
-    image: youngmizh/saaslms-enrollment:latest
+    image: ${ENROLLMENT_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -344,7 +348,7 @@ services:
       <<: *deploy_worker
 
   assessmentservice:
-    image: youngmizh/saaslms-assessment:awsfix-20260420-2
+    image: ${ASSESSMENT_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -374,7 +378,7 @@ services:
       <<: *deploy_worker
 
   learningprogressservice:
-    image: youngmizh/saaslms-learningprogress:latest
+    image: ${LEARNINGPROGRESS_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -397,7 +401,7 @@ services:
       <<: *deploy_worker
 
   notificationservice:
-    image: youngmizh/saaslms-notification:latest
+    image: ${NOTIFICATION_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
@@ -415,7 +419,7 @@ services:
       <<: *deploy_worker
 
   reportingservice:
-    image: youngmizh/saaslms-reporting:latest
+    image: ${REPORTING_IMAGE}
     environment:
       <<: *env_common
       App__SelfUrl: https://api.trananhminh.uk
