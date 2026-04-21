@@ -283,10 +283,20 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private void Close() => _isVisible = false;
 
+    private static readonly string[] AllowedMaterialExtensions = { ".pptx", ".docx", ".zip" };
+
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
         _fileError    = null;
         _selectedFile = e.File;
+
+        var ext = System.IO.Path.GetExtension(_selectedFile.Name).ToLowerInvariant();
+        if (!Array.Exists(AllowedMaterialExtensions, x => x == ext))
+        {
+            _fileError    = "Invalid file format. Only .pptx, .docx, and .zip files are allowed.";
+            _selectedFile = null;
+            return;
+        }
 
         if (_selectedFile.Size > MaxFileSizeBytes)
         {
@@ -634,6 +644,14 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     {
         _quizCsvFileError = null;
         _quizCsvFile      = e.File;
+
+        var ext = System.IO.Path.GetExtension(_quizCsvFile.Name).ToLowerInvariant();
+        if (ext != ".csv")
+        {
+            _quizCsvFileError = "Invalid file format. Only .csv files are accepted for quiz upload.";
+            _quizCsvFile      = null;
+            return;
+        }
 
         if (_quizCsvFile.Size > MaxFileSizeBytes)
         {

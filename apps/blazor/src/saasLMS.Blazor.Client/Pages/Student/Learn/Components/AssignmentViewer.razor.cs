@@ -107,10 +107,20 @@ public partial class AssignmentViewer : AbpComponentBase
 
     // ── File selection ────────────────────────────────────────────────────────
 
+    private static readonly string[] AllowedSubmissionExtensions = { ".pptx", ".docx", ".zip" };
+
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
         _fileError    = null;
         _selectedFile = e.File;
+
+        var ext = System.IO.Path.GetExtension(_selectedFile.Name).ToLowerInvariant();
+        if (!Array.Exists(AllowedSubmissionExtensions, x => x == ext))
+        {
+            _fileError    = "Invalid file format. Only .pptx, .docx, and .zip files are allowed.";
+            _selectedFile = null;
+            return;
+        }
 
         if (_selectedFile.Size > MaxFileSizeBytes)
         {
