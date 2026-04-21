@@ -14,6 +14,8 @@ using saasLMS.LearningProgressService.CourseProgresses;
 using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs;
 using saasLMS.LearningProgressService.LessonProgresses;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs;
+using saasLMS.NotificationService.Notifications;
+using saasLMS.NotificationService.Notifications.Dtos.Outputs;
 using Volo.Abp.AspNetCore.Components;
 using Volo.Abp.Identity;
 
@@ -36,6 +38,16 @@ public partial class StudentDashboardPage : AbpComponentBase
 
     [Inject]
     private IIdentityUserAppService IdentityUserAppService { get; set; } = default!;
+
+    [Inject]
+    private INotificationAppService NotificationAppService { get; set; } = default!;
+
+    // Notification state
+    private bool _showNotifications;
+    private bool _isLoadingNotifications;
+    private bool _isMarkingAll;
+    private List<NotificationDto> _notifications = new();
+    private int _unreadCount;
 
     // Loading states
     private bool _isLoadingEnrollments = true;
@@ -82,8 +94,8 @@ public partial class StudentDashboardPage : AbpComponentBase
             return;
         }
 
-        // Step 1: load enrollments + tenant courses in parallel
-        await Task.WhenAll(LoadEnrollmentsAsync(), LoadTenantCoursesAsync());
+        // Step 1: load enrollments + tenant courses + unread count in parallel
+        await Task.WhenAll(LoadEnrollmentsAsync(), LoadTenantCoursesAsync(), LoadUnreadCountAsync());
 
         // Step 2: build course lists so we know which courses are enrolled
         BuildCourseLists();
@@ -241,6 +253,103 @@ public partial class StudentDashboardPage : AbpComponentBase
         {
             await HandleErrorAsync(ex);
         }
+    }
+
+    private async Task LoadUnreadCountAsync()
+    {
+        try
+        {
+            _unreadCount = await NotificationAppService.GetUnreadCountAsync();
+        }
+        catch
+        {
+            // non-critical, swallow silently
+        }
+    }
+
+    private async Task ToggleNotificationsAsync()
+    {
+        _showNotifications = !_showNotifications;
+        if (_showNotifications && _notifications.Count == 0)
+        {
+            await LoadNotificationsAsync();
+        }
+    }
+
+    private void CloseNotifications()
+    {
+        _showNotifications = false;
+    }
+
+    private async Task LoadNotificationsAsync()
+    {
+        try
+        {
+            _isLoadingNotifications = true;
+            StateHasChanged();
+            var summary = await NotificationAppService.GetMyNotificationsAsync();
+            _notifications = summary.Items;
+            _unreadCount = summary.UnreadCount;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _isLoadingNotifications = false;
+        }
+    }
+
+    private async Task MarkNotificationAsReadAsync(NotificationDto notif)
+    {
+        if (notif.IsRead) return;
+        try
+        {
+            await NotificationAppService.MarkAsReadAsync(notif.Id);
+            notif.IsRead = true;
+            notif.ReadAt = DateTime.UtcNow;
+            _unreadCount = Math.Max(0, _unreadCount - 1);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task MarkAllAsReadAsync()
+    {
+        if (_unreadCount == 0) return;
+        try
+        {
+            _isMarkingAll = true;
+            await NotificationAppService.MarkAllAsReadAsync();
+            foreach (var n in _notifications)
+            {
+                n.IsRead = true;
+                n.ReadAt ??= DateTime.UtcNow;
+            }
+            _unreadCount = 0;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _isMarkingAll = false;
+        }
+    }
+
+    private static string GetTimeAgo(DateTime creationTime)
+    {
+        var diff = DateTime.UtcNow - creationTime.ToUniversalTime();
+        if (diff.TotalMinutes < 1) return "Just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min{((int)diff.TotalMinutes == 1 ? "" : "s")} ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} hour{((int)diff.TotalHours == 1 ? "" : "s")} ago";
+        if (diff.TotalDays < 2) return "Yesterday";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
+        return creationTime.ToString("MMM d");
     }
 
     private void ApplySearch()
