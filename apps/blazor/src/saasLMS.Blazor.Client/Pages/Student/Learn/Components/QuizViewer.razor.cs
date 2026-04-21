@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using saasLMS.AssessmentService.QuizAttempts;
 using saasLMS.AssessmentService.Quizzes;
 using saasLMS.AssessmentService.Shared;
@@ -11,67 +13,109 @@ using Volo.Abp.AspNetCore.Components;
 
 namespace saasLMS.Blazor.Client.Pages.Student.Learn.Components;
 
-public partial class QuizViewer : AbpComponentBase
+public partial class QuizViewer : AbpComponentBase, IAsyncDisposable
 {
     // ── Parameters ────────────────────────────────────────────────────────────
 
     [Parameter, EditorRequired] public QuizListItemDto Quiz { get; set; } = default!;
     [Parameter] public EventCallback OnDone { get; set; }
 
+    /// <summary>
+    /// Fired with <c>true</c> when the student starts taking the quiz,
+    /// and <c>false</c> when they finish/leave. The parent uses this to
+    /// guard its own navigation controls.
+    /// </summary>
+    [Parameter] public EventCallback<bool> OnTakingQuizChanged { get; set; }
+
     // ── Services ──────────────────────────────────────────────────────────────
 
-    [Inject] private IQuizAppService         QuizAppService         { get; set; } = default!;
-    [Inject] private IQuizAttemptAppService  QuizAttemptAppService  { get; set; } = default!;
+    [Inject] private IQuizAppService        QuizAppService        { get; set; } = default!;
+    [Inject] private IQuizAttemptAppService QuizAttemptAppService { get; set; } = default!;
+    [Inject] private NavigationManager      NavigationManager     { get; set; } = default!;
+    [Inject] private IJSRuntime             JS                    { get; set; } = default!;
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // ── Quiz state ────────────────────────────────────────────────────────────
 
-    private List<QuizAttemptDto>        _attempts        = new();
-    private QuizAttemptDto?             _currentAttempt;
-    private QuizFormSchemaDto?          _formSchema;
-
-    /// Maps questionId → selected choiceId (for SingleChoice questions).
-    private Dictionary<Guid, Guid>      _selectedChoices = new();
-
-    /// Maps questionId → free-text value (for Text questions).
-    private Dictionary<Guid, string>    _textAnswers     = new();
+    private List<QuizAttemptDto>     _attempts        = new();
+    private QuizAttemptDto?          _currentAttempt;
+    private QuizFormSchemaDto?       _formSchema;
+    private Dictionary<Guid, Guid>   _selectedChoices = new();
+    private Dictionary<Guid, string> _textAnswers     = new();
 
     private bool _isTakingQuiz = false;
     private bool _isLoading    = true;
     private bool _isStarting   = false;
     private bool _isSubmitting = false;
 
-    /// <summary>True when the quiz is Closed — evaluated per render so the banner is always current.</summary>
     private bool _isLocked => Quiz.Status == QuizStatus.Closed;
-
-    /// <summary>
-    /// True when the student can (still) start/retry the quiz.
-    /// Multiple-attempt quizzes allow re-taking; OneTime quizzes block once an attempt exists.
-    /// </summary>
     private bool _canStart =>
         Quiz.Status == QuizStatus.Published &&
         (Quiz.AttemptPolicy == AttemptPolicy.Multiple || _attempts.Count == 0);
 
-    /// <summary>
-    /// Set when Start is clicked on a stale page (quiz was closed after load).
-    /// Cleared on the next successful start.
-    /// </summary>
     private string? _startWarning;
+
+    // ── Timer state ───────────────────────────────────────────────────────────
+
+    private int                    _remainingSeconds;
+    private bool                   _isTimedOut = false;
+    private CancellationTokenSource? _countdownCts;
+
+    private bool HasTimer => Quiz.TimeLimitMinutes is > 0;
+
+    private double TimerProgressPct => HasTimer
+        ? Math.Max(0d, (double)_remainingSeconds / (Quiz.TimeLimitMinutes!.Value * 60) * 100d)
+        : 100d;
+
+    private string TimerCssClass => _remainingSeconds switch
+    {
+        <= 60  => "qv-timer--critical",
+        <= 300 => "qv-timer--warning",
+        _      => ""
+    };
+
+    private string FormatRemaining()
+    {
+        var m = _remainingSeconds / 60;
+        var s = _remainingSeconds % 60;
+        return $"{m:D2}:{s:D2}";
+    }
+
+    // ── Leave-guard state ─────────────────────────────────────────────────────
+
+    private bool         _showLeaveConfirm = false;
+    private IDisposable? _locationChangingReg;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     protected override async Task OnParametersSetAsync()
     {
-        _isTakingQuiz    = false;
-        _currentAttempt  = null;
-        _formSchema      = null;
-        _selectedChoices = new();
-        _textAnswers     = new();
-        _startWarning    = null;
+        // Quiz parameter changed (or first load) — reset everything cleanly.
+        await StopCountdownAsync();
+        _locationChangingReg?.Dispose();
+        _locationChangingReg = null;
+
+        _isTakingQuiz     = false;
+        _currentAttempt   = null;
+        _formSchema       = null;
+        _selectedChoices  = new();
+        _textAnswers      = new();
+        _startWarning     = null;
+        _showLeaveConfirm = false;
+        _isTimedOut       = false;
+
+        if (OnTakingQuizChanged.HasDelegate)
+            await OnTakingQuizChanged.InvokeAsync(false);
 
         await LoadAttemptsAsync();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    public async ValueTask DisposeAsync()
+    {
+        await StopCountdownAsync();
+        _locationChangingReg?.Dispose();
+    }
+
+    // ── Data ──────────────────────────────────────────────────────────────────
 
     private async Task LoadAttemptsAsync()
     {
@@ -92,11 +136,12 @@ public partial class QuizViewer : AbpComponentBase
         }
     }
 
+    // ── Quiz actions ──────────────────────────────────────────────────────────
+
     private async Task StartQuizAsync()
     {
         if (_isStarting) return;
 
-        // Runtime re-check: quiz may have been closed since the page was loaded.
         if (Quiz.Status == QuizStatus.Closed)
         {
             _startWarning = "This quiz has been closed and is no longer accepting attempts. Please reload the page.";
@@ -111,7 +156,19 @@ public partial class QuizViewer : AbpComponentBase
             _formSchema      = await QuizAppService.GetFormSchemaAsync(Quiz.Id);
             _selectedChoices = new();
             _textAnswers     = new();
-            _isTakingQuiz    = true;
+            _isTimedOut      = false;
+
+            _isTakingQuiz = true;
+            if (OnTakingQuizChanged.HasDelegate)
+                await OnTakingQuizChanged.InvokeAsync(true);
+
+            RegisterLocationGuard();
+
+            if (HasTimer)
+            {
+                _remainingSeconds = Quiz.TimeLimitMinutes!.Value * 60;
+                _ = RunCountdownAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -129,6 +186,8 @@ public partial class QuizViewer : AbpComponentBase
         _isSubmitting = true;
         try
         {
+            await StopCountdownAsync();   // stop timer before hitting server
+
             var answers = _formSchema.Questions.Select(q => new QuizAttemptAnswerDto
             {
                 QuestionId = q.Id,
@@ -136,16 +195,13 @@ public partial class QuizViewer : AbpComponentBase
                 Value      = _textAnswers.TryGetValue(q.Id, out var v) ? v : null
             }).ToList();
 
-            var submitDto = new SubmitQuizAttemptDto
+            _currentAttempt = await QuizAttemptAppService.SubmitAsync(Quiz.Id, new SubmitQuizAttemptDto
             {
                 Answers              = answers,
                 SubmittedAnswersJson = JsonSerializer.Serialize(answers)
-            };
+            });
 
-            _currentAttempt = await QuizAttemptAppService.SubmitAsync(Quiz.Id, submitDto);
-            _isTakingQuiz   = false;
-
-            // Reload the updated attempt list so the score is reflected immediately
+            await DeactivateTakingQuizAsync();
             await LoadAttemptsAsync();
         }
         catch (Exception ex)
@@ -158,15 +214,120 @@ public partial class QuizViewer : AbpComponentBase
         }
     }
 
-    private void SelectChoice(Guid questionId, Guid choiceId)
+    // ── Timer ─────────────────────────────────────────────────────────────────
+
+    private async Task RunCountdownAsync()
     {
-        _selectedChoices[questionId] = choiceId;
+        _countdownCts = new CancellationTokenSource();
+        var token = _countdownCts.Token;
+
+        try
+        {
+            while (_remainingSeconds > 0 && !token.IsCancellationRequested)
+            {
+                await Task.Delay(1000, token);
+                _remainingSeconds--;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        // Expired naturally (not cancelled) — handle server-side timeout
+        if (!token.IsCancellationRequested)
+            await InvokeAsync(HandleTimerExpiredAsync);
     }
 
-    private void SetTextAnswer(Guid questionId, string value)
+    private async Task StopCountdownAsync()
     {
-        _textAnswers[questionId] = value;
+        if (_countdownCts is not null)
+        {
+            await _countdownCts.CancelAsync();
+            _countdownCts.Dispose();
+            _countdownCts = null;
+        }
     }
+
+    private async Task HandleTimerExpiredAsync()
+    {
+        if (!_isTakingQuiz) return;   // already submitted/cancelled
+
+        _isTimedOut = true;
+        StateHasChanged();
+
+        try
+        {
+            _currentAttempt = await QuizAttemptAppService.HandleTimeoutAsync(Quiz.Id);
+        }
+        catch
+        {
+            // best-effort — attempt may already have been submitted concurrently
+        }
+
+        await DeactivateTakingQuizAsync();
+        await LoadAttemptsAsync();
+    }
+
+    // ── Leave-guard helpers ───────────────────────────────────────────────────
+
+    private void RegisterLocationGuard()
+    {
+        _locationChangingReg?.Dispose();
+        _locationChangingReg = NavigationManager.RegisterLocationChangingHandler(async context =>
+        {
+            if (!_isTakingQuiz) return;
+
+            var confirmed = await JS.InvokeAsync<bool>(
+                "confirm",
+                "You are currently taking a quiz. If you leave this page, your answers will not be submitted.\n\nAre you sure you want to leave?");
+
+            if (!confirmed)
+                context.PreventNavigation();
+        });
+    }
+
+    private async Task DeactivateTakingQuizAsync()
+    {
+        _isTakingQuiz     = false;
+        _showLeaveConfirm = false;
+        _locationChangingReg?.Dispose();
+        _locationChangingReg = null;
+
+        if (OnTakingQuizChanged.HasDelegate)
+            await OnTakingQuizChanged.InvokeAsync(false);
+    }
+
+    /// <summary>Called by the Back button while taking a quiz — shows inline confirmation.</summary>
+    private void RequestLeave()
+    {
+        if (_isTakingQuiz)
+            _showLeaveConfirm = true;
+        else if (OnDone.HasDelegate)
+            _ = OnDone.InvokeAsync();
+    }
+
+    private async Task ConfirmLeaveAsync()
+    {
+        _showLeaveConfirm = false;
+        await StopCountdownAsync();
+        await DeactivateTakingQuizAsync();  // sets _quizInProgress=false in parent BEFORE OnDone fires
+        if (OnDone.HasDelegate)
+            await OnDone.InvokeAsync();
+    }
+
+    private void CancelLeave() => _showLeaveConfirm = false;
+
+    // ── Answer helpers ────────────────────────────────────────────────────────
+
+    private void SelectChoice(Guid questionId, Guid choiceId)
+        => _selectedChoices[questionId] = choiceId;
+
+    private void SetTextAnswer(Guid questionId, string value)
+        => _textAnswers[questionId] = value;
+
+    // ── Formatting ────────────────────────────────────────────────────────────
 
     private static string FormatDuration(int minutes)
     {
@@ -176,11 +337,9 @@ public partial class QuizViewer : AbpComponentBase
         return m == 0 ? $"{h} hr" : $"{h} hr {m} min";
     }
 
-    /// <summary>Guarantees a DateTime is treated as UTC before any local-time conversion.</summary>
     private static DateTime EnsureUtc(DateTime dt)
         => dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
-    /// <summary>Converts a UTC server timestamp to the browser's local time (e.g. GMT+7).</summary>
     private static string ToLocalDisplay(DateTime dt, string format = "MMM dd, yyyy HH:mm")
         => EnsureUtc(dt).ToLocalTime().ToString(format);
 }

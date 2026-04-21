@@ -919,7 +919,9 @@ else
                         <h2 class="slp-resource-title">@_selectedQuiz.Title</h2>
                     </div>
 
-                    <QuizViewer Quiz="_selectedQuiz" OnDone="BackToLessonOverview" />
+                    <QuizViewer Quiz="_selectedQuiz"
+                                OnDone="BackToLessonOverview"
+                                OnTakingQuizChanged="OnQuizTakingChanged" />
                 </div>
             }
 
