@@ -289,19 +289,27 @@
         gap: 0.4rem;
     }
 
-    /* ── Countdown Timer ──────────────────────────────────────────────── */
+    /* ── Countdown Timer (fixed right-side sticky widget) ───────────── */
     .qv-timer {
+        position: fixed;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 100;
         background: #fff;
         border: 1px solid #dedee5;
         border-radius: 12px;
-        padding: 0.65rem 1rem;
+        padding: 0.75rem 1rem;
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        min-width: 110px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     }
 
     .qv-timer__bar-wrap {
-        flex: 1;
+        width: 100%;
         height: 6px;
         background: #e9ecef;
         border-radius: 3px;
@@ -316,12 +324,11 @@
     }
 
     .qv-timer__display {
-        font-size: 0.88rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #495057;
         white-space: nowrap;
-        min-width: 60px;
-        text-align: right;
+        text-align: center;
     }
 
     .qv-timer--warning .qv-timer__bar  { background: #fb8c00; }
@@ -533,17 +540,19 @@
         </div>
     }
 
-    @* ── Timeout banner (auto-submitted by server) ── *@
+    @* ── Timeout banner ── *@
     @if (_isTimedOut)
     {
         <div class="qv-timeout-banner">
             <div class="qv-timeout-banner__title">
                 <i class="fa fa-clock-o"></i> Time's up!
             </div>
-            <span>Your time has expired. The quiz has been automatically submitted.</span>
+            <span>Your time has expired. Your answers have been automatically submitted.</span>
         </div>
     }
-    else
+
+    @* ── Overview (quiz info + attempts) — hidden while taking quiz ── *@
+    @if (!_isTakingQuiz && !_isTimedOut)
     {
         @* ── Overview (quiz info + attempts) ── *@
 

@@ -268,17 +268,9 @@ public partial class QuizViewer : AbpComponentBase, IAsyncDisposable
         _isTimedOut = true;
         StateHasChanged();
 
-        try
-        {
-            _currentAttempt = await QuizAttemptAppService.HandleTimeoutAsync(Quiz.Id);
-        }
-        catch
-        {
-            // best-effort — attempt may already have been submitted concurrently
-        }
-
-        await DeactivateTakingQuizAsync();
-        await LoadAttemptsAsync();
+        // Submit current answers so nothing is lost; SubmitQuizAsync handles
+        // DeactivateTakingQuizAsync + LoadAttemptsAsync internally.
+        await SubmitQuizAsync();
     }
 
     // ── Leave-guard helpers ───────────────────────────────────────────────────
