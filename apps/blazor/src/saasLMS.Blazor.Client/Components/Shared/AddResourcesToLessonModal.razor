@@ -374,7 +374,7 @@
         <div class="arm-modal__header">
             <div>
                 <h5 class="arm-modal__title" id="qp-title">
-                    <i class="fa fa-question-circle me-2" style="color:#1a6db5;"></i>Quiz Preview
+                    <i class="fa fa-question-circle me-2" style="color:#7132f5;"></i>Quiz Preview
                 </h5>
                 <p class="arm-modal__subtitle">@_uploadedQuizDto.Title &nbsp;·&nbsp; @(_quizPreviewQuestions?.Count ?? 0) question(s)</p>
             </div>
@@ -528,7 +528,7 @@
         max-height: 90vh;
         overflow-y: auto;
         background: #fff;
-        border-radius: 16px;
+        border-radius: 12px;
         box-shadow: 0 24px 64px rgba(15, 39, 68, 0.22);
         display: flex;
         flex-direction: column;
@@ -542,18 +542,18 @@
         border-bottom: 1px solid #eef0f3;
         flex-shrink: 0;
     }
-    .arm-modal__title { font-size: 1.1rem; font-weight: 700; color: #0f2744; margin: 0 0 0.2rem; }
-    .arm-modal__subtitle { font-size: 0.82rem; color: #8494a9; margin: 0; }
+    .arm-modal__title { font-size: 1.1rem; font-weight: 700; color: #101114; margin: 0 0 0.2rem; }
+    .arm-modal__subtitle { font-size: 0.82rem; color: #9497a9; margin: 0; }
     .arm-modal__close {
         background: none;
         border: none;
-        color: #8494a9;
+        color: #9497a9;
         font-size: 1rem;
         cursor: pointer;
         padding: 0.2rem;
         transition: color 0.15s;
     }
-    .arm-modal__close:hover { color: #0f2744; }
+    .arm-modal__close:hover { color: #101114; }
 
     .arm-tabs {
         display: flex;
@@ -568,13 +568,14 @@
         padding: 0.7rem 1rem;
         font-size: 0.86rem;
         font-weight: 600;
-        color: #8494a9;
+        color: #9497a9;
         cursor: pointer;
         transition: color 0.15s, border-color 0.15s;
         margin-bottom: -1px;
     }
-    .arm-tab:hover { color: #0f2744; }
-    .arm-tab--active { color: #0f2744; border-bottom-color: #1a6db5; }
+    .arm-tab:hover { color: #101114; }
+    .arm-tab--active { color: #101114; border-bottom-color: #7132f5; }
+
     .arm-tab--locked { opacity: 0.35; cursor: not-allowed; }
     .arm-tab:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
@@ -582,15 +583,15 @@
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        background: #f0f7ff;
-        border: 1px solid #bdd6f0;
-        border-radius: 8px;
+        background: rgba(133,91,251,0.08);
+        border: 1px solid rgba(133,91,251,0.3);
+        border-radius: 12px;
         padding: 0.6rem 0.85rem;
         margin-bottom: 0.75rem;
     }
-    .arm-current-file__icon { color: #1a6db5; font-size: 1rem; flex-shrink: 0; }
-    .arm-current-file__label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #8494a9; }
-    .arm-current-file__name { display: block; font-size: 0.88rem; font-weight: 500; color: #0f2744; }
+    .arm-current-file__icon { color: #7132f5; font-size: 1rem; flex-shrink: 0; }
+    .arm-current-file__label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #9497a9; }
+    .arm-current-file__name { display: block; font-size: 0.88rem; font-weight: 500; color: #101114; }
 
     .arm-modal__body { padding: 1.25rem 1.6rem; flex: 1; overflow-y: auto; }
     .arm-section { margin-top: 1rem; }
@@ -605,10 +606,10 @@
         margin-bottom: 0.4rem;
     }
     .arm-field__required { color: #e53e3e; margin-left: 2px; }
-    .arm-field__optional { font-weight: 400; color: #a0aec0; text-transform: none; letter-spacing: 0; }
+    .arm-field__optional { font-weight: 400; color: #9497a9; text-transform: none; letter-spacing: 0; }
     .arm-field__input {
-        border: 1.5px solid #d1d9e0;
-        border-radius: 8px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         padding: 0.6rem 0.85rem;
         font-size: 0.9rem;
         color: #1a202c;
@@ -618,8 +619,8 @@
         resize: vertical;
     }
     .arm-field__input:focus {
-        border-color: #1a6db5;
-        box-shadow: 0 0 0 3px rgba(26, 109, 181, 0.12);
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113, 50, 245, 0.12);
         background: #fff;
     }
     .arm-field__textarea { min-height: 80px; }
@@ -632,15 +633,15 @@
         left: 0.75rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #a0aec0;
+        color: #9497a9;
         pointer-events: none;
     }
     .arm-field__input--with-icon { padding-left: 2.2rem; }
 
     .arm-dropzone {
         position: relative;
-        border: 2px dashed #d1d9e0;
-        border-radius: 10px;
+        border: 2px dashed #dedee5;
+        border-radius: 12px;
         padding: 2rem 1.5rem;
         text-align: center;
         background: #f8fafc;
@@ -648,13 +649,13 @@
         transition: border-color 0.15s, background 0.15s;
         overflow: hidden;
     }
-    .arm-dropzone:hover { border-color: #1a6db5; background: #edf4fd; }
+    .arm-dropzone:hover { border-color: #7132f5; background: rgba(133,91,251,0.06); }
     .arm-dropzone--error { border-color: #e53e3e; }
-    .arm-dropzone__icon { font-size: 2rem; color: #1a6db5; opacity: 0.7; margin-bottom: 0.5rem; }
+    .arm-dropzone__icon { font-size: 2rem; color: #7132f5; opacity: 0.7; margin-bottom: 0.5rem; }
     .arm-dropzone__hint { font-size: 0.88rem; color: #4a5568; font-weight: 600; margin: 0; }
-    .arm-dropzone__hint--sub { font-size: 0.8rem; color: #a0aec0; font-weight: 400; margin-top: 0.2rem; }
-    .arm-dropzone__file-name { font-size: 0.9rem; font-weight: 600; color: #0f2744; margin: 0; }
-    .arm-dropzone__file-size { font-size: 0.8rem; color: #8494a9; margin: 0.2rem 0 0; }
+    .arm-dropzone__hint--sub { font-size: 0.8rem; color: #9497a9; font-weight: 400; margin-top: 0.2rem; }
+    .arm-dropzone__file-name { font-size: 0.9rem; font-weight: 600; color: #101114; margin: 0; }
+    .arm-dropzone__file-size { font-size: 0.8rem; color: #9497a9; margin: 0.2rem 0 0; }
     .arm-dropzone__input {
         position: absolute;
         inset: 0;
@@ -667,13 +668,13 @@
     .arm-formats__badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
     .arm-format-badge { padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.76rem; font-weight: 700; }
     .arm-format-badge--pptx { background: #fff4ec; color: #d35400; border: 1px solid #fad7be; }
-    .arm-format-badge--docx { background: #edf4fd; color: #1a6db5; border: 1px solid #bdd6f0; }
-    .arm-format-badge--zip  { background: #f5f0fd; color: #6b46c1; border: 1px solid #d6c8f7; }
+    .arm-format-badge--docx { background: rgba(133,91,251,0.06); color: #7132f5; border: 1px solid rgba(133,91,251,0.3); }
+    .arm-format-badge--zip  { background: rgba(133,91,251,0.08); color: #7132f5; border: 1px solid rgba(133,91,251,0.25); }
 
     .arm-video-embed iframe {
         display: block;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        border: 1px solid #dedee5;
     }
 
     .arm-preview-placeholder {
@@ -681,32 +682,32 @@
         align-items: center;
         gap: 0.75rem;
         background: #f5f7fa;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         padding: 0.85rem 1rem;
     }
     .arm-preview-placeholder__icon {
         width: 44px;
         height: 44px;
-        border-radius: 8px;
-        background: #e2e8f0;
+        border-radius: 12px;
+        background: #dedee5;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #a0aec0;
+        color: #9497a9;
         font-size: 1.1rem;
         flex-shrink: 0;
     }
     .arm-preview-placeholder__title { font-size: 0.88rem; font-weight: 600; color: #2d3748; margin: 0; }
-    .arm-preview-placeholder__sub { font-size: 0.78rem; color: #a0aec0; margin: 0.15rem 0 0; }
+    .arm-preview-placeholder__sub { font-size: 0.78rem; color: #9497a9; margin: 0.15rem 0 0; }
 
-    .arm-editor { border: 1.5px solid #d1d9e0; border-radius: 8px; overflow: hidden; background: #f8fafc; }
+    .arm-editor { border: 1.5px solid #dedee5; border-radius: 12px; overflow: hidden; background: #f8fafc; }
     .arm-editor__toolbar {
         display: flex;
         gap: 0.1rem;
         padding: 0.4rem 0.5rem;
         background: #f1f5f9;
-        border-bottom: 1px solid #d1d9e0;
+        border-bottom: 1px solid #dedee5;
     }
     .arm-editor__tool {
         background: none;
@@ -718,7 +719,7 @@
         cursor: pointer;
         transition: background 0.12s;
     }
-    .arm-editor__tool:hover { background: #e2e8f0; }
+    .arm-editor__tool:hover { background: #dedee5; }
     .arm-editor__content {
         width: 100%;
         border: none;
@@ -745,7 +746,7 @@
         align-items: center;
         justify-content: center;
         padding: 0.55rem 1.25rem;
-        border-radius: 8px;
+        border-radius: 12px;
         font-size: 0.88rem;
         font-weight: 600;
         cursor: pointer;
@@ -753,10 +754,10 @@
         transition: background 0.15s, opacity 0.15s;
     }
     .arm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .arm-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .arm-btn--ghost { background: transparent; border: 1.5px solid #dedee5; color: #4a5568; }
     .arm-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
-    .arm-btn--primary { background: #0f2744; color: #fff; }
-    .arm-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+    .arm-btn--primary { background: #7132f5; color: #fff; }
+    .arm-btn--primary:hover:not(:disabled) { background: #5741d8; }
 
     .arm-field-row {
         display: flex;
@@ -765,8 +766,8 @@
     .arm-field--half { flex: 1; min-width: 0; }
 
     /* ── Quiz tab ── */
-    .arm-quiz-hint { font-size: 0.82rem; color: #8494a9; margin: 0 0 0.75rem; }
-    .arm-format-badge--csv { background: #e6fff2; color: #276749; border: 1px solid #9ae6b4; }
+    .arm-quiz-hint { font-size: 0.82rem; color: #9497a9; margin: 0 0 0.75rem; }
+    .arm-format-badge--csv { background: rgba(20,158,97,0.1); color: #149e61; border: 1px solid rgba(20,158,97,0.3); }
 
     /* ── Wide modal for preview ── */
     .arm-modal--wide { width: min(700px, 96vw); }
@@ -776,11 +777,11 @@
 
     .qp-question {
         background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         padding: 1rem 1.1rem;
     }
-    .qp-question__text { font-size: 0.92rem; font-weight: 600; color: #0f2744; margin: 0 0 0.65rem; }
+    .qp-question__text { font-size: 0.92rem; font-weight: 600; color: #101114; margin: 0 0 0.65rem; }
 
     .qp-choices { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 
@@ -793,13 +794,13 @@
         font-size: 0.87rem;
         color: #2d3748;
         background: #fff;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #dedee5;
         transition: background 0.12s;
     }
     .qp-choice--correct {
-        background: #e6fff2;
-        border-color: #9ae6b4;
-        color: #22543d;
+        background: rgba(20,158,97,0.1);
+        border-color: rgba(20,158,97,0.3);
+        color: #026b3f;
         font-weight: 600;
     }
     .qp-choice__letter {
@@ -809,13 +810,13 @@
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: #e2e8f0;
+        background: #dedee5;
         font-size: 0.75rem;
         font-weight: 700;
         flex-shrink: 0;
         color: #4a5568;
     }
-    .qp-choice--correct .qp-choice__letter { background: #9ae6b4; color: #22543d; }
+    .qp-choice--correct .qp-choice__letter { background: rgba(20,158,97,0.3); color: #026b3f; }
     .qp-choice__text { flex: 1; }
-    .qp-choice__check { color: #38a169; font-size: 0.95rem; flex-shrink: 0; }
+    .qp-choice__check { color: #149e61; font-size: 0.95rem; flex-shrink: 0; }
 </style>

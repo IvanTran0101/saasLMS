@@ -488,9 +488,9 @@ else
         min-height: 320px;
         gap: 1rem;
     }
-    .cep-loading__text { color: #8494a9; font-size: 0.9rem; }
+    .cep-loading__text { color: #9497a9; font-size: 0.9rem; }
 
-    .cep-empty { text-align: center; padding: 3rem 1rem; color: #8494a9; }
+    .cep-empty { text-align: center; padding: 3rem 1rem; color: #9497a9; }
     .cep-empty__icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
 
     .cep-breadcrumb {
@@ -498,14 +498,14 @@ else
         align-items: center;
         gap: 0.5rem;
         font-size: 0.82rem;
-        color: #8494a9;
+        color: #9497a9;
         margin-bottom: 1.25rem;
     }
-    .cep-breadcrumb__link { color: #8494a9; text-decoration: none; font-weight: 500; }
-    .cep-breadcrumb__link:hover { color: #0f2744; }
+    .cep-breadcrumb__link { color: #9497a9; text-decoration: none; font-weight: 500; }
+    .cep-breadcrumb__link:hover { color: #101114; }
     .cep-breadcrumb__sep { font-size: 0.65rem; }
     .cep-breadcrumb__current {
-        color: #0f2744;
+        color: #101114;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -527,7 +527,7 @@ else
         gap: 0.75rem;
         flex-wrap: wrap;
     }
-    .cep-course-header__title { font-size: 1.6rem; font-weight: 700; color: #0f2744; margin: 0; line-height: 1.2; }
+    .cep-course-header__title { font-size: 1.6rem; font-weight: 700; color: #101114; margin: 0; line-height: 1.2; }
     .cep-course-header__description { color: #4a5568; font-size: 0.9rem; margin: 0.4rem 0 0; max-width: 700px; }
     .cep-course-header__actions { display: flex; gap: 0.75rem; align-items: center; flex-shrink: 0; }
 
@@ -535,18 +535,18 @@ else
     .cep-course-info-edit__title-input {
         font-size: 1.4rem;
         font-weight: 700;
-        border: 2px solid #1a6db5;
-        border-radius: 8px;
+        border: 2px solid #7132f5;
+        border-radius: 12px;
         padding: 0.4rem 0.75rem;
-        color: #0f2744;
+        color: #101114;
         background: #fff;
         outline: none;
         width: 100%;
         max-width: 600px;
     }
     .cep-course-info-edit__desc-input {
-        border: 1.5px solid #d1d9e0;
-        border-radius: 8px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
         color: #4a5568;
@@ -556,35 +556,35 @@ else
         width: 100%;
         max-width: 600px;
     }
-    .cep-course-info-edit__desc-input:focus { border-color: #1a6db5; background: #fff; }
+    .cep-course-info-edit__desc-input:focus { border-color: #7132f5; background: #fff; }
     .cep-course-info-edit__actions { display: flex; gap: 0.5rem; }
 
     .cep-status-badge {
         display: inline-block;
         padding: 0.2rem 0.65rem;
-        border-radius: 20px;
+        border-radius: 6px;
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
     }
     .badge-draft     { background: #fff8e1; color: #b7791f; border: 1px solid #f6e05e; }
-    .badge-published { background: #e6fffa; color: #276749; border: 1px solid #9ae6b4; }
+    .badge-published { background: rgba(20,158,97,0.1); color: #149e61; border: 1px solid rgba(20,158,97,0.3); }
     .badge-hidden    { background: #f0f0f0; color: #4a5568; border: 1px solid #cbd5e0; }
 
     .cep-structure { display: flex; flex-direction: column; gap: 1rem; }
 
-    .cep-chapter { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .cep-chapter { background: #fff; border: 1px solid #dedee5; border-radius: 12px; overflow: hidden; }
     .cep-chapter__header {
         display: flex;
         align-items: center;
         gap: 0.75rem;
         padding: 0.85rem 1rem;
         background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #dedee5;
     }
     .cep-chapter__toggle {
-        background: #e2e8f0;
+        background: #dedee5;
         border: none;
         width: 28px;
         height: 28px;
@@ -605,7 +605,7 @@ else
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #8494a9;
+        color: #9497a9;
         flex-shrink: 0;
     }
     .cep-chapter__title { font-size: 0.98rem; font-weight: 600; color: #1a202c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -613,18 +613,18 @@ else
 
     .cep-lessons { padding: 0.5rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
 
-    .cep-lesson { border: 1px solid #eef0f3; border-radius: 8px; overflow: hidden; background: #fff; }
+    .cep-lesson { border: 1px solid #eef0f3; border-radius: 12px; overflow: hidden; background: #fff; }
     .cep-lesson__header { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.85rem; }
-    .cep-lesson__icon { color: #1a6db5; font-size: 0.9rem; flex-shrink: 0; }
-    .cep-lesson__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #a0aec0; font-weight: 600; flex-shrink: 0; }
+    .cep-lesson__icon { color: #7132f5; font-size: 0.9rem; flex-shrink: 0; }
+    .cep-lesson__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #9497a9; font-weight: 600; flex-shrink: 0; }
     .cep-lesson__title { font-size: 0.9rem; font-weight: 500; color: #2d3748; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cep-lesson__actions { display: flex; align-items: center; gap: 0.35rem; }
     .cep-lesson__content-badge {
         font-size: 0.72rem;
-        color: #276749;
-        background: #e6fffa;
-        border: 1px solid #9ae6b4;
-        border-radius: 20px;
+        color: #149e61;
+        background: rgba(20,158,97,0.1);
+        border: 1px solid rgba(20,158,97,0.3);
+        border-radius: 6px;
         padding: 0.15rem 0.5rem;
         font-weight: 600;
     }
@@ -632,12 +632,12 @@ else
     .cep-materials { border-top: 1px solid #eef0f3; padding: 0.4rem 0.85rem; display: flex; flex-direction: column; gap: 0.2rem; }
     .cep-material { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.5rem; border-radius: 6px; transition: background 0.12s; }
     .cep-material:hover { background: #f8fafc; }
-    .cep-material__icon { color: #8494a9; font-size: 0.88rem; flex-shrink: 0; }
-    .cep-material__icon--assignment { color: #6b46c1; }
-    .cep-material__icon--quiz { color: #2b6cb0; }
+    .cep-material__icon { color: #9497a9; font-size: 0.88rem; flex-shrink: 0; }
+    .cep-material__icon--assignment { color: #7132f5; }
+    .cep-material__icon--quiz { color: #7132f5; }
     .cep-material__info { display: flex; flex-direction: column; min-width: 0; }
     .cep-material__title { font-size: 0.85rem; font-weight: 500; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cep-material__meta { font-size: 0.75rem; color: #a0aec0; }
+    .cep-material__meta { font-size: 0.75rem; color: #9497a9; }
 
     .cep-add-resource-btn {
         display: flex;
@@ -646,25 +646,25 @@ else
         width: 100%;
         border: none;
         background: none;
-        color: #1a6db5;
+        color: #7132f5;
         font-size: 0.82rem;
         font-weight: 600;
         padding: 0.5rem;
         cursor: pointer;
-        border-top: 1px dashed #bdd6f0;
+        border-top: 1px dashed rgba(133,91,251,0.3);
         transition: background 0.15s;
     }
-    .cep-add-resource-btn:hover { background: #edf4fd; }
+    .cep-add-resource-btn:hover { background: rgba(133,91,251,0.06); }
 
     .cep-add-lesson-btn {
         display: flex;
         align-items: center;
         justify-content: center;
         width: 100%;
-        border: 1.5px dashed #d1d9e0;
-        border-radius: 8px;
+        border: 1.5px dashed #dedee5;
+        border-radius: 12px;
         background: none;
-        color: #8494a9;
+        color: #9497a9;
         font-size: 0.82rem;
         font-weight: 600;
         padding: 0.55rem;
@@ -672,39 +672,39 @@ else
         margin-top: 0.5rem;
         transition: border-color 0.15s, color 0.15s;
     }
-    .cep-add-lesson-btn:hover { border-color: #1a6db5; color: #1a6db5; }
+    .cep-add-lesson-btn:hover { border-color: #7132f5; color: #7132f5; }
 
     .cep-insert-chapter-btn {
         display: flex;
         align-items: center;
         justify-content: center;
         width: 100%;
-        border: 2px dashed #d1d9e0;
+        border: 2px dashed #dedee5;
         border-radius: 12px;
         background: none;
-        color: #8494a9;
+        color: #9497a9;
         font-size: 0.88rem;
         font-weight: 600;
         padding: 1rem;
         cursor: pointer;
         transition: border-color 0.15s, color 0.15s;
     }
-    .cep-insert-chapter-btn:hover { border-color: #0f2744; color: #0f2744; }
+    .cep-insert-chapter-btn:hover { border-color: #101114; color: #101114; }
 
-    .cep-empty-state { text-align: center; padding: 3rem 1.5rem; border: 2px dashed #d1d9e0; border-radius: 12px; background: #fafbfc; }
-    .cep-empty-state__icon { font-size: 2.5rem; color: #1a6db5; opacity: 0.5; margin-bottom: 0.75rem; }
-    .cep-empty-state__title { font-size: 1rem; font-weight: 700; color: #0f2744; margin-bottom: 0.35rem; }
-    .cep-empty-state__sub { font-size: 0.85rem; color: #8494a9; margin-bottom: 1.25rem; }
+    .cep-empty-state { text-align: center; padding: 3rem 1.5rem; border: 2px dashed #dedee5; border-radius: 12px; background: #fafbfc; }
+    .cep-empty-state__icon { font-size: 2.5rem; color: #7132f5; opacity: 0.5; margin-bottom: 0.75rem; }
+    .cep-empty-state__title { font-size: 1rem; font-weight: 700; color: #101114; margin-bottom: 0.35rem; }
+    .cep-empty-state__sub { font-size: 0.85rem; color: #9497a9; margin-bottom: 1.25rem; }
 
     .cep-inline-edit { display: flex; align-items: center; gap: 0.35rem; flex: 1; }
     .cep-inline-edit__input {
         flex: 1;
-        border: 1.5px solid #1a6db5;
+        border: 1.5px solid #7132f5;
         border-radius: 6px;
         padding: 0.25rem 0.5rem;
         font-size: 0.9rem;
         font-weight: 600;
-        color: #0f2744;
+        color: #101114;
         background: #fff;
         outline: none;
     }
@@ -712,7 +712,7 @@ else
     .cep-icon-btn {
         background: none;
         border: none;
-        color: #a0aec0;
+        color: #9497a9;
         font-size: 0.85rem;
         padding: 0.25rem 0.35rem;
         border-radius: 6px;
@@ -720,16 +720,16 @@ else
         transition: color 0.15s, background 0.15s;
         line-height: 1;
     }
-    .cep-icon-btn:hover { color: #0f2744; background: #eef0f3; }
+    .cep-icon-btn:hover { color: #101114; background: #eef0f3; }
     .cep-icon-btn--danger:hover { color: #e53e3e; background: #fff5f5; }
-    .cep-icon-btn--success:hover { color: #276749; background: #e6fffa; }
+    .cep-icon-btn--success:hover { color: #149e61; background: rgba(20,158,97,0.1); }
 
     .cep-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 0.5rem 1.1rem;
-        border-radius: 8px;
+        border-radius: 12px;
         font-size: 0.86rem;
         font-weight: 600;
         cursor: pointer;
@@ -738,27 +738,27 @@ else
         text-decoration: none;
     }
     .cep-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .cep-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .cep-btn--ghost { background: transparent; border: 1.5px solid #dedee5; color: #4a5568; }
     .cep-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
-    .cep-btn--primary { background: #0f2744; color: #fff; }
-    .cep-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
-    .cep-btn--publish { background: #1a6db5; color: #fff; }
-    .cep-btn--publish:hover:not(:disabled) { background: #155a96; }
-    .cep-btn--success { background: #276749; color: #fff; cursor: default; }
-    .cep-btn--hide { background: transparent; border: 1.5px solid #a0aec0; color: #4a5568; }
+    .cep-btn--primary { background: #7132f5; color: #fff; }
+    .cep-btn--primary:hover:not(:disabled) { background: #5741d8; }
+    .cep-btn--publish { background: #7132f5; color: #fff; }
+    .cep-btn--publish:hover:not(:disabled) { background: #5741d8; }
+    .cep-btn--success { background: #149e61; color: #fff; cursor: default; }
+    .cep-btn--hide { background: transparent; border: 1.5px solid #9497a9; color: #4a5568; }
     .cep-btn--hide:hover:not(:disabled) { background: #fff5f5; border-color: #e53e3e; color: #e53e3e; }
 
     .cep-asgn-badge {
         display: inline-block;
         padding: 0.1rem 0.45rem;
-        border-radius: 20px;
+        border-radius: 6px;
         font-size: 0.68rem;
         font-weight: 700;
         letter-spacing: 0.03em;
         text-transform: uppercase;
     }
     .cep-asgn-badge--draft     { background: #fff8e1; color: #b7791f; border: 1px solid #f6e05e; }
-    .cep-asgn-badge--published { background: #e6fffa; color: #276749; border: 1px solid #9ae6b4; }
+    .cep-asgn-badge--published { background: rgba(20,158,97,0.1); color: #149e61; border: 1px solid rgba(20,158,97,0.3); }
     .cep-asgn-badge--closed    { background: #f0f0f0; color: #718096; border: 1px solid #cbd5e0; }
 
     .cep-asgn-action-btn {
@@ -775,12 +775,12 @@ else
         background: transparent;
     }
     .cep-asgn-action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .cep-asgn-action-btn--publish { color: #1a6db5; border-color: #bdd6f0; }
-    .cep-asgn-action-btn--publish:hover:not(:disabled) { background: #edf4fd; border-color: #1a6db5; }
+    .cep-asgn-action-btn--publish { color: #7132f5; border-color: rgba(133,91,251,0.3); }
+    .cep-asgn-action-btn--publish:hover:not(:disabled) { background: rgba(133,91,251,0.06); border-color: #7132f5; }
     .cep-asgn-action-btn--close { color: #c05621; border-color: #fbd38d; }
     .cep-asgn-action-btn--close:hover:not(:disabled) { background: #fffaf0; border-color: #c05621; }
-    .cep-asgn-action-btn--grading { color: #6b46c1; border-color: #d6bcfa; }
-    .cep-asgn-action-btn--grading:hover:not(:disabled) { background: #faf5ff; border-color: #6b46c1; }
+    .cep-asgn-action-btn--grading { color: #7132f5; border-color: rgba(133,91,251,0.3); }
+    .cep-asgn-action-btn--grading:hover:not(:disabled) { background: rgba(133,91,251,0.06); border-color: #7132f5; }
     .cep-asgn-action-btn--results { color: #0d9488; border-color: #99f6e4; }
     .cep-asgn-action-btn--results:hover:not(:disabled) { background: #f0fdfa; border-color: #0d9488; }
 
@@ -795,10 +795,10 @@ else
         border: none;
         transition: background 0.15s;
     }
-    .cep-btn-sm--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .cep-btn-sm--ghost { background: transparent; border: 1.5px solid #dedee5; color: #4a5568; }
     .cep-btn-sm--ghost:hover { background: #f1f5f9; }
-    .cep-btn-sm--primary { background: #0f2744; color: #fff; }
-    .cep-btn-sm--primary:hover { background: #1a3a5c; }
+    .cep-btn-sm--primary { background: #7132f5; color: #fff; }
+    .cep-btn-sm--primary:hover { background: #5741d8; }
 
     .cep-field { display: flex; flex-direction: column; }
     .cep-field--error .cep-course-info-edit__title-input { border-color: #e53e3e; }
