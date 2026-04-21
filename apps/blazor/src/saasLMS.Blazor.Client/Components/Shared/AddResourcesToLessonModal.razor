@@ -299,8 +299,53 @@
         @if (_activeTab == MaterialTabType.Quiz)
         {
             <div class="arm-section">
+
+                @* Quiz Title *@
+                <div class="arm-field @(_quizTitleError != null ? "arm-field--error" : "")">
+                    <label class="arm-field__label" for="arm-quiz-title">
+                        Quiz Title <span class="arm-field__optional">(optional — defaults to CSV filename)</span>
+                    </label>
+                    <input id="arm-quiz-title"
+                           type="text"
+                           class="arm-field__input"
+                           placeholder="e.g. Chapter 3 — Review Quiz"
+                           @bind="_quizTitle"
+                           @bind:event="oninput"
+                           maxlength="200"
+                           disabled="@_isSaving" />
+                    @if (_quizTitleError != null)
+                    {
+                        <span class="arm-field__error-msg">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_quizTitleError
+                        </span>
+                    }
+                </div>
+
+                @* Time Limit *@
+                <div class="arm-field @(_quizTimeLimitError != null ? "arm-field--error" : "")">
+                    <label class="arm-field__label" for="arm-quiz-timelimit">
+                        Time Limit (minutes) <span class="arm-field__optional">(optional)</span>
+                    </label>
+                    <input id="arm-quiz-timelimit"
+                           type="number"
+                           class="arm-field__input"
+                           placeholder="e.g. 30"
+                           min="1"
+                           step="1"
+                           @bind="_quizTimeLimitMinutes"
+                           @bind:event="oninput"
+                           disabled="@_isSaving" />
+                    @if (_quizTimeLimitError != null)
+                    {
+                        <span class="arm-field__error-msg">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_quizTimeLimitError
+                        </span>
+                    }
+                </div>
+
+                @* CSV File *@
                 <label class="arm-field__label">CSV File <span class="arm-field__required">*</span></label>
-                <p class="arm-quiz-hint">The quiz title, questions, and answer choices are all read from the CSV file.</p>
+                <p class="arm-quiz-hint">Questions and answer choices are read from the CSV file.</p>
                 <div class="arm-dropzone @(_quizCsvFileError != null ? "arm-dropzone--error" : "")">
                     <div class="arm-dropzone__icon">
                         <i class="fa fa-file-csv"></i>
@@ -376,7 +421,13 @@
                 <h5 class="arm-modal__title" id="qp-title">
                     <i class="fa fa-question-circle me-2" style="color:#7132f5;"></i>Quiz Preview
                 </h5>
-                <p class="arm-modal__subtitle">@_uploadedQuizDto.Title &nbsp;·&nbsp; @(_quizPreviewQuestions?.Count ?? 0) question(s)</p>
+                <p class="arm-modal__subtitle">
+                    @_uploadedQuizDto.Title &nbsp;·&nbsp; @(_quizPreviewQuestions?.Count ?? 0) question(s)
+                    @if (_uploadedQuizDto.TimeLimitMinutes.HasValue)
+                    {
+                        <span>&nbsp;·&nbsp; <i class="fa fa-clock-o"></i> @_uploadedQuizDto.TimeLimitMinutes.Value min</span>
+                    }
+                </p>
             </div>
             <button class="arm-modal__close" @onclick="CloseQuizPreview" aria-label="Close">
                 <i class="fa fa-times"></i>

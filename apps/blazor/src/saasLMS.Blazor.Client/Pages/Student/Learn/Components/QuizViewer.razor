@@ -397,15 +397,34 @@
                         <i class="fa fa-clock-o"></i> @FormatDuration(Quiz.TimeLimitMinutes.Value)
                     </span>
                 }
+                else
+                {
+                    <span class="qv-header__meta-item">
+                        <i class="fa fa-clock-o"></i> No time limit
+                    </span>
+                }
                 <span class="qv-header__meta-item">
                     <i class="fa fa-trophy"></i> Max Score: @Quiz.MaxScore.ToString("G")
                 </span>
                 <span class="qv-header__meta-item">
-                    <i class="fa fa-list-ol"></i> Attempts: @_attempts.Count
+                    <i class="fa fa-repeat"></i>
+                    @(Quiz.AttemptPolicy == AttemptPolicy.Multiple ? "Multiple attempts allowed" : "One attempt only")
                 </span>
                 <span class="qv-header__meta-item">
-                    <i class="fa fa-info-circle"></i> @Quiz.Status.ToString()
+                    <i class="fa fa-list-ol"></i> Your attempts: @_attempts.Count
                 </span>
+                @if (Quiz.PublishedAt.HasValue)
+                {
+                    <span class="qv-header__meta-item">
+                        <i class="fa fa-calendar-check-o"></i> Available since: @ToLocalDisplay(Quiz.PublishedAt.Value, "MMM dd, yyyy")
+                    </span>
+                }
+                @if (Quiz.ClosedAt.HasValue)
+                {
+                    <span class="qv-header__meta-item" style="color:#856404;">
+                        <i class="fa fa-lock"></i> Closed: @ToLocalDisplay(Quiz.ClosedAt.Value, "MMM dd, yyyy HH:mm")
+                    </span>
+                }
             </div>
         </div>
 

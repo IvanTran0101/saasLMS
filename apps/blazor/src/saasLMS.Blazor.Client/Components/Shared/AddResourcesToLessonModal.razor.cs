@@ -123,6 +123,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private IBrowserFile?              _quizCsvFile;
     private string?                    _quizCsvFileError;
+    private string                     _quizTitle            = string.Empty;
+    private string?                    _quizTitleError;
+    private int?                       _quizTimeLimitMinutes;
+    private string?                    _quizTimeLimitError;
     private bool                       _isQuizPreviewVisible;
     private QuizDto?                   _uploadedQuizDto;
     private List<QuizQuestionPreview>? _quizPreviewQuestions;
@@ -209,7 +213,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _activeTab               = MaterialTabType.Assignment;
         _resourceTitle           = assignment.Title;
         _assignmentDescription   = assignment.Description;
-        _assignmentDeadline      = assignment.Deadline;
+        // Convert UTC → local so the datetime-local input displays the correct local time
+        _assignmentDeadline      = assignment.Deadline.HasValue
+            ? DateTime.SpecifyKind(assignment.Deadline.Value, DateTimeKind.Utc).ToLocalTime()
+            : (DateTime?)null;
         _assignmentMaxScore      = assignment.MaxScore;
 
         _isVisible = true;
@@ -241,11 +248,15 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _assignmentDeadlineError = null;
         _assignmentMaxScoreError = null;
 
-        _quizCsvFile          = null;
-        _quizCsvFileError     = null;
-        _isQuizPreviewVisible = false;
-        _uploadedQuizDto      = null;
-        _quizPreviewQuestions = null;
+        _quizCsvFile           = null;
+        _quizCsvFileError      = null;
+        _quizTitle             = string.Empty;
+        _quizTitleError        = null;
+        _quizTimeLimitMinutes  = null;
+        _quizTimeLimitError    = null;
+        _isQuizPreviewVisible  = false;
+        _uploadedQuizDto       = null;
+        _quizPreviewQuestions  = null;
 
         _isEditMode          = false;
         _editingMaterialId   = Guid.Empty;
@@ -470,7 +481,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         {
             Title       = _resourceTitle.Trim(),
             Description = string.IsNullOrWhiteSpace(_assignmentDescription) ? null : _assignmentDescription.Trim(),
-            Deadline    = _assignmentDeadline,
+            // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
+            Deadline    = _assignmentDeadline.HasValue
+                ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
+                : (DateTime?)null,
             MaxScore    = _assignmentMaxScore
         };
 
@@ -604,7 +618,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
             Description = string.IsNullOrWhiteSpace(_assignmentDescription)
                 ? null
                 : _assignmentDescription.Trim(),
-            Deadline    = _assignmentDeadline,
+            // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
+            Deadline    = _assignmentDeadline.HasValue
+                ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
+                : (DateTime?)null,
             MaxScore    = _assignmentMaxScore
         };
 
@@ -627,11 +644,19 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task UploadQuizCsvAsync()
     {
-        _quizCsvFileError = null;
+        _quizCsvFileError   = null;
+        _quizTitleError     = null;
+        _quizTimeLimitError = null;
 
         if (_quizCsvFile is null)
         {
             _quizCsvFileError = "Please select a CSV file.";
+            return;
+        }
+
+        if (_quizTimeLimitMinutes.HasValue && _quizTimeLimitMinutes.Value <= 0)
+        {
+            _quizTimeLimitError = "Time limit must be a positive number.";
             return;
         }
 
@@ -643,7 +668,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
                        ?? Configuration["RemoteServices:Default:BaseUrl"]!)
                       .TrimEnd('/');
 
-        var title = System.IO.Path.GetFileNameWithoutExtension(_quizCsvFile.Name);
+        // Use the instructor-provided title; fall back to the CSV filename
+        var title = string.IsNullOrWhiteSpace(_quizTitle)
+            ? System.IO.Path.GetFileNameWithoutExtension(_quizCsvFile.Name)
+            : _quizTitle.Trim();
         if (string.IsNullOrWhiteSpace(title)) title = "Quiz";
 
         using var form = new MultipartFormDataContent();
@@ -652,6 +680,8 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         form.Add(new StringContent(title),                "Title");
         form.Add(new StringContent("100"),                "MaxScore");
         form.Add(new StringContent("0"),                  "AttemptPolicy"); // OneTime
+        if (_quizTimeLimitMinutes.HasValue)
+            form.Add(new StringContent(_quizTimeLimitMinutes.Value.ToString()), "TimeLimitMinutes");
 
         await using var stream = _quizCsvFile.OpenReadStream(MaxFileSizeBytes);
         var fileContent = new StreamContent(stream);
@@ -682,12 +712,12 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     /// <summary>Cancel từ preview → quay lại modal chính để upload CSV khác.</summary>
     private void CloseQuizPreview()
     {
-        _isQuizPreviewVisible = false;
-        _quizCsvFile          = null;
-        _quizCsvFileError     = null;
-        _uploadedQuizDto      = null;
-        _quizPreviewQuestions = null;
-        _isVisible            = true;
+        _isQuizPreviewVisible  = false;
+        _quizCsvFile           = null;
+        _quizCsvFileError      = null;
+        _uploadedQuizDto       = null;
+        _quizPreviewQuestions  = null;
+        _isVisible             = true;
     }
 
     /// <summary>Confirm từ preview → đóng hoàn toàn, bắn callback.</summary>
