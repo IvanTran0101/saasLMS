@@ -131,6 +131,9 @@ public class saasLMSBlazorClientModule : AbpModule
             builder.Configuration.Bind("AuthServer", options.ProviderOptions);
             options.UserOptions.NameClaim = OpenIddictConstants.Claims.Name;
             options.UserOptions.RoleClaim = OpenIddictConstants.Claims.Role;
+
+            // After logout completes, redirect to login instead of the default "logged-out" page
+            options.AuthenticationPaths.LogOutSucceededPath = "authentication/login";
             options.ProviderOptions.DefaultScopes.Add("roles");
             options.ProviderOptions.DefaultScopes.Add("email");
             options.ProviderOptions.DefaultScopes.Add("phone");

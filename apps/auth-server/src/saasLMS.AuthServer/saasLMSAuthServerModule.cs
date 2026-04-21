@@ -272,6 +272,14 @@ public class saasLMSAuthServerModule : AbpModule
                     bundle.AddFiles("/global-styles.css");
                 }
             );
+
+            options.ScriptBundles.Configure(
+                LeptonXThemeBundles.Scripts.Global,
+                bundle =>
+                {
+                    bundle.AddFiles("/global-scripts.js");
+                }
+            );
         });
     }
 
