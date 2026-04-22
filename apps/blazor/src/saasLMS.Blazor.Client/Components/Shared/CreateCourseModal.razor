@@ -41,9 +41,9 @@
                 }
             </div>
 
-            <div class="ccm-field mt-3">
+            <div class="ccm-field mt-3 @(_descriptionError != null ? "ccm-field--error" : "")">
                 <label class="ccm-field__label" for="ccm-desc-input">
-                    Description <span class="ccm-field__optional">(optional)</span>
+                    Description <span class="ccm-field__required">*</span>
                 </label>
                 <textarea id="ccm-desc-input"
                           class="ccm-field__input ccm-field__textarea"
@@ -54,6 +54,12 @@
                           maxlength="2000"
                           disabled="@_isSaving"></textarea>
                 <span class="ccm-field__char-count">@_description.Length / 2000</span>
+                @if (_descriptionError != null)
+                {
+                    <span class="ccm-field__error-msg">
+                        <i class="fa fa-exclamation-circle me-1"></i>@_descriptionError
+                    </span>
+                }
             </div>
 
         </div>
@@ -183,7 +189,8 @@
     }
 
     .ccm-field__textarea { min-height: 100px; }
-    .ccm-field--error .ccm-field__input { border-color: #e53e3e; }
+    .ccm-field--error .ccm-field__input,
+    .ccm-field--error .ccm-field__textarea { border-color: #e53e3e; }
 
     .ccm-field__error-msg { font-size: 0.8rem; color: #e53e3e; margin-top: 0.3rem; }
 
