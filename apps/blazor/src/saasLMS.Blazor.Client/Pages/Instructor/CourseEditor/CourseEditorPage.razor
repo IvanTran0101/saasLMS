@@ -196,7 +196,9 @@ else
                  draggable="@(!_editingChapterId.HasValue && !_isReordering ? "true" : "false")"
                  @ondragstart="() => OnChapterDragStart(chapter.Id)"
                  @ondragover:preventDefault
-                 @ondragover="() => OnChapterDragOver(chapter.Id)"
+                 @ondragenter:preventDefault
+                 @ondragenter="() => OnChapterDragEnter(chapter.Id)"
+                 @ondrop:preventDefault
                  @ondrop="() => OnChapterDropAsync(chapter.Id)"
                  @ondragend="OnChapterDragEnd">
                 <div class="cep-chapter__header">

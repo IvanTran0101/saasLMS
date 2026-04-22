@@ -747,51 +747,52 @@ public partial class CourseEditorPage : AbpComponentBase
 
     private void OnChapterDragStart(Guid chapterId)
     {
-        // Block drag when inline-editing or any save is in progress
         if (_editingChapterId.HasValue || _isReordering) return;
         _draggingChapterId = chapterId;
+        _dragOverChapterId = null;
     }
 
-    private void OnChapterDragOver(Guid chapterId)
+    // ondragenter fires once when the cursor enters a new element — much cheaper than ondragover
+    private void OnChapterDragEnter(Guid chapterId)
     {
         if (_draggingChapterId == null || _draggingChapterId == chapterId) return;
+        if (_dragOverChapterId == chapterId) return; // no state change → no re-render
         _dragOverChapterId = chapterId;
     }
 
     private async Task OnChapterDropAsync(Guid targetChapterId)
     {
-        if (_draggingChapterId == null || _draggingChapterId == targetChapterId)
-        {
-            _draggingChapterId = null;
-            _dragOverChapterId = null;
+        var sourceId = _draggingChapterId;
+
+        // Always clear drag state first
+        _draggingChapterId = null;
+        _dragOverChapterId = null;
+
+        if (sourceId == null || sourceId == targetChapterId)
             return;
-        }
 
         var chapters   = _course!.Chapters.OrderBy(c => c.OrderNo).ToList();
-        var draggedIdx = chapters.FindIndex(c => c.Id == _draggingChapterId.Value);
+        var draggedIdx = chapters.FindIndex(c => c.Id == sourceId.Value);
         var targetIdx  = chapters.FindIndex(c => c.Id == targetChapterId);
 
         if (draggedIdx < 0 || targetIdx < 0)
-        {
-            _draggingChapterId = null;
-            _dragOverChapterId = null;
             return;
-        }
 
-        // Reorder local list optimistically
+        // Move dragged item to target position
         var dragged = chapters[draggedIdx];
         chapters.RemoveAt(draggedIdx);
         chapters.Insert(targetIdx, dragged);
 
-        // Reassign OrderNo in local state so the UI re-renders immediately
+        // Patch OrderNo on the DTO objects so the UI re-renders with the new order immediately
         for (int i = 0; i < chapters.Count; i++)
             chapters[i].OrderNo = i + 1;
 
-        _draggingChapterId = null;
-        _dragOverChapterId = null;
-
-        // Persist to server
         _isReordering = true;
+
+        // Yield to the render loop so the optimistic UI update is painted before the network call
+        StateHasChanged();
+        await Task.Yield();
+
         try
         {
             await CourseCatalogAppService.ReorderChaptersAsync(
@@ -804,8 +805,7 @@ public partial class CourseEditorPage : AbpComponentBase
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
-            // Refresh from server on failure to restore correct order
-            await LoadCourseAsync();
+            await LoadCourseAsync(); // restore server order on failure
         }
         finally
         {
