@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -712,7 +713,14 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
         var response = await httpClient.PostAsync(
             $"{baseUrl}/api/assessment/quiz/upload-csv", form);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _quizCsvFileError = ExtractAbpErrorMessage(errorBody)
+                ?? "Failed to upload quiz CSV. Please verify the file format and try again.";
+            return;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         _uploadedQuizDto = JsonSerializer.Deserialize<QuizDto>(
@@ -747,5 +755,31 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         ResetForm();
         if (dto != null)
             await OnQuizAdded.InvokeAsync(dto);
+    }
+
+    /// <summary>
+    /// Parse ABP HTTP error response body and extract a user-friendly message.
+    /// ABP format: { "error": { "code": "...", "message": "...", "details": "..." } }
+    /// </summary>
+    private static string? ExtractAbpErrorMessage(string responseBody)
+    {
+        try
+        {
+            var node = JsonNode.Parse(responseBody);
+            var error = node?["error"];
+            if (error is null) return null;
+
+            // "details" often contains the WithData("Reason", ...) info when localised
+            var details = error["details"]?.GetValue<string>();
+            if (!string.IsNullOrWhiteSpace(details))
+                return details;
+
+            var message = error["message"]?.GetValue<string>();
+            if (!string.IsNullOrWhiteSpace(message)
+                && !message.Contains(':')) // skip raw error codes like "AssessmentService:QuizCsvInvalidFormat"
+                return message;
+        }
+        catch { /* ignore parse errors */ }
+        return null;
     }
 }

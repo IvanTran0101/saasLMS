@@ -33,6 +33,7 @@ public partial class CreateCourseModal : AbpComponentBase
     private string _title       = string.Empty;
     private string _description = string.Empty;
     private string? _titleError;
+    private string? _descriptionError;
 
     // ── Public API ────────────────────────────────────────────────────────────────
 
@@ -48,31 +49,39 @@ public partial class CreateCourseModal : AbpComponentBase
 
     private void ResetForm()
     {
-        _title       = string.Empty;
-        _description = string.Empty;
-        _titleError  = null;
-        _isSaving    = false;
+        _title            = string.Empty;
+        _description      = string.Empty;
+        _titleError       = null;
+        _descriptionError = null;
+        _isSaving         = false;
     }
 
     private void Close() => _isVisible = false;
 
     private bool ValidateForm()
     {
-        _titleError = null;
+        _titleError       = null;
+        _descriptionError = null;
+        var isValid       = true;
 
         if (string.IsNullOrWhiteSpace(_title))
         {
             _titleError = "Course title is required.";
-            return false;
+            isValid     = false;
         }
-
-        if (_title.Trim().Length < 3)
+        else if (_title.Trim().Length < 3)
         {
             _titleError = "Course title must be at least 3 characters.";
-            return false;
+            isValid     = false;
         }
 
-        return true;
+        if (string.IsNullOrWhiteSpace(_description))
+        {
+            _descriptionError = "Course description is required. A description is needed before publishing.";
+            isValid           = false;
+        }
+
+        return isValid;
     }
 
     private async Task SaveDraftAsync()
@@ -88,8 +97,8 @@ public partial class CreateCourseModal : AbpComponentBase
 
             var input = new CreateCourseInput
             {
-                Title        = _title.Trim(),
-                Description  = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim()
+                Title       = _title.Trim(),
+                Description = _description.Trim()
             };
 
             var course = await CourseCatalogAppService.CreateCourseAsync(input);

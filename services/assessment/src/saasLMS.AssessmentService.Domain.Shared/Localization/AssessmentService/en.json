@@ -5,6 +5,7 @@
     "Assessment:FileTooLarge": "File is too large.",
     "Assessment:FileTypeNotAllowed": "File type is not allowed.",
     "Assessment:MimeTypeNotAllowed": "File MIME type is not allowed.",
-    "Assessment:SubmissionFileNotFound": "Submission file was not found."
+    "Assessment:SubmissionFileNotFound": "Submission file was not found.",
+    "QuizCsvInvalidFormat": "Invalid CSV format: {Reason}"
   }
 }
