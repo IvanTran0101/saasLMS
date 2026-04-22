@@ -204,13 +204,6 @@
                             Content <span class="arm-field__required">*</span>
                         </label>
                         <div class="arm-editor">
-                            <div class="arm-editor__toolbar">
-                                <button type="button" class="arm-editor__tool" title="Bold"><strong>B</strong></button>
-                                <button type="button" class="arm-editor__tool" title="Italic"><em>I</em></button>
-                                <button type="button" class="arm-editor__tool" title="List"><i class="fa fa-list-ul"></i></button>
-                                <button type="button" class="arm-editor__tool" title="Link"><i class="fa fa-link"></i></button>
-                                <button type="button" class="arm-editor__tool" title="Quote"><i class="fa fa-quote-right"></i></button>
-                            </div>
                             <textarea id="arm-text-content"
                                       class="arm-editor__content"
                                       placeholder="Start typing your course notes here..."
@@ -753,24 +746,6 @@
     .arm-preview-placeholder__sub { font-size: 0.78rem; color: #9497a9; margin: 0.15rem 0 0; }
 
     .arm-editor { border: 1.5px solid #dedee5; border-radius: 12px; overflow: hidden; background: #f8fafc; }
-    .arm-editor__toolbar {
-        display: flex;
-        gap: 0.1rem;
-        padding: 0.4rem 0.5rem;
-        background: #f1f5f9;
-        border-bottom: 1px solid #dedee5;
-    }
-    .arm-editor__tool {
-        background: none;
-        border: none;
-        padding: 0.25rem 0.45rem;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        color: #4a5568;
-        cursor: pointer;
-        transition: background 0.12s;
-    }
-    .arm-editor__tool:hover { background: #dedee5; }
     .arm-editor__content {
         width: 100%;
         border: none;

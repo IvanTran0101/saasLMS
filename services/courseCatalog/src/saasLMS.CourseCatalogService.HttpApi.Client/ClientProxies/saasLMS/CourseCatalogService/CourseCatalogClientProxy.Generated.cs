@@ -178,6 +178,14 @@ public partial class CourseCatalogClientProxy : ClientProxyBase<ICourseCatalogAp
         });
     }
 
+    public virtual async Task ReorderChaptersAsync(ReorderChaptersInput input)
+    {
+        await RequestAsync(nameof(ReorderChaptersAsync), new ClientProxyRequestTypeValue
+        {
+            { typeof(ReorderChaptersInput), input }
+        });
+    }
+
     public virtual async Task<ChapterDto> GetChapterAsync(Guid courseId, Guid chapterId)
     {
         return await RequestAsync<ChapterDto>(nameof(GetChapterAsync), new ClientProxyRequestTypeValue

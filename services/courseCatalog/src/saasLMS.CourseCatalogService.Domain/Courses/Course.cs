@@ -136,12 +136,40 @@ public class Course : FullAuditedAggregateRoot<Guid>
         AddLocalEvent(new ChapterUpdatedDomainEvent(chapter, Id));
     }
 
+    /// <summary>
+    /// Reorders chapters according to the supplied ordered list of chapter IDs.
+    /// All IDs must belong to this course; IDs not present keep their original position.
+    /// </summary>
+    public void ReorderChapters(IList<Guid> orderedChapterIds)
+    {
+        if (orderedChapterIds == null || orderedChapterIds.Count == 0)
+            return;
+
+        // Build a position map: chapterId → desired index (0-based)
+        var positionMap = orderedChapterIds
+            .Select((id, index) => (id, index))
+            .ToDictionary(x => x.id, x => x.index);
+
+        _chapters.Sort((a, b) =>
+        {
+            var aHas = positionMap.TryGetValue(a.Id, out var aPos);
+            var bHas = positionMap.TryGetValue(b.Id, out var bPos);
+            if (aHas && bHas) return aPos.CompareTo(bPos);
+            if (aHas) return -1;
+            if (bHas) return 1;
+            return a.OrderNo.CompareTo(b.OrderNo);
+        });
+
+        NormalizeChaptersOrder();
+        AddLocalEvent(new CourseUpdatedDomainEvent(this));
+    }
+
     public void RemoveChapter(Guid chapterId)
     {
         var chapter = _chapters.FirstOrDefault(x => x.Id == chapterId);
         if (chapter == null)
         {
-            throw new BusinessException("CourseCatalog:ChapterNotFound");        
+            throw new BusinessException("CourseCatalog:ChapterNotFound");
         }
         
         var deletedEvent = new ChapterDeletedDomainEvent(
