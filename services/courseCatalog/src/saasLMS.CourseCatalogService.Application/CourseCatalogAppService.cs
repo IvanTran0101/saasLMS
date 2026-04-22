@@ -481,8 +481,27 @@ public class CourseCatalogAppService : CourseCatalogServiceAppService, ICourseCa
         {
             throw new BusinessException("CourseCatalog:CourseNotFound");
         }
-        
+
         await _courseManager.RemoveChapterAsync(course, input.ChapterId);
+        await _courseRepository.UpdateAsync(course, autoSave: true);
+    }
+
+    [Authorize(CourseCatalogServicePermissions.Chapters.Update)]
+    public async Task ReorderChaptersAsync(ReorderChaptersInput input)
+    {
+        Check.NotNull(input, nameof(input));
+        var tenantId = CurrentTenant.Id;
+        if (!tenantId.HasValue)
+        {
+            throw new BusinessException("CourseCatalog:TenantNotFound");
+        }
+        await _courseAccessChecker.CheckCanManageCourseAsync(input.CourseId);
+        var course = await _courseRepository.FindWithDetailsAsync(input.CourseId, tenantId.Value);
+        if (course == null)
+        {
+            throw new BusinessException("CourseCatalog:CourseNotFound");
+        }
+        await _courseManager.ReorderChaptersAsync(course, input.OrderedChapterIds);
         await _courseRepository.UpdateAsync(course, autoSave: true);
     }
 
