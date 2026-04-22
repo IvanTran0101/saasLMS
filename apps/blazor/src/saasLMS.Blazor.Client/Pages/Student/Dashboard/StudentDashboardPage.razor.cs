@@ -72,6 +72,18 @@ public partial class StudentDashboardPage : AbpComponentBase
     private int _totalEnrolled;
     private int _completedCount;
 
+    // View All expand
+    private bool _showAllEnrolled;
+    private const int EnrolledPreviewCount = 6;
+
+    private IReadOnlyList<CourseListItemDto> VisibleEnrolledCourses =>
+        (!string.IsNullOrEmpty(_searchText) || _showAllEnrolled)
+            ? _filteredEnrolledCourses
+            : _filteredEnrolledCourses.Take(EnrolledPreviewCount).ToList();
+
+    private bool HasMoreEnrolled =>
+        string.IsNullOrEmpty(_searchText) && _filteredEnrolledCourses.Count > EnrolledPreviewCount;
+
     // Search
     private string _searchText = string.Empty;
     private string SearchText
@@ -80,6 +92,7 @@ public partial class StudentDashboardPage : AbpComponentBase
         set
         {
             _searchText = value;
+            _showAllEnrolled = false; // reset khi search thay đổi
             ApplySearch();
         }
     }

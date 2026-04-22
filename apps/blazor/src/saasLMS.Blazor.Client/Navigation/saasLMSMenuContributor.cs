@@ -55,8 +55,8 @@ public class saasLMSMenuContributor : IMenuContributor
             order: 0
         ));
 
-        // Hide Home menu item from Student and Instructor (they are redirected to their own dashboard)
-        if (currentUser.IsInRole(LmsRoles.Student) || currentUser.IsInRole(LmsRoles.Instructor))
+        // Hide Home menu item from Student, Instructor and Admin (each has their own dashboard)
+        if (currentUser.IsInRole(LmsRoles.Student) || currentUser.IsInRole(LmsRoles.Instructor) || currentUser.IsInRole(LmsRoles.Admin))
         {
             var homeItem = context.Menu.Items.FirstOrDefault(i => i.Name == saasLMSMenus.Home);
             if (homeItem != null)
@@ -156,6 +156,14 @@ public class saasLMSMenuContributor : IMenuContributor
         */
 
         context.Menu.SetSubItemOrder(ProductServiceMenus.ProductManagement, 1);
+
+        // Hide Product Management from Admin
+        if (currentUser.IsInRole(LmsRoles.Admin))
+        {
+            var productItem = context.Menu.Items.FirstOrDefault(i => i.Name == ProductServiceMenus.ProductManagement);
+            if (productItem != null)
+                context.Menu.Items.Remove(productItem);
+        }
 
         //Administration
         var administration = context.Menu.GetAdministration();
