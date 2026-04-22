@@ -160,7 +160,7 @@ public class saasLMSMenuContributor : IMenuContributor
         // Hide Product Management from Admin
         if (currentUser.IsInRole(LmsRoles.Admin))
         {
-            var productItem = context.Menu.Items.FirstOrDefault(i => i.Name == ProductServiceMenus.ProductManagement);
+            var productItem = context.Menu.Items.FirstOrDefault(i => i.Name == ProductServiceMenus.Prefix);
             if (productItem != null)
                 context.Menu.Items.Remove(productItem);
         }

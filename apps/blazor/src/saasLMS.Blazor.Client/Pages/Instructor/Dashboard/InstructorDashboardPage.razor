@@ -409,6 +409,22 @@
                 <span class="idb-count-badge ms-2">@_courses.Count</span>
             }
         </h5>
+        @if (!_isLoadingCourses && HasMoreCourses)
+        {
+            <button class="idb-viewall-btn" @onclick="() => _showAllCourses = !_showAllCourses">
+                @if (_showAllCourses)
+                {
+                    <i class="fa fa-chevron-up me-1"></i>
+                    @:Show Less
+                }
+                else
+                {
+                    <i class="fa fa-chevron-down me-1"></i>
+                    @:View All
+                    <span class="idb-viewall-btn__count">@_courses.Count total</span>
+                }
+            </button>
+        }
     </div>
 
     <div class="row g-3">
@@ -451,24 +467,5 @@
 
     </div>
 
-    @* View All / Show Less *@
-    @if (!_isLoadingCourses && HasMoreCourses)
-    {
-        <div class="idb-viewall-row mt-3">
-            <button class="idb-viewall-btn" @onclick="() => _showAllCourses = !_showAllCourses">
-                @if (_showAllCourses)
-                {
-                    <i class="fa fa-chevron-up me-1"></i>
-                    @:Show Less
-                }
-                else
-                {
-                    <i class="fa fa-chevron-down me-1"></i>
-                    @:View All
-                    <span class="idb-viewall-btn__count">@_courses.Count total</span>
-                }
-            </button>
-        </div>
-    }
 
 </div>

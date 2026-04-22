@@ -37,7 +37,7 @@ public partial class InstructorDashboardPage : AbpComponentBase
     private List<CourseListItemDto> _courses = new();
 
     private bool _showAllCourses;
-    private const int CoursesPreviewCount = 6;
+    private const int CoursesPreviewCount = 5;
 
     private IReadOnlyList<CourseListItemDto> VisibleCourses =>
         (!string.IsNullOrEmpty(_searchText) || _showAllCourses)
