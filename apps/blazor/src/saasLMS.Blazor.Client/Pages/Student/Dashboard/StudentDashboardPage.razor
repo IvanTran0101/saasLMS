@@ -765,10 +765,26 @@
     <div class="sdb-section-header">
         <h5 class="sdb-section-header__title">
             <i class="fa fa-book-open me-2 text-muted"></i>My Learning
+            @if (!_isLoadingEnrollments)
+            {
+                <span class="sdb-section-header__badge ms-2">@_filteredEnrolledCourses.Count</span>
+            }
         </h5>
-        @if (!_isLoadingEnrollments)
+        @if (!_isLoadingEnrollments && !_isLoadingProgress && HasMoreEnrolled)
         {
-            <span class="sdb-section-header__badge">@_filteredEnrolledCourses.Count</span>
+            <button class="sdb-viewall-btn" @onclick="() => _showAllEnrolled = !_showAllEnrolled">
+                @if (_showAllEnrolled)
+                {
+                    <i class="fa fa-chevron-up me-1"></i>
+                    @:Show Less
+                }
+                else
+                {
+                    <i class="fa fa-chevron-down me-1"></i>
+                    @:View All
+                    <span class="sdb-viewall-btn__count">@_filteredEnrolledCourses.Count total</span>
+                }
+            </button>
         }
     </div>
 
@@ -821,29 +837,7 @@
         }
     </div>
 
-    @* View All / Show Less *@
-    @if (!_isLoadingEnrollments && !_isLoadingProgress && HasMoreEnrolled)
-    {
-        <div class="sdb-viewall-row mb-4">
-            <button class="sdb-viewall-btn" @onclick="() => _showAllEnrolled = !_showAllEnrolled">
-                @if (_showAllEnrolled)
-                {
-                    <i class="fa fa-chevron-up me-1"></i>
-                    @:Show Less
-                }
-                else
-                {
-                    <i class="fa fa-chevron-down me-1"></i>
-                    @:View All
-                    <span class="sdb-viewall-btn__count">@_filteredEnrolledCourses.Count total</span>
-                }
-            </button>
-        </div>
-    }
-    else
-    {
-        <div class="mb-4"></div>
-    }
+    <div class="mb-4"></div>
 
     @* ── Browse Courses CTA ── *@
     @if (string.IsNullOrEmpty(SearchText))
