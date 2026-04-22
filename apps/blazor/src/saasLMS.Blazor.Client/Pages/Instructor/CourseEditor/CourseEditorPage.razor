@@ -100,17 +100,20 @@ else
         </div>
 
         <div class="cep-course-header__actions">
-            <button class="cep-btn cep-btn--ghost" @onclick="SaveDraftAsync" disabled="@_isSavingDraft">
-                @if (_isSavingDraft)
-                {
-                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                }
-                else
-                {
-                    <i class="fa fa-save me-1"></i>
-                }
-                Save Draft
-            </button>
+            @if (_course.Status == CourseStatus.Draft)
+            {
+                <button class="cep-btn cep-btn--ghost" @onclick="SaveDraftAsync" disabled="@_isSavingDraft">
+                    @if (_isSavingDraft)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    else
+                    {
+                        <i class="fa fa-save me-1"></i>
+                    }
+                    Save Draft
+                </button>
+            }
 
             @if (_course.Status == CourseStatus.Published)
             {
@@ -175,12 +178,31 @@ else
     @* ── Chapter List ── *@
     <div class="cep-structure">
 
+        @if (_isReordering)
+        {
+            <div class="cep-reorder-indicator">
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                Saving new chapter order...
+            </div>
+        }
+
         @foreach (var chapter in _course.Chapters.OrderBy(c => c.OrderNo))
         {
-            var isCollapsed = IsChapterCollapsed(chapter.Id);
+            var isCollapsed   = IsChapterCollapsed(chapter.Id);
+            var isDragging    = _draggingChapterId == chapter.Id;
+            var isDragTarget  = _dragOverChapterId == chapter.Id && _draggingChapterId != chapter.Id;
 
-            <div class="cep-chapter">
+            <div class="cep-chapter @(isDragging ? "cep-chapter--dragging" : "") @(isDragTarget ? "cep-chapter--drag-over" : "")"
+                 draggable="@(!_editingChapterId.HasValue && !_isReordering ? "true" : "false")"
+                 @ondragstart="() => OnChapterDragStart(chapter.Id)"
+                 @ondragover:preventDefault
+                 @ondragover="() => OnChapterDragOver(chapter.Id)"
+                 @ondrop="() => OnChapterDropAsync(chapter.Id)"
+                 @ondragend="OnChapterDragEnd">
                 <div class="cep-chapter__header">
+                    <span class="cep-chapter__drag-handle" title="Drag to reorder">
+                        <i class="fa fa-grip-vertical"></i>
+                    </span>
                     <button class="cep-chapter__toggle" @onclick="() => ToggleChapter(chapter.Id)">
                         <i class="fa @(isCollapsed ? "fa-chevron-right" : "fa-chevron-down")"></i>
                     </button>
@@ -803,4 +825,38 @@ else
     .cep-field { display: flex; flex-direction: column; }
     .cep-field--error .cep-course-info-edit__title-input { border-color: #e53e3e; }
     .cep-field__error-msg { font-size: 0.78rem; color: #e53e3e; margin-top: 0.25rem; }
+
+    /* ── Drag-and-drop ── */
+    .cep-chapter__drag-handle {
+        color: #c9ccd6;
+        font-size: 0.8rem;
+        cursor: grab;
+        padding: 0 0.25rem;
+        flex-shrink: 0;
+        transition: color 0.15s;
+    }
+    .cep-chapter__drag-handle:active { cursor: grabbing; }
+    .cep-chapter:hover .cep-chapter__drag-handle { color: #9497a9; }
+
+    .cep-chapter--dragging {
+        opacity: 0.45;
+        box-shadow: none;
+    }
+    .cep-chapter--drag-over {
+        outline: 2px dashed #7132f5;
+        outline-offset: 2px;
+        background: rgba(133,91,251,0.04);
+    }
+
+    .cep-reorder-indicator {
+        display: flex;
+        align-items: center;
+        font-size: 0.82rem;
+        color: #7132f5;
+        font-weight: 600;
+        padding: 0.4rem 0.6rem;
+        background: rgba(133,91,251,0.07);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
 </style>

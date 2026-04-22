@@ -758,7 +758,7 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     }
 
     /// <summary>
-    /// Parse ABP HTTP error response body and extract a user-friendly message.
+    /// Parse ABP HTTP error response body and extract the error code.
     /// ABP format: { "error": { "code": "...", "message": "...", "details": "..." } }
     /// </summary>
     private static string? ExtractAbpErrorMessage(string responseBody)
@@ -769,15 +769,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
             var error = node?["error"];
             if (error is null) return null;
 
-            // "details" often contains the WithData("Reason", ...) info when localised
-            var details = error["details"]?.GetValue<string>();
-            if (!string.IsNullOrWhiteSpace(details))
-                return details;
-
-            var message = error["message"]?.GetValue<string>();
-            if (!string.IsNullOrWhiteSpace(message)
-                && !message.Contains(':')) // skip raw error codes like "AssessmentService:QuizCsvInvalidFormat"
-                return message;
+            var code = error["code"]?.GetValue<string>();
+            if (!string.IsNullOrWhiteSpace(code))
+                return code;
         }
         catch { /* ignore parse errors */ }
         return null;

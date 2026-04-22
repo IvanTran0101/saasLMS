@@ -92,6 +92,12 @@ public partial class CourseEditorPage : AbpComponentBase
     /// <summary>Set ChapterId đang collapse. Mặc định tất cả mở.</summary>
     private readonly HashSet<Guid> _collapsedChapters = new();
 
+    // ── Drag-and-Drop: Chapter Reorder ────────────────────────────────────────────
+
+    private Guid? _draggingChapterId;
+    private Guid? _dragOverChapterId;
+    private bool  _isReordering;
+
     // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
     protected override async Task OnInitializedAsync()
@@ -736,4 +742,80 @@ public partial class CourseEditorPage : AbpComponentBase
     /// <summary>Course đang Hidden → cho phép Reopen (gọi lại Published).</summary>
     private bool CanReopen =>
         _course is not null && _course.Status == CourseStatus.Hidden;
+
+    // ── Drag-and-Drop Handlers ────────────────────────────────────────────────────
+
+    private void OnChapterDragStart(Guid chapterId)
+    {
+        // Block drag when inline-editing or any save is in progress
+        if (_editingChapterId.HasValue || _isReordering) return;
+        _draggingChapterId = chapterId;
+    }
+
+    private void OnChapterDragOver(Guid chapterId)
+    {
+        if (_draggingChapterId == null || _draggingChapterId == chapterId) return;
+        _dragOverChapterId = chapterId;
+    }
+
+    private async Task OnChapterDropAsync(Guid targetChapterId)
+    {
+        if (_draggingChapterId == null || _draggingChapterId == targetChapterId)
+        {
+            _draggingChapterId = null;
+            _dragOverChapterId = null;
+            return;
+        }
+
+        var chapters   = _course!.Chapters.OrderBy(c => c.OrderNo).ToList();
+        var draggedIdx = chapters.FindIndex(c => c.Id == _draggingChapterId.Value);
+        var targetIdx  = chapters.FindIndex(c => c.Id == targetChapterId);
+
+        if (draggedIdx < 0 || targetIdx < 0)
+        {
+            _draggingChapterId = null;
+            _dragOverChapterId = null;
+            return;
+        }
+
+        // Reorder local list optimistically
+        var dragged = chapters[draggedIdx];
+        chapters.RemoveAt(draggedIdx);
+        chapters.Insert(targetIdx, dragged);
+
+        // Reassign OrderNo in local state so the UI re-renders immediately
+        for (int i = 0; i < chapters.Count; i++)
+            chapters[i].OrderNo = i + 1;
+
+        _draggingChapterId = null;
+        _dragOverChapterId = null;
+
+        // Persist to server
+        _isReordering = true;
+        try
+        {
+            await CourseCatalogAppService.ReorderChaptersAsync(
+                new saasLMS.CourseCatalogService.Chapters.Dtos.Inputs.ReorderChaptersInput
+                {
+                    CourseId          = _course.CourseId,
+                    OrderedChapterIds = chapters.Select(c => c.Id).ToList()
+                });
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+            // Refresh from server on failure to restore correct order
+            await LoadCourseAsync();
+        }
+        finally
+        {
+            _isReordering = false;
+        }
+    }
+
+    private void OnChapterDragEnd()
+    {
+        _draggingChapterId = null;
+        _dragOverChapterId = null;
+    }
 }
