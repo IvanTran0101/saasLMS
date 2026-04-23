@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +55,14 @@ public class saasLMSMenuContributor : IMenuContributor
             order: 0
         ));
 
+        // Hide Home menu item from Student, Instructor and Admin (each has their own dashboard)
+        if (currentUser.IsInRole(LmsRoles.Student) || currentUser.IsInRole(LmsRoles.Instructor) || currentUser.IsInRole(LmsRoles.Admin))
+        {
+            var homeItem = context.Menu.Items.FirstOrDefault(i => i.Name == saasLMSMenus.Home);
+            if (homeItem != null)
+                context.Menu.Items.Remove(homeItem);
+        }
+
         // ── Role-based LMS Navigation ──────────────────────────────────────────
         if (currentUser.IsAuthenticated)
         {
@@ -98,11 +107,19 @@ public class saasLMSMenuContributor : IMenuContributor
                 ));
 
                 context.Menu.AddItem(new ApplicationMenuItem(
+                    saasLMSMenus.StudentCourses,
+                    l["Menu:StudentCourses"],
+                    "/student/courses",
+                    icon: "fa fa-th-large",
+                    order: 2
+                ));
+
+                context.Menu.AddItem(new ApplicationMenuItem(
                     saasLMSMenus.StudentReport,
                     l["Menu:StudentReport"],
                     "/student/report",
                     icon: "fa fa-chart-line",
-                    order: 2
+                    order: 3
                 ));
             }
 
@@ -140,9 +157,25 @@ public class saasLMSMenuContributor : IMenuContributor
 
         context.Menu.SetSubItemOrder(ProductServiceMenus.ProductManagement, 1);
 
+        // Hide Product Management from Admin
+        if (currentUser.IsInRole(LmsRoles.Admin))
+        {
+            var productItem = context.Menu.Items.FirstOrDefault(i => i.Name == ProductServiceMenus.Prefix);
+            if (productItem != null)
+                context.Menu.Items.Remove(productItem);
+        }
+
         //Administration
         var administration = context.Menu.GetAdministration();
         administration.Order = 6;
+
+        // Hide Identity management from non-admin users (permission granted only for name lookup)
+        if (!currentUser.IsInRole(LmsRoles.Admin))
+        {
+            var identityItem = administration.Items.FirstOrDefault(i => i.Name == IdentityProMenus.GroupName);
+            if (identityItem != null)
+                administration.Items.Remove(identityItem);
+        }
 
         //Administration->Identity
         administration.SetSubItemOrder(IdentityProMenus.GroupName, 1);

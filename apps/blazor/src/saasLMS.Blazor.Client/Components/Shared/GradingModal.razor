@@ -55,7 +55,7 @@
                                 </div>
                                 <div class="gm-student-info">
                                     <span class="gm-student-info__name">
-                                        Student <span class="gm-student-info__id">@sub.StudentId.ToString()[..8]…</span>
+                                        @GetStudentName(sub.StudentId)
                                     </span>
                                     <span class="gm-student-info__file">
                                         @if (!string.IsNullOrEmpty(sub.FileName))
@@ -149,7 +149,7 @@
         transform: translate(-50%, -50%);
         z-index: 1050;
         background: #fff;
-        border-radius: 14px;
+        border-radius: 12px;
         box-shadow: 0 20px 60px rgba(15,39,68,0.22);
         width: 760px;
         max-width: 96vw;
@@ -167,24 +167,24 @@
         justify-content: space-between;
         align-items: flex-start;
         padding: 1.25rem 1.5rem 1rem;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #dedee5;
         flex-shrink: 0;
     }
     .gm-modal__title {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #0f2744;
+        color: #101114;
         margin: 0 0 0.2rem;
     }
     .gm-modal__subtitle {
         font-size: 0.82rem;
-        color: #8494a9;
+        color: #9497a9;
         margin: 0;
     }
     .gm-modal__close {
         background: none;
         border: none;
-        color: #a0aec0;
+        color: #9497a9;
         font-size: 1.1rem;
         cursor: pointer;
         padding: 0.25rem;
@@ -194,7 +194,7 @@
         margin-left: 1rem;
         transition: color 0.15s;
     }
-    .gm-modal__close:hover { color: #0f2744; }
+    .gm-modal__close:hover { color: #101114; }
 
     .gm-modal__body {
         flex: 1;
@@ -209,12 +209,12 @@
         gap: 0.75rem;
         padding: 3rem 0;
     }
-    .gm-loading__text { color: #8494a9; font-size: 0.9rem; }
+    .gm-loading__text { color: #9497a9; font-size: 0.9rem; }
 
     .gm-empty {
         text-align: center;
         padding: 3rem 1rem;
-        color: #a0aec0;
+        color: #9497a9;
     }
     .gm-empty__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
     .gm-empty__text { font-size: 0.9rem; }
@@ -226,14 +226,14 @@
         align-items: center;
         gap: 1rem;
         padding: 0.85rem 1rem;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         background: #fff;
         transition: border-color 0.2s, background 0.2s;
     }
     .gm-row--graded {
-        border-color: #9ae6b4;
-        background: #f0fff4;
+        border-color: #149e61;
+        background: rgba(20,158,97,0.06);
     }
 
     .gm-row__left {
@@ -248,11 +248,11 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: #e2e8f0;
+        background: #dedee5;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #a0aec0;
+        color: #9497a9;
         font-size: 1.4rem;
         flex-shrink: 0;
     }
@@ -267,11 +267,6 @@
         font-weight: 600;
         color: #2d3748;
     }
-    .gm-student-info__id {
-        font-family: monospace;
-        font-size: 0.78rem;
-        color: #8494a9;
-    }
     .gm-student-info__file {
         font-size: 0.78rem;
         color: #4a5568;
@@ -282,7 +277,7 @@
     }
     .gm-student-info__date {
         font-size: 0.74rem;
-        color: #a0aec0;
+        color: #9497a9;
     }
     .gm-file-link {
         color: #1a6db5;
@@ -312,28 +307,28 @@
     }
     .gm-score-input {
         width: 80px;
-        border: 1.5px solid #d1d9e0;
-        border-radius: 7px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         padding: 0.35rem 0.5rem;
         font-size: 0.88rem;
         font-weight: 600;
-        color: #0f2744;
+        color: #101114;
         text-align: center;
         outline: none;
         transition: border-color 0.15s;
     }
-    .gm-score-input:focus { border-color: #1a6db5; }
-    .gm-score-input:disabled { background: #f8fafc; color: #a0aec0; cursor: not-allowed; }
-    .gm-score-max { font-size: 0.8rem; color: #8494a9; white-space: nowrap; }
+    .gm-score-input:focus { border-color: #7132f5; }
+    .gm-score-input:disabled { background: #f8fafc; color: #9497a9; cursor: not-allowed; }
+    .gm-score-max { font-size: 0.8rem; color: #9497a9; white-space: nowrap; }
 
     .gm-grade-btn {
         display: inline-flex;
         align-items: center;
         gap: 0.3rem;
         padding: 0.38rem 0.85rem;
-        border-radius: 7px;
+        border-radius: 12px;
         border: none;
-        background: #1a6db5;
+        background: #7132f5;
         color: #fff;
         font-size: 0.82rem;
         font-weight: 600;
@@ -341,17 +336,17 @@
         transition: background 0.15s;
         white-space: nowrap;
     }
-    .gm-grade-btn:hover:not(:disabled) { background: #155a96; }
+    .gm-grade-btn:hover:not(:disabled) { background: #5741d8; }
     .gm-grade-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
     .gm-graded-badge {
         display: inline-flex;
         align-items: center;
         padding: 0.3rem 0.85rem;
-        border-radius: 20px;
-        background: #e6fffa;
-        color: #276749;
-        border: 1px solid #9ae6b4;
+        border-radius: 6px;
+        background: rgba(20,158,97,0.16);
+        color: #026b3f;
+        border: 1px solid #149e61;
         font-size: 0.82rem;
         font-weight: 600;
         white-space: nowrap;
@@ -362,14 +357,14 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.85rem 1.5rem;
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid #dedee5;
         flex-shrink: 0;
     }
-    .gm-summary { font-size: 0.82rem; color: #8494a9; }
+    .gm-summary { font-size: 0.82rem; color: #9497a9; }
     .gm-close-btn {
         padding: 0.4rem 1.1rem;
-        border-radius: 7px;
-        border: 1.5px solid #d1d9e0;
+        border-radius: 12px;
+        border: 1.5px solid #dedee5;
         background: transparent;
         color: #4a5568;
         font-size: 0.85rem;

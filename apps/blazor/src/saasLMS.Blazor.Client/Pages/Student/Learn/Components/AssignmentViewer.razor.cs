@@ -47,6 +47,22 @@ public partial class AssignmentViewer : AbpComponentBase
     private bool _isSubmitting = false;
     private bool _isDownloading = false;
 
+    /// <summary>Evaluated once on load. True when deadline has already passed.</summary>
+    private bool _isExpired;
+
+    /// <summary>
+    /// True when the assignment cannot accept new submissions (closed or expired on load).
+    /// Controls UI visibility of upload zone and edit button.
+    /// </summary>
+    private bool _isLocked => _assignment?.Status == AssignmentStatus.Closed || _isExpired;
+
+    /// <summary>
+    /// Set when Submit is clicked but a runtime check finds the deadline has since
+    /// passed or the assignment was closed — shown as a warning without hiding the
+    /// upload zone (which disappears only on reload).
+    /// </summary>
+    private string? _submitWarning;
+
     private IBrowserFile? _selectedFile;
     private string?       _fileError;
 
@@ -54,13 +70,20 @@ public partial class AssignmentViewer : AbpComponentBase
 
     protected override async Task OnParametersSetAsync()
     {
-        _isLoading = true;
-        _isEditing = false;
+        _isLoading     = true;
+        _isEditing     = false;
+        _isExpired     = false;
+        _submitWarning = null;
         ClearFile();
 
         try
         {
             _assignment = await AssignmentAppService.GetStudentAsync(AssignmentId);
+
+            // Evaluate expiry once at load time so the UI is stable.
+            // (The runtime Submit check uses DateTime.UtcNow independently.)
+            if (_assignment?.Deadline.HasValue == true)
+                _isExpired = DateTime.UtcNow > EnsureUtc(_assignment.Deadline.Value);
         }
         catch (Exception ex)
         {
@@ -73,7 +96,7 @@ public partial class AssignmentViewer : AbpComponentBase
         }
         catch
         {
-            // No submission yet — this is expected for students who haven't submitted.
+            // No submission yet — expected for students who haven't submitted.
             _submission = null;
         }
         finally
@@ -84,10 +107,20 @@ public partial class AssignmentViewer : AbpComponentBase
 
     // ── File selection ────────────────────────────────────────────────────────
 
+    private static readonly string[] AllowedSubmissionExtensions = { ".pptx", ".docx", ".zip" };
+
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
         _fileError    = null;
         _selectedFile = e.File;
+
+        var ext = System.IO.Path.GetExtension(_selectedFile.Name).ToLowerInvariant();
+        if (!Array.Exists(AllowedSubmissionExtensions, x => x == ext))
+        {
+            _fileError    = "Invalid file format. Only .pptx, .docx, and .zip files are allowed.";
+            _selectedFile = null;
+            return;
+        }
 
         if (_selectedFile.Size > MaxFileSizeBytes)
         {
@@ -108,8 +141,23 @@ public partial class AssignmentViewer : AbpComponentBase
     {
         if (_selectedFile is null || _isSubmitting) return;
 
-        _fileError    = null;
-        _isSubmitting = true;
+        // Runtime re-check: deadline may have passed since the page was loaded
+        // (stale page scenario). Show a warning instead of attempting the upload.
+        if (_assignment?.Status == AssignmentStatus.Closed)
+        {
+            _submitWarning = "This assignment has been closed. No more submissions are accepted.";
+            return;
+        }
+        if (_assignment?.Deadline.HasValue == true &&
+            DateTime.UtcNow > EnsureUtc(_assignment.Deadline.Value))
+        {
+            _submitWarning = "The submission deadline has passed. Please reload the page.";
+            return;
+        }
+
+        _submitWarning = null;
+        _fileError     = null;
+        _isSubmitting  = true;
 
         try
         {
@@ -148,6 +196,9 @@ public partial class AssignmentViewer : AbpComponentBase
 
             _isEditing = false;
             ClearFile();
+
+            if (OnDone.HasDelegate)
+                await OnDone.InvokeAsync();
         }
         catch (Exception ex)
         {
@@ -168,6 +219,18 @@ public partial class AssignmentViewer : AbpComponentBase
         if (bytes < 1073741824) return $"{bytes / 1048576.0:F1} MB";
         return $"{bytes / 1073741824.0:F1} GB";
     }
+
+    /// <summary>
+    /// Guarantees a DateTime is treated as UTC before any local-time conversion.
+    /// ABP/JSON deserialization may leave Kind as Unspecified for UTC values,
+    /// which would make ToLocalTime() return the wrong result for GMT+7 users.
+    /// </summary>
+    private static DateTime EnsureUtc(DateTime dt)
+        => dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+    /// <summary>Converts a UTC server timestamp to the browser's local time (e.g. GMT+7).</summary>
+    private static string ToLocalDisplay(DateTime dt, string format = "MMM dd, yyyy HH:mm")
+        => EnsureUtc(dt).ToLocalTime().ToString(format);
 
     // ── Download my submission ────────────────────────────────────────────────
 
@@ -190,8 +253,12 @@ public partial class AssignmentViewer : AbpComponentBase
             httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token.Value);
 
-            var response = await httpClient.GetAsync(
-                $"{baseUrl}/api/assessment/submission/{_submission.Id}/download-file");
+            using var body = new StringContent(
+                JsonSerializer.Serialize(new { submissionId = _submission.Id }),
+                Encoding.UTF8,
+                "application/json");
+            var response = await httpClient.PostAsync(
+                $"{baseUrl}/api/assessment/submission/download-my-submission-file", body);
 
             response.EnsureSuccessStatusCode();
 

@@ -41,9 +41,9 @@
                 }
             </div>
 
-            <div class="ccm-field mt-3">
+            <div class="ccm-field mt-3 @(_descriptionError != null ? "ccm-field--error" : "")">
                 <label class="ccm-field__label" for="ccm-desc-input">
-                    Description <span class="ccm-field__optional">(optional)</span>
+                    Description <span class="ccm-field__required">*</span>
                 </label>
                 <textarea id="ccm-desc-input"
                           class="ccm-field__input ccm-field__textarea"
@@ -54,6 +54,12 @@
                           maxlength="2000"
                           disabled="@_isSaving"></textarea>
                 <span class="ccm-field__char-count">@_description.Length / 2000</span>
+                @if (_descriptionError != null)
+                {
+                    <span class="ccm-field__error-msg">
+                        <i class="fa fa-exclamation-circle me-1"></i>@_descriptionError
+                    </span>
+                }
             </div>
 
         </div>
@@ -97,7 +103,7 @@
         z-index: 1050;
         width: min(540px, 95vw);
         background: #fff;
-        border-radius: 16px;
+        border-radius: 12px;
         box-shadow: 0 24px 64px rgba(15, 39, 68, 0.22);
         display: flex;
         flex-direction: column;
@@ -115,16 +121,16 @@
     .ccm-modal__title {
         font-size: 1.15rem;
         font-weight: 700;
-        color: #0f2744;
+        color: #101114;
         margin: 0 0 0.2rem;
     }
 
-    .ccm-modal__subtitle { font-size: 0.82rem; color: #8494a9; margin: 0; }
+    .ccm-modal__subtitle { font-size: 0.82rem; color: #9497a9; margin: 0; }
 
     .ccm-modal__close {
         background: none;
         border: none;
-        color: #8494a9;
+        color: #9497a9;
         font-size: 1.1rem;
         cursor: pointer;
         padding: 0.25rem;
@@ -165,8 +171,8 @@
     }
 
     .ccm-field__input {
-        border: 1.5px solid #d1d9e0;
-        border-radius: 8px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         padding: 0.6rem 0.85rem;
         font-size: 0.92rem;
         color: #1a202c;
@@ -177,13 +183,14 @@
     }
 
     .ccm-field__input:focus {
-        border-color: #1a6db5;
-        box-shadow: 0 0 0 3px rgba(26, 109, 181, 0.12);
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113,50,245,0.12);
         background: #fff;
     }
 
     .ccm-field__textarea { min-height: 100px; }
-    .ccm-field--error .ccm-field__input { border-color: #e53e3e; }
+    .ccm-field--error .ccm-field__input,
+    .ccm-field--error .ccm-field__textarea { border-color: #e53e3e; }
 
     .ccm-field__error-msg { font-size: 0.8rem; color: #e53e3e; margin-top: 0.3rem; }
 
@@ -199,7 +206,7 @@
         align-items: center;
         justify-content: center;
         padding: 0.55rem 1.25rem;
-        border-radius: 8px;
+        border-radius: 12px;
         font-size: 0.88rem;
         font-weight: 600;
         cursor: pointer;
@@ -207,8 +214,8 @@
         transition: background 0.15s, opacity 0.15s;
     }
     .ccm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .ccm-btn--ghost { background: transparent; border: 1.5px solid #d1d9e0; color: #4a5568; }
+    .ccm-btn--ghost { background: transparent; border: 1.5px solid #dedee5; color: #4a5568; }
     .ccm-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
-    .ccm-btn--primary { background: #0f2744; color: #fff; }
-    .ccm-btn--primary:hover:not(:disabled) { background: #1a3a5c; }
+    .ccm-btn--primary { background: #7132f5; color: #fff; }
+    .ccm-btn--primary:hover:not(:disabled) { background: #5741d8; }
 </style>

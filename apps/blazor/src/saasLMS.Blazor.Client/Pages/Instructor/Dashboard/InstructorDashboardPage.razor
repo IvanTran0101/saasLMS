@@ -10,8 +10,8 @@
 
 <style>
     .idb-hero {
-        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 60%, #1e4976 100%);
-        border-radius: 16px;
+        background: linear-gradient(135deg, #4a1fa8 0%, #5741d8 60%, #7132f5 100%);
+        border-radius: 12px;
         padding: 2.5rem 2rem;
         position: relative;
         overflow: hidden;
@@ -36,7 +36,7 @@
         border: 1px solid rgba(255,255,255,0.28);
         color: #fff;
         backdrop-filter: blur(4px);
-        border-radius: 8px;
+        border-radius: 12px;
     }
 
     .idb-hero__actions .btn-glass:hover {
@@ -63,8 +63,8 @@
 
     .idb-stat {
         background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 14px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         padding: 1.5rem;
         display: flex;
         align-items: center;
@@ -75,7 +75,7 @@
     .idb-stat__icon {
         width: 52px;
         height: 52px;
-        border-radius: 13px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -83,12 +83,12 @@
         flex-shrink: 0;
     }
 
-    .idb-stat__icon--students { background: #e8f0fe; color: #1a73e8; }
-    .idb-stat__icon--courses  { background: #e6f4ea; color: #1e8e3e; }
+    .idb-stat__icon--students { background: rgba(133,91,251,0.16); color: #7132f5; }
+    .idb-stat__icon--courses  { background: rgba(20,158,97,0.16); color: #149e61; }
 
     .idb-stat__label {
         font-size: 0.72rem;
-        color: #8a93a2;
+        color: #9497a9;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         margin-bottom: 0.2rem;
@@ -97,26 +97,17 @@
     .idb-stat__value {
         font-size: 1.8rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         line-height: 1;
         display: flex;
         align-items: baseline;
         gap: 0.4rem;
     }
 
-    .idb-stat__badge {
-        font-size: 0.68rem;
-        font-weight: 600;
-        padding: 2px 7px;
-        border-radius: 20px;
-        background: #e6f4ea;
-        color: #1e8e3e;
-    }
-
     .idb-stat__sub {
         font-size: 0.78rem;
         font-weight: 400;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     .idb-section-header {
@@ -130,17 +121,8 @@
         font-weight: 700;
         font-size: 1.05rem;
         margin: 0;
-        color: #0d1117;
+        color: #101114;
     }
-
-    .idb-section-header__link {
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: #1a73e8;
-        text-decoration: none;
-    }
-
-    .idb-section-header__link:hover { text-decoration: underline; }
 
     .idb-create-card {
         display: flex;
@@ -151,7 +133,7 @@
         min-height: 220px;
         height: 100%;
         border: 2px dashed #ced4da;
-        border-radius: 14px;
+        border-radius: 12px;
         background: #fafbfc;
         text-decoration: none;
         text-align: center;
@@ -161,16 +143,16 @@
     }
 
     .idb-create-card:hover {
-        border-color: #1a73e8;
-        background: #f0f5ff;
+        border-color: #7132f5;
+        background: rgba(133,91,251,0.06);
     }
 
     .idb-create-card__icon {
         width: 48px;
         height: 48px;
         border-radius: 50%;
-        background: #e8f0fe;
-        color: #1a73e8;
+        background: rgba(133,91,251,0.16);
+        color: #7132f5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -183,19 +165,19 @@
         font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.09em;
-        color: #1a73e8;
+        color: #7132f5;
     }
 
     .idb-create-card__sub {
         font-size: 0.78rem;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     .idb-skeleton {
-        border-radius: 14px;
+        border-radius: 12px;
         overflow: hidden;
         background: #fff;
-        border: 1px solid #e9ecef;
+        border: 1px solid #dedee5;
         min-height: 220px;
     }
 
@@ -223,26 +205,115 @@
         0%   { background-position: 200% 0; }
         100% { background-position: -200% 0; }
     }
+
+    .idb-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0 14px;
+        max-width: 420px;
+        margin-bottom: 1rem;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .idb-search-bar:focus-within {
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113,50,245,0.08);
+    }
+
+    .idb-search-bar__icon {
+        color: #9497a9;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .idb-search-bar__input {
+        border: none;
+        outline: none;
+        background: transparent;
+        flex: 1;
+        padding: 10px 0;
+        font-size: 0.875rem;
+        color: #101114;
+    }
+
+    .idb-search-bar__input::placeholder {
+        color: #9497a9;
+    }
+
+    .idb-search-bar__clear {
+        background: none;
+        border: none;
+        color: #9497a9;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        transition: color 0.12s;
+    }
+
+    .idb-search-bar__clear:hover {
+        color: #686b82;
+    }
+
+    .idb-count-badge {
+        display: inline-block;
+        padding: 1px 9px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: rgba(133,91,251,0.14);
+        color: #7132f5;
+        vertical-align: middle;
+    }
+
+    .idb-viewall-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: transparent;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
+        padding: 0.5rem 1.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .idb-viewall-btn:hover {
+        border-color: #7132f5;
+        color: #7132f5;
+        background: rgba(133,91,251,0.05);
+    }
+
+    .idb-viewall-btn__count {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #9497a9;
+    }
 </style>
 
 <div>
 
-    @* ── Hero Banner ── *@
     @* ── Search Bar ── *@
-    <div class="input-group mb-3" style="max-width: 420px;">
-        <span class="input-group-text bg-white border-end-0">
-            <i class="fa fa-search text-muted"></i>
-        </span>
-        <input type="text"
-               class="form-control border-start-0 ps-0"
+    <div class="idb-search-bar">
+        <i class="fa fa-search idb-search-bar__icon"></i>
+        <input class="idb-search-bar__input"
+               type="text"
                placeholder="Search by title or course ID…"
                @bind="SearchText"
                @bind:event="oninput" />
         @if (!string.IsNullOrEmpty(SearchText))
         {
-            <button class="btn btn-outline-secondary border-start-0"
-                    type="button"
-                    @onclick="() => SearchText = string.Empty">
+            <button class="idb-search-bar__clear" type="button"
+                    @onclick="() => SearchText = string.Empty"
+                    title="Clear">
                 <i class="fa fa-times"></i>
             </button>
         }
@@ -277,7 +348,6 @@
                         else
                         {
                         @_totalStudents.ToString("N0")
-                        <span class="idb-stat__badge">+12%</span>
                         }
                     </div>
                 </div>
@@ -308,10 +378,29 @@
 
     @* ── My Courses ── *@
     <div class="idb-section-header">
-        <h5 class="idb-section-header__title">My Courses</h5>
-        <a href="/courses" class="idb-section-header__link">
-            View All <i class="fa fa-arrow-right ms-1"></i>
-        </a>
+        <h5 class="idb-section-header__title">
+            My Courses
+            @if (!_isLoadingCourses)
+            {
+                <span class="idb-count-badge ms-2">@_courses.Count</span>
+            }
+        </h5>
+        @if (!_isLoadingCourses && HasMoreCourses)
+        {
+            <button class="idb-viewall-btn" @onclick="() => _showAllCourses = !_showAllCourses">
+                @if (_showAllCourses)
+                {
+                    <i class="fa fa-chevron-up me-1"></i>
+                    @:Show Less
+                }
+                else
+                {
+                    <i class="fa fa-chevron-down me-1"></i>
+                    @:View All
+                    <span class="idb-viewall-btn__count">@_courses.Count total</span>
+                }
+            </button>
+        }
     </div>
 
     <div class="row g-3">
@@ -329,29 +418,30 @@
 
         @if (_isLoadingCourses)
         {
-        @for (var i = 0; i < 5; i++)
-        {
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="idb-skeleton">
-                <div class="idb-skeleton__thumb"></div>
-                <div class="idb-skeleton__body">
-                    <div class="idb-skeleton__line"></div>
-                    <div class="idb-skeleton__line idb-skeleton__line--short"></div>
+            @for (var i = 0; i < 5; i++)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="idb-skeleton">
+                        <div class="idb-skeleton__thumb"></div>
+                        <div class="idb-skeleton__body">
+                            <div class="idb-skeleton__line"></div>
+                            <div class="idb-skeleton__line idb-skeleton__line--short"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        }
+            }
         }
         else
         {
-        @foreach (var course in _courses)
-        {
-        <div class="col-12 col-md-6 col-xl-4">
-            <InstructorCourseCard Course="course" />
-        </div>
-        }
+            @foreach (var course in VisibleCourses)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <InstructorCourseCard Course="course" />
+                </div>
+            }
         }
 
     </div>
+
 
 </div>

@@ -3,8 +3,8 @@
 
 <style>
     .scc-card {
-        border: 1px solid #e9ecef;
-        border-radius: 14px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         overflow: hidden;
         background: #fff;
         height: 100%;
@@ -25,7 +25,7 @@
     .scc-card__thumbnail {
         position: relative;
         height: 150px;
-        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 100%);
+        background: linear-gradient(135deg, #4a1fa8 0%, #7132f5 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -50,8 +50,8 @@
         border-radius: 5px;
     }
 
-    .scc-card__status-badge--inprogress { background: #1a73e8; color: #fff; }
-    .scc-card__status-badge--completed  { background: #1e8e3e; color: #fff; }
+    .scc-card__status-badge--inprogress { background: #7132f5; color: #fff; }
+    .scc-card__status-badge--completed  { background: #149e61; color: #fff; }
     .scc-card__status-badge--notstarted { background: rgba(255,255,255,0.18); color: #fff; }
     .scc-card__status-badge--available  { background: rgba(255,255,255,0.18); color: #fff; }
 
@@ -65,7 +65,7 @@
     .scc-card__title {
         font-weight: 600;
         font-size: 0.88rem;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.25rem;
         line-height: 1.45;
         display: -webkit-box;
@@ -76,7 +76,7 @@
 
     .scc-card__instructor {
         font-size: 0.76rem;
-        color: #8a93a2;
+        color: #9497a9;
         margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
@@ -85,7 +85,7 @@
 
     .scc-card__meta {
         font-size: 0.76rem;
-        color: #8a93a2;
+        color: #9497a9;
         margin-bottom: 0.6rem;
     }
 
@@ -103,31 +103,31 @@
 
     .scc-card__progress-label {
         font-size: 0.72rem;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     .scc-card__progress-pct {
         font-size: 0.72rem;
         font-weight: 600;
-        color: #1a73e8;
+        color: #7132f5;
     }
 
     .scc-card__progress-track {
-        height: 6px;
+        height: 4px;
         border-radius: 3px;
-        background: #e9ecef;
+        background: #dedee5;
         overflow: hidden;
     }
 
     .scc-card__progress-fill {
         height: 100%;
         border-radius: 3px;
-        background: linear-gradient(90deg, #1a73e8, #34a853);
+        background: #7132f5;
         transition: width 0.4s ease;
     }
 
     .scc-card__progress-fill--completed {
-        background: linear-gradient(90deg, #1e8e3e, #34a853);
+        background: #149e61;
     }
 
     .scc-card__enroll-footer {
@@ -138,10 +138,10 @@
     }
 
     .scc-card__enroll-btn {
-        background: #1a73e8;
+        background: #7132f5;
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 0.4rem 1.1rem;
         font-size: 0.8rem;
         font-weight: 600;
@@ -153,7 +153,7 @@
     }
 
     .scc-card__enroll-btn:hover:not(:disabled) {
-        background: #1557b0;
+        background: #5741d8;
         transform: translateY(-1px);
     }
 

@@ -1,4 +1,4 @@
-using saasLMS.ReportingService.Localization;
+using saasLMS.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -16,6 +16,6 @@ public class ReportingServicePermissionDefinitionProvider : PermissionDefinition
 
     private static LocalizableString L(string name)
     {
-        return LocalizableString.Create<ReportingServiceResource>(name);
+        return LocalizableString.Create<saasLMSResource>(name);
     }
 }

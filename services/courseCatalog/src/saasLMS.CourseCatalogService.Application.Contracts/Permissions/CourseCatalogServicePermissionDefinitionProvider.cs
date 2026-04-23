@@ -1,4 +1,4 @@
-using saasLMS.CourseCatalogService.Localization;
+using saasLMS.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -50,6 +50,6 @@ public class CourseCatalogServicePermissionDefinitionProvider : PermissionDefini
 
     private static LocalizableString L(string name)
     {
-        return LocalizableString.Create<CourseCatalogServiceResource>(name);
+        return LocalizableString.Create<saasLMSResource>(name);
     }
 }

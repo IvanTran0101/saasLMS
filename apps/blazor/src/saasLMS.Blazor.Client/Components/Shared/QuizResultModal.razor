@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="qrm-student-info">
                                     <span class="qrm-student-info__name">
-                                        Student <span class="qrm-student-info__id">@attempt.StudentId.ToString()[..8]…</span>
+                                        @GetStudentName(attempt.StudentId)
                                     </span>
                                     <span class="qrm-student-info__meta">
                                         @if (attempt.CompletedAt.HasValue)
@@ -106,7 +106,7 @@
         transform: translate(-50%, -50%);
         z-index: 1050;
         background: #fff;
-        border-radius: 14px;
+        border-radius: 12px;
         box-shadow: 0 20px 60px rgba(15,39,68,0.22);
         width: 680px;
         max-width: 96vw;
@@ -130,18 +130,18 @@
     .qrm-modal__title {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #0f2744;
+        color: #101114;
         margin: 0 0 0.2rem;
     }
     .qrm-modal__subtitle {
         font-size: 0.82rem;
-        color: #8494a9;
+        color: #9497a9;
         margin: 0;
     }
     .qrm-modal__close {
         background: none;
         border: none;
-        color: #a0aec0;
+        color: #9497a9;
         font-size: 1.1rem;
         cursor: pointer;
         padding: 0.25rem;
@@ -151,7 +151,7 @@
         margin-left: 1rem;
         transition: color 0.15s;
     }
-    .qrm-modal__close:hover { color: #0f2744; }
+    .qrm-modal__close:hover { color: #101114; }
 
     .qrm-modal__body {
         flex: 1;
@@ -166,12 +166,12 @@
         gap: 0.75rem;
         padding: 3rem 0;
     }
-    .qrm-loading__text { color: #8494a9; font-size: 0.9rem; }
+    .qrm-loading__text { color: #9497a9; font-size: 0.9rem; }
 
     .qrm-empty {
         text-align: center;
         padding: 3rem 1rem;
-        color: #a0aec0;
+        color: #9497a9;
     }
     .qrm-empty__icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
     .qrm-empty__text { font-size: 0.9rem; }
@@ -184,12 +184,12 @@
         gap: 1rem;
         padding: 0.85rem 1rem;
         border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
+        border-radius: 12px;
         background: #fff;
     }
     .qrm-row--passed {
-        border-color: #9ae6b4;
-        background: #f0fff4;
+        border-color: #149e61;
+        background: rgba(20,158,97,0.06);
     }
 
     .qrm-row__left {
@@ -208,7 +208,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #a0aec0;
+        color: #9497a9;
         font-size: 1.4rem;
         flex-shrink: 0;
     }
@@ -226,15 +226,15 @@
     .qrm-student-info__id {
         font-family: monospace;
         font-size: 0.78rem;
-        color: #8494a9;
+        color: #9497a9;
     }
     .qrm-student-info__meta {
         font-size: 0.74rem;
-        color: #a0aec0;
+        color: #9497a9;
         margin-top: 0.1rem;
     }
     .qrm-status--incomplete {
-        color: #d69e2e;
+        color: #fbbc05;
         font-weight: 600;
     }
 
@@ -248,15 +248,15 @@
         display: inline-flex;
         align-items: center;
         padding: 0.3rem 0.85rem;
-        border-radius: 20px;
+        border-radius: 6px;
         font-size: 0.82rem;
         font-weight: 600;
         white-space: nowrap;
     }
     .qrm-score-badge--pass {
-        background: #e6fffa;
-        color: #276749;
-        border: 1px solid #9ae6b4;
+        background: rgba(20,158,97,0.16);
+        color: #026b3f;
+        border: 1px solid #149e61;
     }
     .qrm-score-badge--fail {
         background: #fff5f5;
@@ -272,10 +272,10 @@
         border-top: 1px solid #e2e8f0;
         flex-shrink: 0;
     }
-    .qrm-summary { font-size: 0.82rem; color: #8494a9; }
+    .qrm-summary { font-size: 0.82rem; color: #9497a9; }
     .qrm-close-btn {
         padding: 0.4rem 1.1rem;
-        border-radius: 7px;
+        border-radius: 12px;
         border: 1.5px solid #d1d9e0;
         background: transparent;
         color: #4a5568;

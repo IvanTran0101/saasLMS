@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -104,7 +105,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     // ── Fields: Video Link ────────────────────────────────────────────────────────
 
     private string _videoUrl      = string.Empty;
-    private string _videoNotes    = string.Empty;   // UI-only, không gửi lên server (DTO không có field này)
     private string? _videoUrlError;
 
     // ── Fields: Text ──────────────────────────────────────────────────────────────
@@ -124,6 +124,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private IBrowserFile?              _quizCsvFile;
     private string?                    _quizCsvFileError;
+    private string                     _quizTitle            = string.Empty;
+    private string?                    _quizTitleError;
+    private int?                       _quizTimeLimitMinutes;
+    private string?                    _quizTimeLimitError;
     private bool                       _isQuizPreviewVisible;
     private QuizDto?                   _uploadedQuizDto;
     private List<QuizQuestionPreview>? _quizPreviewQuestions;
@@ -210,7 +214,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _activeTab               = MaterialTabType.Assignment;
         _resourceTitle           = assignment.Title;
         _assignmentDescription   = assignment.Description;
-        _assignmentDeadline      = assignment.Deadline;
+        // Convert UTC → local so the datetime-local input displays the correct local time
+        _assignmentDeadline      = assignment.Deadline.HasValue
+            ? DateTime.SpecifyKind(assignment.Deadline.Value, DateTimeKind.Utc).ToLocalTime()
+            : (DateTime?)null;
         _assignmentMaxScore      = assignment.MaxScore;
 
         _isVisible = true;
@@ -231,7 +238,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _existingFileName = string.Empty;
 
         _videoUrl      = string.Empty;
-        _videoNotes    = string.Empty;
         _videoUrlError = null;
 
         _textContent = string.Empty;
@@ -243,11 +249,15 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _assignmentDeadlineError = null;
         _assignmentMaxScoreError = null;
 
-        _quizCsvFile          = null;
-        _quizCsvFileError     = null;
-        _isQuizPreviewVisible = false;
-        _uploadedQuizDto      = null;
-        _quizPreviewQuestions = null;
+        _quizCsvFile           = null;
+        _quizCsvFileError      = null;
+        _quizTitle             = string.Empty;
+        _quizTitleError        = null;
+        _quizTimeLimitMinutes  = null;
+        _quizTimeLimitError    = null;
+        _isQuizPreviewVisible  = false;
+        _uploadedQuizDto       = null;
+        _quizPreviewQuestions  = null;
 
         _isEditMode          = false;
         _editingMaterialId   = Guid.Empty;
@@ -274,10 +284,20 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private void Close() => _isVisible = false;
 
+    private static readonly string[] AllowedMaterialExtensions = { ".pptx", ".docx", ".zip" };
+
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
         _fileError    = null;
         _selectedFile = e.File;
+
+        var ext = System.IO.Path.GetExtension(_selectedFile.Name).ToLowerInvariant();
+        if (!Array.Exists(AllowedMaterialExtensions, x => x == ext))
+        {
+            _fileError    = "Invalid file format. Only .pptx, .docx, and .zip files are allowed.";
+            _selectedFile = null;
+            return;
+        }
 
         if (_selectedFile.Size > MaxFileSizeBytes)
         {
@@ -472,7 +492,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         {
             Title       = _resourceTitle.Trim(),
             Description = string.IsNullOrWhiteSpace(_assignmentDescription) ? null : _assignmentDescription.Trim(),
-            Deadline    = _assignmentDeadline,
+            // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
+            Deadline    = _assignmentDeadline.HasValue
+                ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
+                : (DateTime?)null,
             MaxScore    = _assignmentMaxScore
         };
 
@@ -606,7 +629,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
             Description = string.IsNullOrWhiteSpace(_assignmentDescription)
                 ? null
                 : _assignmentDescription.Trim(),
-            Deadline    = _assignmentDeadline,
+            // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
+            Deadline    = _assignmentDeadline.HasValue
+                ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
+                : (DateTime?)null,
             MaxScore    = _assignmentMaxScore
         };
 
@@ -620,6 +646,14 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _quizCsvFileError = null;
         _quizCsvFile      = e.File;
 
+        var ext = System.IO.Path.GetExtension(_quizCsvFile.Name).ToLowerInvariant();
+        if (ext != ".csv")
+        {
+            _quizCsvFileError = "Invalid file format. Only .csv files are accepted for quiz upload.";
+            _quizCsvFile      = null;
+            return;
+        }
+
         if (_quizCsvFile.Size > MaxFileSizeBytes)
         {
             _quizCsvFileError = "File size exceeds the 50 MB limit.";
@@ -629,11 +663,19 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task UploadQuizCsvAsync()
     {
-        _quizCsvFileError = null;
+        _quizCsvFileError   = null;
+        _quizTitleError     = null;
+        _quizTimeLimitError = null;
 
         if (_quizCsvFile is null)
         {
             _quizCsvFileError = "Please select a CSV file.";
+            return;
+        }
+
+        if (_quizTimeLimitMinutes.HasValue && _quizTimeLimitMinutes.Value <= 0)
+        {
+            _quizTimeLimitError = "Time limit must be a positive number.";
             return;
         }
 
@@ -645,7 +687,10 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
                        ?? Configuration["RemoteServices:Default:BaseUrl"]!)
                       .TrimEnd('/');
 
-        var title = System.IO.Path.GetFileNameWithoutExtension(_quizCsvFile.Name);
+        // Use the instructor-provided title; fall back to the CSV filename
+        var title = string.IsNullOrWhiteSpace(_quizTitle)
+            ? System.IO.Path.GetFileNameWithoutExtension(_quizCsvFile.Name)
+            : _quizTitle.Trim();
         if (string.IsNullOrWhiteSpace(title)) title = "Quiz";
 
         using var form = new MultipartFormDataContent();
@@ -654,6 +699,8 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         form.Add(new StringContent(title),                "Title");
         form.Add(new StringContent("100"),                "MaxScore");
         form.Add(new StringContent("0"),                  "AttemptPolicy"); // OneTime
+        if (_quizTimeLimitMinutes.HasValue)
+            form.Add(new StringContent(_quizTimeLimitMinutes.Value.ToString()), "TimeLimitMinutes");
 
         await using var stream = _quizCsvFile.OpenReadStream(MaxFileSizeBytes);
         var fileContent = new StreamContent(stream);
@@ -666,7 +713,14 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
         var response = await httpClient.PostAsync(
             $"{baseUrl}/api/assessment/quiz/upload-csv", form);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _quizCsvFileError = ExtractAbpErrorMessage(errorBody)
+                ?? "Failed to upload quiz CSV. Please verify the file format and try again.";
+            return;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         _uploadedQuizDto = JsonSerializer.Deserialize<QuizDto>(
@@ -684,12 +738,12 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     /// <summary>Cancel từ preview → quay lại modal chính để upload CSV khác.</summary>
     private void CloseQuizPreview()
     {
-        _isQuizPreviewVisible = false;
-        _quizCsvFile          = null;
-        _quizCsvFileError     = null;
-        _uploadedQuizDto      = null;
-        _quizPreviewQuestions = null;
-        _isVisible            = true;
+        _isQuizPreviewVisible  = false;
+        _quizCsvFile           = null;
+        _quizCsvFileError      = null;
+        _uploadedQuizDto       = null;
+        _quizPreviewQuestions  = null;
+        _isVisible             = true;
     }
 
     /// <summary>Confirm từ preview → đóng hoàn toàn, bắn callback.</summary>
@@ -701,5 +755,25 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         ResetForm();
         if (dto != null)
             await OnQuizAdded.InvokeAsync(dto);
+    }
+
+    /// <summary>
+    /// Parse ABP HTTP error response body and extract the error code.
+    /// ABP format: { "error": { "code": "...", "message": "...", "details": "..." } }
+    /// </summary>
+    private static string? ExtractAbpErrorMessage(string responseBody)
+    {
+        try
+        {
+            var node = JsonNode.Parse(responseBody);
+            var error = node?["error"];
+            if (error is null) return null;
+
+            var code = error["code"]?.GetValue<string>();
+            if (!string.IsNullOrWhiteSpace(code))
+                return code;
+        }
+        catch { /* ignore parse errors */ }
+        return null;
     }
 }

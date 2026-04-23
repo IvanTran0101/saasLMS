@@ -3,13 +3,15 @@
 
 @using saasLMS.Blazor.Client.Components.Shared
 @using saasLMS.CourseCatalogService.Courses
+@using saasLMS.NotificationService.Notifications
+@using saasLMS.NotificationService.Notifications.Dtos.Outputs
 
 <PageTitle>My Learning</PageTitle>
 
 <style>
     .sdb-hero {
-        background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 60%, #1e4976 100%);
-        border-radius: 16px;
+        background: linear-gradient(135deg, #4a1fa8 0%, #5741d8 60%, #7132f5 100%);
+        border-radius: 12px;
         padding: 2.5rem 2rem;
         position: relative;
         overflow: hidden;
@@ -39,8 +41,8 @@
 
     .sdb-stat {
         background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 14px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         padding: 1.5rem;
         display: flex;
         align-items: center;
@@ -59,12 +61,12 @@
         flex-shrink: 0;
     }
 
-    .sdb-stat__icon--enrolled  { background: #e8f0fe; color: #1a73e8; }
-    .sdb-stat__icon--completed { background: #e6f4ea; color: #1e8e3e; }
+    .sdb-stat__icon--enrolled  { background: rgba(133,91,251,0.16); color: #7132f5; }
+    .sdb-stat__icon--completed { background: rgba(20,158,97,0.16); color: #149e61; }
 
     .sdb-stat__label {
         font-size: 0.72rem;
-        color: #8a93a2;
+        color: #9497a9;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         margin-bottom: 0.2rem;
@@ -73,14 +75,14 @@
     .sdb-stat__value {
         font-size: 1.8rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         line-height: 1;
     }
 
     .sdb-stat__sub {
         font-size: 0.78rem;
         font-weight: 400;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     .sdb-section-header {
@@ -94,23 +96,23 @@
         font-weight: 700;
         font-size: 1.05rem;
         margin: 0;
-        color: #0d1117;
+        color: #101114;
     }
 
     .sdb-section-header__badge {
         font-size: 0.75rem;
         font-weight: 600;
-        background: #e8f0fe;
-        color: #1a73e8;
+        background: rgba(133,91,251,0.16);
+        color: #7132f5;
         padding: 2px 10px;
-        border-radius: 20px;
+        border-radius: 6px;
     }
 
     .sdb-skeleton {
-        border-radius: 14px;
+        border-radius: 12px;
         overflow: hidden;
         background: #fff;
-        border: 1px solid #e9ecef;
+        border: 1px solid #dedee5;
         min-height: 220px;
     }
 
@@ -137,9 +139,9 @@
     .sdb-empty {
         text-align: center;
         padding: 2.5rem 1rem;
-        color: #8a93a2;
+        color: #9497a9;
         background: #fafbfc;
-        border-radius: 14px;
+        border-radius: 12px;
         border: 1px dashed #ced4da;
     }
 
@@ -157,28 +159,529 @@
         0%   { background-position: 200% 0; }
         100% { background-position: -200% 0; }
     }
+
+    /* ── Search Bar ── */
+    .sdb-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0 14px;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .sdb-search-bar:focus-within {
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113,50,245,0.08);
+    }
+
+    .sdb-search-bar__icon {
+        color: #9497a9;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .sdb-search-bar__input {
+        border: none;
+        outline: none;
+        background: transparent;
+        flex: 1;
+        padding: 10px 0;
+        font-size: 0.875rem;
+        color: #101114;
+        min-width: 0;
+    }
+
+    .sdb-search-bar__input::placeholder {
+        color: #9497a9;
+    }
+
+    .sdb-search-bar__clear {
+        background: none;
+        border: none;
+        color: #9497a9;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        transition: color 0.12s;
+    }
+
+    .sdb-search-bar__clear:hover {
+        color: #686b82;
+    }
+
+    /* ── Browse CTA ── */
+    .sdb-browse-cta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .sdb-browse-cta__left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sdb-browse-cta__icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: rgba(133,91,251,0.12);
+        color: #7132f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .sdb-browse-cta__title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #101114;
+        margin: 0 0 2px;
+    }
+
+    .sdb-browse-cta__sub {
+        font-size: 0.78rem;
+        color: #9497a9;
+        margin: 0;
+    }
+
+    .sdb-browse-cta__btn {
+        background: #7132f5;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 9px 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s;
+        flex-shrink: 0;
+    }
+
+    .sdb-browse-cta__btn:hover {
+        background: #5741d8;
+        color: #fff;
+    }
+
+    /* ── Notification Bell ── */
+    .sdb-topbar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .sdb-topbar__search {
+        flex: 1;
+        max-width: 420px;
+    }
+
+    .sdb-topbar__spacer {
+        flex: 1;
+    }
+
+    .sdb-notif-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .sdb-notif-trigger {
+        position: relative;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #686b82;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .sdb-notif-trigger:hover {
+        background: rgba(133,91,251,0.08);
+        color: #7132f5;
+        border-color: #7132f5;
+    }
+
+    .sdb-notif-trigger.active {
+        background: rgba(133,91,251,0.12);
+        color: #7132f5;
+        border-color: #7132f5;
+    }
+
+    .sdb-notif-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #7132f5;
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: 2px solid #fff;
+        line-height: 1;
+    }
+
+    .sdb-notif-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1040;
+    }
+
+    .sdb-notif-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 400px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        box-shadow: rgba(0,0,0,0.10) 0px 8px 32px;
+        z-index: 1050;
+        display: flex;
+        flex-direction: column;
+        max-height: 520px;
+        overflow: hidden;
+    }
+
+    .sdb-notif-panel__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid #dedee5;
+        flex-shrink: 0;
+    }
+
+    .sdb-notif-panel__title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #101114;
+    }
+
+    .sdb-notif-panel__unread {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(133,91,251,0.16);
+        color: #7132f5;
+        padding: 2px 10px;
+        border-radius: 6px;
+    }
+
+    .sdb-notif-panel__list {
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .sdb-notif-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f0f2f5;
+        transition: background 0.12s;
+    }
+
+    .sdb-notif-item:last-child {
+        border-bottom: none;
+    }
+
+    .sdb-notif-item:hover {
+        background: rgba(148,151,169,0.06);
+    }
+
+    .sdb-notif-item--unread {
+        background: rgba(133,91,251,0.04);
+    }
+
+    .sdb-notif-item--unread:hover {
+        background: rgba(133,91,251,0.08);
+    }
+
+    .sdb-notif-item__content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sdb-notif-item__title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #101114;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sdb-notif-item--unread .sdb-notif-item__title {
+        color: #101114;
+    }
+
+    .sdb-notif-item__message {
+        font-size: 0.8rem;
+        color: #9497a9;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .sdb-notif-item__time {
+        font-size: 0.72rem;
+        color: #9497a9;
+        margin-top: 4px;
+    }
+
+    .sdb-notif-item__aside {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        padding-top: 2px;
+    }
+
+    .sdb-notif-item__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #7132f5;
+        flex-shrink: 0;
+    }
+
+    .sdb-notif-item__dot--read {
+        background: #dedee5;
+    }
+
+    .sdb-notif-check {
+        width: 16px;
+        height: 16px;
+        accent-color: #7132f5;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+
+    .sdb-notif-check:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    .sdb-notif-panel__footer {
+        padding: 12px 20px;
+        border-top: 1px solid #dedee5;
+        flex-shrink: 0;
+    }
+
+    .sdb-notif-markall {
+        width: 100%;
+        padding: 9px 16px;
+        background: rgba(133,91,251,0.12);
+        color: #7132f5;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        text-align: center;
+    }
+
+    .sdb-notif-markall:hover {
+        background: rgba(133,91,251,0.20);
+    }
+
+    .sdb-notif-markall:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .sdb-notif-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #9497a9;
+    }
+
+    .sdb-notif-empty__icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.4;
+    }
+
+    .sdb-notif-empty__text {
+        font-size: 0.85rem;
+    }
+
+    .sdb-viewall-row {
+        display: flex;
+        justify-content: center;
+    }
+
+    .sdb-viewall-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: transparent;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
+        padding: 0.5rem 1.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .sdb-viewall-btn:hover {
+        border-color: #7132f5;
+        color: #7132f5;
+        background: rgba(133,91,251,0.05);
+    }
+
+    .sdb-viewall-btn__count {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #9497a9;
+    }
 </style>
 
 <div>
 
-    @* ── Search Bar ── *@
-    <div class="input-group mb-3" style="max-width: 420px;">
-        <span class="input-group-text bg-white border-end-0">
-            <i class="fa fa-search text-muted"></i>
-        </span>
-        <input type="text"
-               class="form-control border-start-0 ps-0"
-               placeholder="Search courses…"
-               @bind="SearchText"
-               @bind:event="oninput" />
-        @if (!string.IsNullOrEmpty(SearchText))
-        {
-            <button class="btn btn-outline-secondary border-start-0"
-                    type="button"
-                    @onclick="() => SearchText = string.Empty">
-                <i class="fa fa-times"></i>
-            </button>
-        }
+    @* ── Top Bar: Search + Notification Bell ── *@
+    <div class="sdb-topbar">
+        <div class="sdb-topbar__search">
+            <div class="sdb-search-bar">
+                <i class="fa fa-search sdb-search-bar__icon"></i>
+                <input class="sdb-search-bar__input"
+                       type="text"
+                       placeholder="Search my courses…"
+                       @bind="SearchText"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrEmpty(SearchText))
+                {
+                    <button class="sdb-search-bar__clear" type="button"
+                            @onclick="() => SearchText = string.Empty"
+                            title="Clear">
+                        <i class="fa fa-times"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="sdb-topbar__spacer"></div>
+
+        @* Bell icon *@
+        <div class="sdb-notif-wrap">
+            <div class="sdb-notif-trigger @(_showNotifications ? "active" : "")"
+                 @onclick="ToggleNotificationsAsync"
+                 title="Notifications">
+                <i class="fa fa-bell"></i>
+                @if (_unreadCount > 0)
+                {
+                    <span class="sdb-notif-badge">@(_unreadCount > 99 ? "99+" : _unreadCount.ToString())</span>
+                }
+            </div>
+
+            @if (_showNotifications)
+            {
+                <div class="sdb-notif-backdrop" @onclick="CloseNotifications"></div>
+
+                <div class="sdb-notif-panel">
+                    @* Header *@
+                    <div class="sdb-notif-panel__header">
+                        <span class="sdb-notif-panel__title">Notifications</span>
+                        @if (_unreadCount > 0)
+                        {
+                            <span class="sdb-notif-panel__unread">@_unreadCount unread</span>
+                        }
+                        else
+                        {
+                            <span class="sdb-notif-panel__unread" style="background:rgba(148,151,169,0.12);color:#9497a9;">All read</span>
+                        }
+                    </div>
+
+                    @* List *@
+                    <div class="sdb-notif-panel__list">
+                        @if (_isLoadingNotifications)
+                        {
+                            <div class="sdb-notif-empty">
+                                <div class="sdb-notif-empty__icon"><i class="fa fa-circle-o-notch fa-spin"></i></div>
+                                <div class="sdb-notif-empty__text">Loading…</div>
+                            </div>
+                        }
+                        else if (_notifications.Count == 0)
+                        {
+                            <div class="sdb-notif-empty">
+                                <div class="sdb-notif-empty__icon"><i class="fa fa-bell-slash-o"></i></div>
+                                <div class="sdb-notif-empty__text">No notifications yet.</div>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var notif in _notifications)
+                            {
+                                <div class="sdb-notif-item @(!notif.IsRead ? "sdb-notif-item--unread" : "")">
+                                    <div class="sdb-notif-item__content">
+                                        <div class="sdb-notif-item__title">@notif.Title</div>
+                                        <div class="sdb-notif-item__message">@notif.Message</div>
+                                        <div class="sdb-notif-item__time">@GetTimeAgo(notif.CreationTime)</div>
+                                    </div>
+                                    <div class="sdb-notif-item__aside">
+                                        <span class="sdb-notif-item__dot @(notif.IsRead ? "sdb-notif-item__dot--read" : "")"
+                                              title="@(notif.IsRead ? "Read" : "Unread")"></span>
+                                        <input type="checkbox"
+                                               class="sdb-notif-check"
+                                               checked="@notif.IsRead"
+                                               disabled="@notif.IsRead"
+                                               title="@(notif.IsRead ? "Already read" : "Mark as read")"
+                                               @onchange="() => MarkNotificationAsReadAsync(notif)" />
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    @* Footer *@
+                    <div class="sdb-notif-panel__footer">
+                        <button class="sdb-notif-markall"
+                                @onclick="MarkAllAsReadAsync"
+                                disabled="@(_unreadCount == 0 || _isMarkingAll)">
+                            @if (_isMarkingAll)
+                            {
+                                <i class="fa fa-circle-o-notch fa-spin me-1"></i>
+                            }
+                            Mark all as read
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 
     @* ── Hero Banner ── *@
@@ -262,14 +765,30 @@
     <div class="sdb-section-header">
         <h5 class="sdb-section-header__title">
             <i class="fa fa-book-open me-2 text-muted"></i>My Learning
+            @if (!_isLoadingEnrollments)
+            {
+                <span class="sdb-section-header__badge ms-2">@_filteredEnrolledCourses.Count</span>
+            }
         </h5>
-        @if (!_isLoadingEnrollments)
+        @if (!_isLoadingEnrollments && !_isLoadingProgress && HasMoreEnrolled)
         {
-            <span class="sdb-section-header__badge">@_filteredEnrolledCourses.Count</span>
+            <button class="sdb-viewall-btn" @onclick="() => _showAllEnrolled = !_showAllEnrolled">
+                @if (_showAllEnrolled)
+                {
+                    <i class="fa fa-chevron-up me-1"></i>
+                    @:Show Less
+                }
+                else
+                {
+                    <i class="fa fa-chevron-down me-1"></i>
+                    @:View All
+                    <span class="sdb-viewall-btn__count">@_filteredEnrolledCourses.Count total</span>
+                }
+            </button>
         }
     </div>
 
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-2">
         @if (_isLoadingEnrollments || _isLoadingProgress)
         {
             @for (var i = 0; i < 3; i++)
@@ -305,7 +824,7 @@
         }
         else
         {
-            @foreach (var course in _filteredEnrolledCourses)
+            @foreach (var course in VisibleEnrolledCourses)
             {
                 <div class="col-12 col-md-6 col-xl-4">
                     <StudentCourseCard Course="course"
@@ -318,63 +837,25 @@
         }
     </div>
 
-    @* ── Other Courses ── *@
-    <div class="sdb-section-header">
-        <h5 class="sdb-section-header__title">
-            <i class="fa fa-th-large me-2 text-muted"></i>Other Courses
-        </h5>
-        @if (!_isLoadingCourses)
-        {
-            <span class="sdb-section-header__badge">@_filteredOtherCourses.Count</span>
-        }
-    </div>
+    <div class="mb-4"></div>
 
-    <div class="row g-3 mb-4">
-        @if (_isLoadingCourses)
-        {
-            @for (var i = 0; i < 3; i++)
-            {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="sdb-skeleton">
-                        <div class="sdb-skeleton__thumb"></div>
-                        <div class="sdb-skeleton__body">
-                            <div class="sdb-skeleton__line"></div>
-                            <div class="sdb-skeleton__line sdb-skeleton__line--short"></div>
-                        </div>
-                    </div>
+    @* ── Browse Courses CTA ── *@
+    @if (string.IsNullOrEmpty(SearchText))
+    {
+        <div class="sdb-browse-cta mb-4">
+            <div class="sdb-browse-cta__left">
+                <div class="sdb-browse-cta__icon">
+                    <i class="fa fa-th-large"></i>
                 </div>
-            }
-        }
-        else if (_filteredOtherCourses.Count == 0)
-        {
-            <div class="col-12">
-                <div class="sdb-empty">
-                    <div class="sdb-empty__icon"><i class="fa fa-search"></i></div>
-                    <div class="sdb-empty__text">
-                        @if (string.IsNullOrEmpty(SearchText))
-                        {
-                            <span>No other courses available at the moment.</span>
-                        }
-                        else
-                        {
-                            <span>No courses match "<strong>@SearchText</strong>".</span>
-                        }
-                    </div>
+                <div>
+                    <p class="sdb-browse-cta__title">Explore More Courses</p>
+                    <p class="sdb-browse-cta__sub">Browse all available courses and enroll in new ones.</p>
                 </div>
             </div>
-        }
-        else
-        {
-            @foreach (var course in _filteredOtherCourses)
-            {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <StudentCourseCard Course="course"
-                                       IsEnrolled="false"
-                                       InstructorName="@GetInstructorName(course.InstructorId)"
-                                       OnEnroll="EnrollFromCardAsync" />
-                </div>
-            }
-        }
-    </div>
+            <a href="/student/courses" class="sdb-browse-cta__btn">
+                <i class="fa fa-arrow-right"></i> Browse Courses
+            </a>
+        </div>
+    }
 
 </div>

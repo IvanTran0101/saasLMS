@@ -69,6 +69,151 @@
               "implementFrom": "saasLMS.NotificationService.Samples.ISampleAppService"
             }
           }
+        },
+        "saasLMS.NotificationService.NotificationAppService": {
+          "controllerName": "Notification",
+          "controllerGroupName": "Notification",
+          "isRemoteService": true,
+          "isIntegrationService": false,
+          "apiVersion": null,
+          "type": "saasLMS.NotificationService.NotificationAppService",
+          "interfaces": [
+            {
+              "type": "saasLMS.NotificationService.Notifications.INotificationAppService",
+              "name": "INotificationAppService",
+              "methods": [
+                {
+                  "name": "GetMyNotificationsAsync",
+                  "parametersOnMethod": [],
+                  "returnValue": {
+                    "type": "saasLMS.NotificationService.Notifications.Dtos.Outputs.NotificationSummaryDto",
+                    "typeSimple": "saasLMS.NotificationService.Notifications.Dtos.Outputs.NotificationSummaryDto"
+                  }
+                },
+                {
+                  "name": "GetUnreadCountAsync",
+                  "parametersOnMethod": [],
+                  "returnValue": {
+                    "type": "System.Int32",
+                    "typeSimple": "number"
+                  }
+                },
+                {
+                  "name": "MarkAsReadAsync",
+                  "parametersOnMethod": [
+                    {
+                      "name": "notificationId",
+                      "typeAsString": "System.Guid, System.Private.CoreLib",
+                      "type": "System.Guid",
+                      "typeSimple": "string",
+                      "isOptional": false,
+                      "defaultValue": null
+                    }
+                  ],
+                  "returnValue": {
+                    "type": "System.Threading.Tasks.Task",
+                    "typeSimple": ""
+                  }
+                },
+                {
+                  "name": "MarkAllAsReadAsync",
+                  "parametersOnMethod": [],
+                  "returnValue": {
+                    "type": "System.Threading.Tasks.Task",
+                    "typeSimple": ""
+                  }
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "GetMyNotificationsAsync": {
+              "uniqueName": "GetMyNotificationsAsync",
+              "name": "GetMyNotificationsAsync",
+              "httpMethod": "GET",
+              "url": "api/notification/notification/my-notifications",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
+              "returnValue": {
+                "type": "saasLMS.NotificationService.Notifications.Dtos.Outputs.NotificationSummaryDto",
+                "typeSimple": "saasLMS.NotificationService.Notifications.Dtos.Outputs.NotificationSummaryDto"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.NotificationService.Notifications.INotificationAppService"
+            },
+            "GetUnreadCountAsync": {
+              "uniqueName": "GetUnreadCountAsync",
+              "name": "GetUnreadCountAsync",
+              "httpMethod": "GET",
+              "url": "api/notification/notification/unread-count",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
+              "returnValue": {
+                "type": "System.Int32",
+                "typeSimple": "number"
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.NotificationService.Notifications.INotificationAppService"
+            },
+            "MarkAsReadAsyncByNotificationId": {
+              "uniqueName": "MarkAsReadAsyncByNotificationId",
+              "name": "MarkAsReadAsync",
+              "httpMethod": "POST",
+              "url": "api/notification/notification/mark-as-read/{notificationId}",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "notificationId",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "notificationId",
+                  "name": "notificationId",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": null,
+                  "bindingSourceId": "Path",
+                  "descriptorName": ""
+                }
+              ],
+              "returnValue": {
+                "type": "System.Threading.Tasks.Task",
+                "typeSimple": ""
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.NotificationService.Notifications.INotificationAppService"
+            },
+            "MarkAllAsReadAsync": {
+              "uniqueName": "MarkAllAsReadAsync",
+              "name": "MarkAllAsReadAsync",
+              "httpMethod": "POST",
+              "url": "api/notification/notification/mark-all-as-read",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
+              "returnValue": {
+                "type": "System.Threading.Tasks.Task",
+                "typeSimple": ""
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": null,
+              "implementFrom": "saasLMS.NotificationService.Notifications.INotificationAppService"
+            }
+          }
         }
       }
     }

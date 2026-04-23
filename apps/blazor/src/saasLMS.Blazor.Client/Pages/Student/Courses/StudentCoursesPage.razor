@@ -1,0 +1,251 @@
+@page "/student/courses"
+@inherits AbpComponentBase
+
+@using saasLMS.Blazor.Client.Components.Shared
+@using saasLMS.CourseCatalogService.Courses
+
+<PageTitle>Browse Courses</PageTitle>
+
+<style>
+    .scp-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .scp-header__title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #101114;
+        margin: 0 0 0.25rem;
+    }
+
+    .scp-header__sub {
+        font-size: 0.875rem;
+        color: #9497a9;
+        margin: 0;
+    }
+
+    .scp-topbar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .scp-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0 14px;
+        max-width: 440px;
+        flex: 1;
+        transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .scp-search-bar:focus-within {
+        border-color: #7132f5;
+        box-shadow: 0 0 0 3px rgba(113,50,245,0.08);
+    }
+
+    .scp-search-bar__icon {
+        color: #9497a9;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+
+    .scp-search-bar__input {
+        border: none;
+        outline: none;
+        background: transparent;
+        flex: 1;
+        padding: 10px 0;
+        font-size: 0.875rem;
+        color: #101114;
+    }
+
+    .scp-search-bar__input::placeholder {
+        color: #9497a9;
+    }
+
+    .scp-search-bar__clear {
+        background: none;
+        border: none;
+        color: #9497a9;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        transition: color 0.12s;
+    }
+
+    .scp-search-bar__clear:hover {
+        color: #686b82;
+    }
+
+    .scp-count-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(133,91,251,0.16);
+        color: #7132f5;
+        padding: 2px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+    }
+
+    .scp-skeleton {
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #dedee5;
+        min-height: 220px;
+    }
+
+    .scp-skeleton__thumb {
+        height: 150px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: scp-shimmer 1.4s infinite;
+    }
+
+    .scp-skeleton__body { padding: 0.875rem 1rem; }
+
+    .scp-skeleton__line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: scp-shimmer 1.4s infinite;
+        margin-bottom: 0.5rem;
+    }
+
+    .scp-skeleton__line--short { width: 40%; }
+
+    .scp-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #9497a9;
+        background: #fafbfc;
+        border-radius: 12px;
+        border: 1px dashed #ced4da;
+    }
+
+    .scp-empty__icon {
+        font-size: 2.2rem;
+        margin-bottom: 0.6rem;
+        opacity: 0.45;
+    }
+
+    .scp-empty__text {
+        font-size: 0.875rem;
+    }
+
+    .scp-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #7132f5;
+        text-decoration: none;
+        margin-bottom: 1.25rem;
+        transition: opacity 0.15s;
+    }
+
+    .scp-back-link:hover {
+        opacity: 0.78;
+        color: #7132f5;
+    }
+
+    @@keyframes scp-shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+
+<div>
+    <a href="/student/dashboard" class="scp-back-link">
+        <i class="fa fa-arrow-left"></i> Back to My Learning
+    </a>
+
+    <div class="scp-header">
+        <h4 class="scp-header__title">Browse Courses</h4>
+        <p class="scp-header__sub">Discover and enroll in courses available to you.</p>
+    </div>
+
+    <div class="scp-topbar">
+        <div class="scp-search-bar">
+            <i class="fa fa-search scp-search-bar__icon"></i>
+            <input class="scp-search-bar__input"
+                   type="text"
+                   placeholder="Search courses…"
+                   @bind="SearchText"
+                   @bind:event="oninput" />
+            @if (!string.IsNullOrEmpty(SearchText))
+            {
+                <button class="scp-search-bar__clear" type="button"
+                        @onclick="() => SearchText = string.Empty"
+                        title="Clear">
+                    <i class="fa fa-times"></i>
+                </button>
+            }
+        </div>
+
+        @if (!_isLoading)
+        {
+            <span class="scp-count-badge">@_filteredCourses.Count courses</span>
+        }
+    </div>
+
+    <div class="row g-3">
+        @if (_isLoading)
+        {
+            @for (var i = 0; i < 6; i++)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="scp-skeleton">
+                        <div class="scp-skeleton__thumb"></div>
+                        <div class="scp-skeleton__body">
+                            <div class="scp-skeleton__line"></div>
+                            <div class="scp-skeleton__line scp-skeleton__line--short"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else if (_filteredCourses.Count == 0)
+        {
+            <div class="col-12">
+                <div class="scp-empty">
+                    <div class="scp-empty__icon">
+                        <i class="fa @(string.IsNullOrEmpty(SearchText) ? "fa-th-large" : "fa-search")"></i>
+                    </div>
+                    <div class="scp-empty__text">
+                        @if (string.IsNullOrEmpty(SearchText))
+                        {
+                            <span>No courses available at the moment — check back later.</span>
+                        }
+                        else
+                        {
+                            <span>No courses match "<strong>@SearchText</strong>".</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var course in _filteredCourses)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <StudentCourseCard Course="course"
+                                       IsEnrolled="false"
+                                       InstructorName="@GetInstructorName(course.InstructorId)"
+                                       OnEnroll="EnrollAsync" />
+                </div>
+            }
+        }
+    </div>
+</div>

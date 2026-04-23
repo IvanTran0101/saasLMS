@@ -3,17 +3,21 @@
 @inject SignOutSessionStateManager SignOutManager
 @inject NavigationManager NavigationManager
 
-<div style="display:flex;justify-content:center;align-items:center;height:60vh;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Logging out...</span>
+<div style="display:flex;justify-content:center;align-items:center;min-height:80vh;">
+    <div class="text-center">
+        <div class="mb-4">
+            <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status">
+                <span class="visually-hidden">Logging out...</span>
+            </div>
+        </div>
+        <h5 class="fw-semibold mb-1">Signing out...</h5>
+        <p class="text-muted small mb-0">Please wait while we securely sign you out.</p>
     </div>
 </div>
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (!firstRender) return;   
-        
         await SignOutManager.SetSignOutState();
         NavigationManager.NavigateTo("authentication/logout", true);
     }

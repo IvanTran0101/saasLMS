@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using saasLMS.AssessmentService.Assignments;
 using saasLMS.AssessmentService.Quizzes;
 using saasLMS.Blazor.Client.Authorization;
@@ -35,6 +36,7 @@ public partial class LessonViewerPage : AbpComponentBase
     [Inject] private IAssignmentAppService        AssignmentAppService        { get; set; } = default!;
     [Inject] private IQuizAppService              QuizAppService              { get; set; } = default!;
     [Inject] private NavigationManager            NavigationManager           { get; set; } = default!;
+    [Inject] private IJSRuntime                   JS                          { get; set; } = default!;
 
     // ── Raw data ──────────────────────────────────────────────────────────────
 
@@ -71,14 +73,14 @@ public partial class LessonViewerPage : AbpComponentBase
 
     // ── Computed lesson status flags ──────────────────────────────────────────
 
-    private bool _hasCourseStarted => _completedLessonIds.Count > 0 || _resumeResult?.LessonStatus == LessonProgressStatus.InProgress;
-    private bool _isResumeLesson   => _selectedLesson is not null && _resumeResult?.LessonId == _selectedLesson.Id;
     private bool _isLessonCompleted => _selectedLesson is not null && _completedLessonIds.Contains(_selectedLesson.Id);
 
     // ── UI state ──────────────────────────────────────────────────────────────
 
-    private bool _isLoading = true;
-    private bool _isActing  = false;
+    private bool _isLoading      = true;
+    private bool _isActing       = false;
+    /// <summary>Set by QuizViewer via <c>OnTakingQuizChanged</c> callback. Guards navigation away.</summary>
+    private bool _quizInProgress = false;
 
     private int _progressPct => _courseProgress is null ? 0 : (int)Math.Round(_courseProgress.ProgressPercent);
 
@@ -199,7 +201,9 @@ public partial class LessonViewerPage : AbpComponentBase
 
     public async Task SelectLessonAsync(LessonInChapterDto lesson, bool updateUrl = true)
     {
-        _selectedLesson  = lesson;
+        if (!await ConfirmLeaveQuizAsync()) return;
+
+        _selectedLesson     = lesson;
         _selectedMaterial   = null;
         _selectedAssignment = null;
         _selectedQuiz       = null;
@@ -219,8 +223,6 @@ public partial class LessonViewerPage : AbpComponentBase
 
         if (updateUrl)
             NavigationManager.NavigateTo($"/student/learn/{CourseId}/{lesson.Id}", replace: true);
-
-        await Task.CompletedTask;
     }
 
     private void ToggleChapter(Guid chapterId)
@@ -259,11 +261,29 @@ public partial class LessonViewerPage : AbpComponentBase
         _selectedAssignment = null;
     }
 
-    private void BackToLessonOverview()
+    private async Task BackToLessonOverview()
     {
+        if (!await ConfirmLeaveQuizAsync()) return;
         _selectedMaterial   = null;
         _selectedAssignment = null;
         _selectedQuiz       = null;
+    }
+
+    private void OnQuizTakingChanged(bool value) => _quizInProgress = value;
+
+    /// <summary>
+    /// Returns true if navigation is safe (no quiz in progress, or user confirmed).
+    /// Shows a native JS confirm when a quiz is active. Called before any navigation
+    /// that would unmount the QuizViewer from the parent side.
+    /// Note: when QuizViewer's own Back button is used, it already sets
+    /// _quizInProgress = false before invoking OnDone, so this returns true immediately.
+    /// </summary>
+    private async Task<bool> ConfirmLeaveQuizAsync()
+    {
+        if (!_quizInProgress) return true;
+        return await JS.InvokeAsync<bool>(
+            "confirm",
+            "You are currently taking a quiz.\n\nIf you leave now, your answers will not be submitted. Are you sure?");
     }
 
     private IReadOnlyList<AssignmentListItemDto> GetLessonAssignments(Guid lessonId) =>
@@ -273,33 +293,6 @@ public partial class LessonViewerPage : AbpComponentBase
         _quizzesByLesson.TryGetValue(lessonId, out var list) ? list : Array.Empty<QuizListItemDto>();
 
     // ── Learning actions ──────────────────────────────────────────────────────
-
-    public async Task ResumeLessonAsync()
-    {
-        if (_selectedLesson is null || _isActing) return;
-
-        _isActing = true;
-        try
-        {
-            await LearningProgressAppService.StartLessonAsync(new StartLessonInput
-            {
-                CourseId           = CourseId,
-                LessonId           = _selectedLesson.Id,
-                TotalLessonsCount  = _flatLessons.Count
-            });
-
-            _resumeResult   = await LearningProgressAppService.GetResumePositionAsync(CourseId);
-            _courseProgress = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
-        }
-        catch (Exception ex)
-        {
-            await HandleErrorAsync(ex);
-        }
-        finally
-        {
-            _isActing = false;
-        }
-    }
 
     public async Task CompleteLessonAsync()
     {
@@ -319,7 +312,6 @@ public partial class LessonViewerPage : AbpComponentBase
 
             _lessonProgresses = await LearningProgressAppService.GetMyProgressAsync(CourseId);
             _courseProgress   = await LearningProgressAppService.GetMyCourseProgressAsync(CourseId);
-            _resumeResult     = await LearningProgressAppService.GetResumePositionAsync(CourseId);
 
             BuildDerivedState();
 

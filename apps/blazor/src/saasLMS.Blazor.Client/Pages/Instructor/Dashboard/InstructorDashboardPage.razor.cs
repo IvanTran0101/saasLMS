@@ -36,6 +36,17 @@ public partial class InstructorDashboardPage : AbpComponentBase
     private List<CourseListItemDto> _allCourses = new();
     private List<CourseListItemDto> _courses = new();
 
+    private bool _showAllCourses;
+    private const int CoursesPreviewCount = 5;
+
+    private IReadOnlyList<CourseListItemDto> VisibleCourses =>
+        (!string.IsNullOrEmpty(_searchText) || _showAllCourses)
+            ? _courses
+            : _courses.Take(CoursesPreviewCount).ToList();
+
+    private bool HasMoreCourses =>
+        string.IsNullOrEmpty(_searchText) && _courses.Count > CoursesPreviewCount;
+
     private string _searchText = string.Empty;
     private string SearchText
     {
@@ -43,6 +54,7 @@ public partial class InstructorDashboardPage : AbpComponentBase
         set
         {
             _searchText = value;
+            _showAllCourses = false; // reset khi search thay đổi
             ApplySearch();
         }
     }

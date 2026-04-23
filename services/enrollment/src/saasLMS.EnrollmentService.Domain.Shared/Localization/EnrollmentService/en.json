@@ -1,5 +1,13 @@
 {
   "culture": "en",
   "texts": {
+    "Permission:EnrollmentService": "Enrollment",
+    "Permission:Enrollments": "Enrollments",
+    "Permission:Create": "Create",
+    "Permission:Cancel": "Cancel",
+    "Permission:View": "View",
+    "Permission:ViewMy": "View My",
+    "Permission:ViewByCourse": "View By Course",
+    "Permission:CheckActive": "Check Active"
   }
 }

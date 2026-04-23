@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,6 +143,25 @@ public class CourseManager : DomainService
             throw new BusinessException("CourseCatalog:EmptyChapterId");
         }
         course.RenameChapter(chapterId, title);
+    }
+
+    public Task ReorderChaptersAsync(
+        Course course,
+        IList<Guid> orderedChapterIds,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(course, nameof(course));
+        if (orderedChapterIds == null || orderedChapterIds.Count == 0)
+            throw new BusinessException("CourseCatalog:EmptyChapterIdList");
+
+        foreach (var id in orderedChapterIds)
+        {
+            if (!course.Chapters.Any(c => c.Id == id))
+                throw new BusinessException("CourseCatalog:ChapterNotFound").WithData("ChapterId", id);
+        }
+
+        course.ReorderChapters(orderedChapterIds);
+        return Task.CompletedTask;
     }
     
     //Lesson 

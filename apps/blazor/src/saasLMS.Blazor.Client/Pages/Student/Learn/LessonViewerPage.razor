@@ -32,7 +32,7 @@
         width: 270px;
         min-width: 270px;
         background: #fff;
-        border-right: 1px solid #e9ecef;
+        border-right: 1px solid #dedee5;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
@@ -40,21 +40,38 @@
     }
 
     .slp-sidebar__header {
-        padding: 1rem 1rem 0.75rem;
+        padding: 0.75rem 1rem 0.75rem;
         border-bottom: 1px solid #f0f2f5;
+    }
+
+    .slp-sidebar__back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #9497a9;
+        text-decoration: none;
+        margin-bottom: 0.6rem;
+        padding: 0.2rem 0;
+        transition: color 0.15s;
+    }
+
+    .slp-sidebar__back:hover {
+        color: #7132f5;
     }
 
     .slp-sidebar__course-title {
         font-size: 0.9rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         line-height: 1.4;
         margin-bottom: 0.5rem;
     }
 
     .slp-sidebar__progress-bar {
         height: 4px;
-        background: #e9ecef;
+        background: #dedee5;
         border-radius: 2px;
         overflow: hidden;
         margin-bottom: 0.3rem;
@@ -62,7 +79,7 @@
 
     .slp-sidebar__progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #1a73e8, #34a853);
+        background: #7132f5;
         border-radius: 2px;
         transition: width 0.4s ease;
     }
@@ -70,7 +87,7 @@
     .slp-sidebar__progress-text {
         font-size: 0.68rem;
         font-weight: 600;
-        color: #1a73e8;
+        color: #7132f5;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
@@ -98,7 +115,7 @@
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: #e9ecef;
+        background: #dedee5;
         color: #495057;
         font-size: 0.7rem;
         font-weight: 700;
@@ -109,14 +126,14 @@
     }
 
     .slp-chapter__number--active {
-        background: #1a73e8;
+        background: #7132f5;
         color: #fff;
     }
 
     .slp-chapter__title {
         font-size: 0.82rem;
         font-weight: 600;
-        color: #0d1117;
+        color: #101114;
         flex: 1;
         min-width: 0;
         overflow: hidden;
@@ -126,7 +143,7 @@
 
     .slp-chapter__chevron {
         font-size: 0.65rem;
-        color: #8a93a2;
+        color: #9497a9;
         flex-shrink: 0;
         transition: transform 0.2s;
     }
@@ -153,17 +170,17 @@
     }
 
     .slp-lesson--active {
-        background: #e8f0fe;
-        border-right: 3px solid #1a73e8;
+        background: rgba(133,91,251,0.16);
+        border-right: 3px solid #7132f5;
     }
 
     .slp-lesson--active .slp-lesson__title {
-        color: #1a73e8;
+        color: #7132f5;
         font-weight: 600;
     }
 
     .slp-lesson--has-active-resource {
-        background: #f0f5ff;
+        background: rgba(133,91,251,0.08);
     }
 
     .slp-lesson__icon {
@@ -184,7 +201,7 @@
 
     .slp-lesson__chevron {
         font-size: 0.6rem;
-        color: #8a93a2;
+        color: #9497a9;
         flex-shrink: 0;
         transition: transform 0.2s;
         padding: 0.15rem 0.25rem;
@@ -212,16 +229,16 @@
     }
 
     .slp-resource:hover {
-        background: #e9ecef;
+        background: #dedee5;
     }
 
     .slp-resource--active {
-        background: #dde8fe;
-        border-right: 3px solid #1a73e8;
+        background: rgba(133,91,251,0.12);
+        border-right: 3px solid #7132f5;
     }
 
     .slp-resource--active .slp-resource__title {
-        color: #1a73e8;
+        color: #7132f5;
         font-weight: 600;
     }
 
@@ -250,11 +267,11 @@
         flex-shrink: 0;
     }
 
-    .slp-resource__type-badge--video    { background: #e8f0fe; color: #1a73e8; }
+    .slp-resource__type-badge--video    { background: rgba(133,91,251,0.16); color: #7132f5; }
     .slp-resource__type-badge--text     { background: #fce8e6; color: #d93025; }
-    .slp-resource__type-badge--file     { background: #e6f4ea; color: #1e8e3e; }
-    .slp-resource__type-badge--assign   { background: #fff3e0; color: #e37400; }
-    .slp-resource__type-badge--quiz     { background: #f3e8fd; color: #9c27b0; }
+    .slp-resource__type-badge--file     { background: rgba(20,158,97,0.16); color: #149e61; }
+    .slp-resource__type-badge--assign   { background: rgba(251,188,5,0.16); color: #fbbc05; }
+    .slp-resource__type-badge--quiz     { background: rgba(133,91,251,0.16); color: #7132f5; }
 
     /* Quiz card in overview */
     .slp-quiz-card {
@@ -262,9 +279,9 @@
         align-items: center;
         gap: 1rem;
         padding: 0.85rem 1rem;
-        border: 1px solid #e1c4f7;
-        border-radius: 10px;
-        background: #fdf5ff;
+        border: 1px solid rgba(133,91,251,0.3);
+        border-radius: 12px;
+        background: rgba(133,91,251,0.04);
         margin-bottom: 0.6rem;
         transition: box-shadow 0.15s, border-color 0.15s;
         cursor: pointer;
@@ -272,15 +289,15 @@
 
     .slp-quiz-card:hover {
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border-color: #9c27b0;
+        border-color: #7132f5;
     }
 
     .slp-quiz-card__icon {
         width: 42px;
         height: 42px;
-        border-radius: 10px;
-        background: #f3e8fd;
-        color: #9c27b0;
+        border-radius: 12px;
+        background: rgba(133,91,251,0.16);
+        color: #7132f5;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -296,13 +313,13 @@
     .slp-quiz-card__title {
         font-size: 0.9rem;
         font-weight: 600;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.15rem;
     }
 
     .slp-quiz-card__meta {
         font-size: 0.76rem;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     /* ── MAIN CONTENT ─────────────────────────────────────────────────────── */
@@ -323,7 +340,7 @@
     /* Breadcrumb */
     .slp-breadcrumb {
         font-size: 0.77rem;
-        color: #8a93a2;
+        color: #9497a9;
         margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
@@ -335,7 +352,7 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: #1a73e8;
+        color: #7132f5;
         font-size: 0.7rem;
     }
 
@@ -345,7 +362,7 @@
     }
 
     .slp-breadcrumb__lesson:hover {
-        color: #1a73e8;
+        color: #7132f5;
         text-decoration: underline;
     }
 
@@ -361,7 +378,7 @@
     .slp-lesson-title {
         font-size: 1.6rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         line-height: 1.3;
         margin: 0;
     }
@@ -375,9 +392,9 @@
 
     .slp-btn-back {
         background: transparent;
-        border: 1px solid #ced4da;
-        color: #495057;
-        border-radius: 7px;
+        border: 1px solid #dedee5;
+        color: #686b82;
+        border-radius: 12px;
         padding: 0.38rem 0.8rem;
         font-size: 0.8rem;
         font-weight: 500;
@@ -390,71 +407,25 @@
     }
 
     .slp-btn-back:hover {
-        border-color: #1a73e8;
-        color: #1a73e8;
+        border-color: #7132f5;
+        color: #7132f5;
     }
 
     .slp-resource-title {
         font-size: 1.3rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         margin: 0;
-    }
-
-    .slp-btn-resume {
-        background: #1a73e8;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 0.55rem 1.35rem;
-        font-size: 0.88rem;
-        font-weight: 600;
-        white-space: nowrap;
-        cursor: pointer;
-        transition: background 0.15s, transform 0.1s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        flex-shrink: 0;
-    }
-
-    .slp-btn-resume:hover {
-        background: #1557b0;
-        transform: translateY(-1px);
-    }
-
-    .slp-btn-resume:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .slp-btn-review {
-        background: transparent;
-        color: #495057;
-        border: 1px solid #ced4da;
-        border-radius: 8px;
-        padding: 0.45rem 1.1rem;
-        font-size: 0.82rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: border-color 0.15s, color 0.15s;
-        white-space: nowrap;
-    }
-
-    .slp-btn-review:hover {
-        border-color: #1a73e8;
-        color: #1a73e8;
     }
 
     /* Material section label */
     .slp-section-label {
         font-size: 0.88rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.75rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e9ecef;
+        border-bottom: 2px solid #dedee5;
     }
 
     /* Material cards */
@@ -463,8 +434,8 @@
         align-items: center;
         gap: 1rem;
         padding: 0.85rem 1rem;
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         background: #fff;
         margin-bottom: 0.6rem;
         transition: box-shadow 0.15s, border-color 0.15s;
@@ -473,7 +444,7 @@
 
     .slp-material:hover {
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border-color: #1a73e8;
+        border-color: #7132f5;
     }
 
     .slp-material__icon-wrap {
@@ -487,10 +458,10 @@
         flex-shrink: 0;
     }
 
-    .slp-material__icon-wrap--video   { background: #e8f0fe; color: #1a73e8; }
+    .slp-material__icon-wrap--video   { background: rgba(133,91,251,0.16); color: #7132f5; }
     .slp-material__icon-wrap--text    { background: #fce8e6; color: #d93025; }
-    .slp-material__icon-wrap--file    { background: #e6f4ea; color: #1e8e3e; }
-    .slp-material__icon-wrap--default { background: #f0f2f5; color: #495057; }
+    .slp-material__icon-wrap--file    { background: rgba(20,158,97,0.16); color: #149e61; }
+    .slp-material__icon-wrap--default { background: #f0f2f5; color: #686b82; }
 
     .slp-material__info {
         flex: 1;
@@ -500,13 +471,13 @@
     .slp-material__title {
         font-size: 0.9rem;
         font-weight: 600;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.15rem;
     }
 
     .slp-material__meta {
         font-size: 0.76rem;
-        color: #8a93a2;
+        color: #9497a9;
         display: flex;
         align-items: center;
         gap: 0.4rem;
@@ -517,7 +488,7 @@
         align-items: center;
         gap: 0.25rem;
         font-size: 0.72rem;
-        color: #1e8e3e;
+        color: #149e61;
         font-weight: 600;
     }
 
@@ -531,9 +502,9 @@
         align-items: center;
         gap: 1rem;
         padding: 0.85rem 1rem;
-        border: 1px solid #ffd87a;
-        border-radius: 10px;
-        background: #fffbf0;
+        border: 1px solid rgba(251,188,5,0.4);
+        border-radius: 12px;
+        background: rgba(251,188,5,0.05);
         margin-bottom: 0.6rem;
         transition: box-shadow 0.15s, border-color 0.15s;
         cursor: pointer;
@@ -547,9 +518,9 @@
     .slp-assignment-card__icon {
         width: 42px;
         height: 42px;
-        border-radius: 10px;
-        background: #fff3e0;
-        color: #e37400;
+        border-radius: 12px;
+        background: rgba(251,188,5,0.16);
+        color: #fbbc05;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -565,13 +536,13 @@
     .slp-assignment-card__title {
         font-size: 0.9rem;
         font-weight: 600;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.15rem;
     }
 
     .slp-assignment-card__meta {
         font-size: 0.76rem;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     /* Empty / loading states */
@@ -581,14 +552,14 @@
         align-items: center;
         justify-content: center;
         padding: 4rem 2rem;
-        color: #8a93a2;
+        color: #9497a9;
         gap: 0.75rem;
     }
 
     .slp-empty {
         text-align: center;
         padding: 3rem 2rem;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     .slp-empty__icon {
@@ -604,13 +575,13 @@
         justify-content: space-between;
         margin-top: 2rem;
         padding-top: 1.25rem;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid #dedee5;
     }
 
     .slp-btn-nav {
         font-size: 0.82rem;
         font-weight: 600;
-        color: #1a73e8;
+        color: #7132f5;
         background: transparent;
         border: none;
         display: flex;
@@ -622,13 +593,13 @@
         transition: background 0.15s;
     }
 
-    .slp-btn-nav:hover { background: #e8f0fe; }
+    .slp-btn-nav:hover { background: rgba(133,91,251,0.10); }
 
     .slp-btn-complete {
-        background: #1e8e3e;
+        background: #149e61;
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 0.5rem 1.25rem;
         font-size: 0.85rem;
         font-weight: 600;
@@ -639,16 +610,16 @@
         transition: background 0.15s;
     }
 
-    .slp-btn-complete:hover { background: #1a7a36; }
+    .slp-btn-complete:hover { background: #0e7a4e; }
     .slp-btn-complete:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .slp-completed-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        background: #e6f4ea;
-        color: #1e8e3e;
-        border-radius: 20px;
+        background: rgba(20,158,97,0.16);
+        color: #149e61;
+        border-radius: 6px;
         padding: 0.3rem 0.8rem;
         font-size: 0.78rem;
         font-weight: 600;
@@ -683,6 +654,9 @@ else
         @* ── LEFT SIDEBAR ── *@
         <div class="slp-sidebar">
             <div class="slp-sidebar__header">
+                <a href="/student/dashboard" class="slp-sidebar__back">
+                    <i class="fa fa-arrow-left"></i> Back to Dashboard
+                </a>
                 <div class="slp-sidebar__course-title">@_courseDetail.Title</div>
                 <div class="slp-sidebar__progress-bar">
                     <div class="slp-sidebar__progress-fill" style="width:@_progressPct%"></div>
@@ -774,7 +748,7 @@ else
                                             var isAssignActive = isLessonSelected && _selectedAssignment?.Id == assignment.Id;
                                             <div class="slp-resource @(isAssignActive ? "slp-resource--active" : "")"
                                                  @onclick="async () => { await SelectLessonAsync(lesson, false); SelectAssignmentAsync(assignment); }">
-                                                <span class="slp-resource__icon" style="color:#e37400;">
+                                                <span class="slp-resource__icon" style="color:#fbbc05;">
                                                     <i class="fa fa-pencil-square-o"></i>
                                                 </span>
                                                 <span class="slp-resource__title" title="@assignment.Title">@assignment.Title</span>
@@ -787,7 +761,7 @@ else
                                             var isQuizActive = isLessonSelected && _selectedQuiz?.Id == quiz.Id;
                                             <div class="slp-resource @(isQuizActive ? "slp-resource--active" : "")"
                                                  @onclick="async () => { await SelectLessonAsync(lesson, false); SelectQuizAsync(quiz); }">
-                                                <span class="slp-resource__icon" style="color:#9c27b0;">
+                                                <span class="slp-resource__icon" style="color:#7132f5;">
                                                     <i class="fa fa-question-circle"></i>
                                                 </span>
                                                 <span class="slp-resource__title" title="@quiz.Title">@quiz.Title</span>
@@ -899,7 +873,9 @@ else
                         <h2 class="slp-resource-title">@_selectedQuiz.Title</h2>
                     </div>
 
-                    <QuizViewer Quiz="_selectedQuiz" OnDone="BackToLessonOverview" />
+                    <QuizViewer Quiz="_selectedQuiz"
+                                OnDone="BackToLessonOverview"
+                                OnTakingQuizChanged="OnQuizTakingChanged" />
                 </div>
             }
 
@@ -914,7 +890,7 @@ else
                         <span>@_selectedLesson.Title</span>
                     </div>
 
-                    @* Lesson header + action button *@
+                    @* Lesson header *@
                     <div class="slp-lesson-header">
                         <h1 class="slp-lesson-title">@_selectedLesson.Title</h1>
 
@@ -923,31 +899,6 @@ else
                             <span class="slp-completed-chip">
                                 <i class="fa fa-check-circle"></i> Completed
                             </span>
-                        }
-                        else if (_isResumeLesson)
-                        {
-                            <button class="slp-btn-resume" @onclick="ResumeLessonAsync" disabled="@_isActing">
-                                @if (_isActing)
-                                {
-                                    <span class="spinner-border spinner-border-sm"></span>
-                                }
-                                else if (!_hasCourseStarted)
-                                {
-                                    <i class="fa fa-play"></i>
-                                    <span>Start Learning</span>
-                                }
-                                else
-                                {
-                                    <i class="fa fa-play"></i>
-                                    <span>Resume Learning</span>
-                                }
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="slp-btn-review" @onclick="ResumeLessonAsync">
-                                <i class="fa fa-eye me-1"></i> Review
-                            </button>
                         }
                     </div>
 
@@ -1010,7 +961,7 @@ else
                                             Assignment
                                             @if (assignment.Deadline.HasValue)
                                             {
-                                                <span>&bull; Due @assignment.Deadline.Value.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                                                <span>&bull; Due @(DateTime.SpecifyKind(assignment.Deadline.Value, DateTimeKind.Utc).ToLocalTime().ToString("MMM dd, yyyy"))</span>
                                             }
                                         </div>
                                     </div>

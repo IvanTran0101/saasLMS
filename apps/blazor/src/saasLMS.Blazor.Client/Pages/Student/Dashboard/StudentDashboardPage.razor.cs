@@ -8,12 +8,14 @@ using saasLMS.Blazor.Client.Authorization;
 using saasLMS.CourseCatalogService.Courses;
 using saasLMS.CourseCatalogService.Courses.Dtos.Outputs;
 using saasLMS.EnrollmentService.Enrollments;
-using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs;
+using saasLMS.EnrollmentService.Enrollments.Dtos.Inputs; // GetMyEnrollmentsInput
 using saasLMS.EnrollmentService.Enrollments.Dtos.Outputs;
 using saasLMS.LearningProgressService.CourseProgresses;
 using saasLMS.LearningProgressService.CourseProgresses.Dtos.Outputs;
 using saasLMS.LearningProgressService.LessonProgresses;
 using saasLMS.LearningProgressService.LessonProgresses.Dtos.Outputs;
+using saasLMS.NotificationService.Notifications;
+using saasLMS.NotificationService.Notifications.Dtos.Outputs;
 using Volo.Abp.AspNetCore.Components;
 using Volo.Abp.Identity;
 
@@ -37,6 +39,16 @@ public partial class StudentDashboardPage : AbpComponentBase
     [Inject]
     private IIdentityUserAppService IdentityUserAppService { get; set; } = default!;
 
+    [Inject]
+    private INotificationAppService NotificationAppService { get; set; } = default!;
+
+    // Notification state
+    private bool _showNotifications;
+    private bool _isLoadingNotifications;
+    private bool _isMarkingAll;
+    private List<NotificationDto> _notifications = new();
+    private int _unreadCount;
+
     // Loading states
     private bool _isLoadingEnrollments = true;
     private bool _isLoadingCourses = true;
@@ -51,16 +63,26 @@ public partial class StudentDashboardPage : AbpComponentBase
 
     // Derived lists (all, before search filter)
     private List<CourseListItemDto> _enrolledCourses = new();
-    private List<CourseListItemDto> _otherCourses = new();
     private List<CourseListItemDto> _recentlyAccessed = new();
 
-    // Filtered lists (after search)
+    // Filtered list (after search)
     private List<CourseListItemDto> _filteredEnrolledCourses = new();
-    private List<CourseListItemDto> _filteredOtherCourses = new();
 
     // Stats
     private int _totalEnrolled;
     private int _completedCount;
+
+    // View All expand
+    private bool _showAllEnrolled;
+    private const int EnrolledPreviewCount = 6;
+
+    private IReadOnlyList<CourseListItemDto> VisibleEnrolledCourses =>
+        (!string.IsNullOrEmpty(_searchText) || _showAllEnrolled)
+            ? _filteredEnrolledCourses
+            : _filteredEnrolledCourses.Take(EnrolledPreviewCount).ToList();
+
+    private bool HasMoreEnrolled =>
+        string.IsNullOrEmpty(_searchText) && _filteredEnrolledCourses.Count > EnrolledPreviewCount;
 
     // Search
     private string _searchText = string.Empty;
@@ -70,6 +92,7 @@ public partial class StudentDashboardPage : AbpComponentBase
         set
         {
             _searchText = value;
+            _showAllEnrolled = false; // reset khi search thay đổi
             ApplySearch();
         }
     }
@@ -82,8 +105,8 @@ public partial class StudentDashboardPage : AbpComponentBase
             return;
         }
 
-        // Step 1: load enrollments + tenant courses in parallel
-        await Task.WhenAll(LoadEnrollmentsAsync(), LoadTenantCoursesAsync());
+        // Step 1: load enrollments + tenant courses + unread count in parallel
+        await Task.WhenAll(LoadEnrollmentsAsync(), LoadTenantCoursesAsync(), LoadUnreadCountAsync());
 
         // Step 2: build course lists so we know which courses are enrolled
         BuildCourseLists();
@@ -138,10 +161,6 @@ public partial class StudentDashboardPage : AbpComponentBase
 
         _enrolledCourses = _allTenantCourses
             .Where(c => enrolledIds.Contains(c.CourseId))
-            .ToList();
-
-        _otherCourses = _allTenantCourses
-            .Where(c => !enrolledIds.Contains(c.CourseId))
             .ToList();
     }
 
@@ -220,27 +239,101 @@ public partial class StudentDashboardPage : AbpComponentBase
     private string GetInstructorName(Guid instructorId)
         => _instructorNameMap.TryGetValue(instructorId, out var name) ? name : "Instructor";
 
-    private async Task EnrollFromCardAsync(Guid courseId)
+    private async Task LoadUnreadCountAsync()
     {
         try
         {
-            await EnrollmentAppService.EnrollAsync(new EnrollCourseInput { CourseId = courseId });
+            _unreadCount = await NotificationAppService.GetUnreadCountAsync();
+        }
+        catch
+        {
+            // non-critical, swallow silently
+        }
+    }
 
-            // Move the course from Other to My Learning in-memory
-            var course = _otherCourses.FirstOrDefault(c => c.CourseId == courseId);
-            if (course != null)
-            {
-                _otherCourses.Remove(course);
-                _enrolledCourses.Add(course);
-                _totalEnrolled++;
-                ApplySearch();
-                StateHasChanged();
-            }
+    private async Task ToggleNotificationsAsync()
+    {
+        _showNotifications = !_showNotifications;
+        if (_showNotifications && _notifications.Count == 0)
+        {
+            await LoadNotificationsAsync();
+        }
+    }
+
+    private void CloseNotifications()
+    {
+        _showNotifications = false;
+    }
+
+    private async Task LoadNotificationsAsync()
+    {
+        try
+        {
+            _isLoadingNotifications = true;
+            StateHasChanged();
+            var summary = await NotificationAppService.GetMyNotificationsAsync();
+            _notifications = summary.Items;
+            _unreadCount = summary.UnreadCount;
         }
         catch (Exception ex)
         {
             await HandleErrorAsync(ex);
         }
+        finally
+        {
+            _isLoadingNotifications = false;
+        }
+    }
+
+    private async Task MarkNotificationAsReadAsync(NotificationDto notif)
+    {
+        if (notif.IsRead) return;
+        try
+        {
+            await NotificationAppService.MarkAsReadAsync(notif.Id);
+            notif.IsRead = true;
+            notif.ReadAt = DateTime.UtcNow;
+            _unreadCount = Math.Max(0, _unreadCount - 1);
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+    }
+
+    private async Task MarkAllAsReadAsync()
+    {
+        if (_unreadCount == 0) return;
+        try
+        {
+            _isMarkingAll = true;
+            await NotificationAppService.MarkAllAsReadAsync();
+            foreach (var n in _notifications)
+            {
+                n.IsRead = true;
+                n.ReadAt ??= DateTime.UtcNow;
+            }
+            _unreadCount = 0;
+        }
+        catch (Exception ex)
+        {
+            await HandleErrorAsync(ex);
+        }
+        finally
+        {
+            _isMarkingAll = false;
+        }
+    }
+
+    private static string GetTimeAgo(DateTime creationTime)
+    {
+        var diff = DateTime.UtcNow - creationTime.ToUniversalTime();
+        if (diff.TotalMinutes < 1) return "Just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min{((int)diff.TotalMinutes == 1 ? "" : "s")} ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} hour{((int)diff.TotalHours == 1 ? "" : "s")} ago";
+        if (diff.TotalDays < 2) return "Yesterday";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
+        return creationTime.ToString("MMM d");
     }
 
     private void ApplySearch()
@@ -250,18 +343,11 @@ public partial class StudentDashboardPage : AbpComponentBase
         if (string.IsNullOrEmpty(term))
         {
             _filteredEnrolledCourses = _enrolledCourses;
-            _filteredOtherCourses    = _otherCourses;
             return;
         }
 
-        var termLower = term.ToLowerInvariant();
-
         _filteredEnrolledCourses = _enrolledCourses
-            .Where(c => c.Title.Contains(termLower, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        _filteredOtherCourses = _otherCourses
-            .Where(c => c.Title.Contains(termLower, StringComparison.OrdinalIgnoreCase))
+            .Where(c => c.Title.Contains(term, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 

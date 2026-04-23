@@ -1,7 +1,9 @@
 @using saasLMS.AssessmentService.Quizzes
 @using saasLMS.AssessmentService.QuizAttempts
+@using saasLMS.AssessmentService.Shared
 
 @inherits AbpComponentBase
+@implements IAsyncDisposable
 
 <style>
     /* ── Quiz Viewer ───────────────────────────────────────────────────── */
@@ -10,15 +12,15 @@
     /* Header card */
     .qv-header {
         background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         padding: 1.1rem 1.25rem;
     }
 
     .qv-header__title {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.5rem;
     }
 
@@ -27,7 +29,7 @@
         flex-wrap: wrap;
         gap: 0.85rem;
         font-size: 0.78rem;
-        color: #8a93a2;
+        color: #9497a9;
     }
 
     .qv-header__meta-item {
@@ -41,8 +43,8 @@
     /* Attempts table */
     .qv-attempts {
         background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         overflow: hidden;
     }
 
@@ -51,7 +53,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.07em;
-        color: #8a93a2;
+        color: #9497a9;
         padding: 0.75rem 1.1rem 0.5rem;
         border-bottom: 1px solid #f0f2f5;
     }
@@ -70,22 +72,22 @@
     .qv-attempt-row__number { color: #495057; flex-shrink: 0; min-width: 90px; }
 
     .qv-attempt-row__time {
-        color: #8a93a2;
+        color: #9497a9;
         font-size: 0.76rem;
         flex: 1;
     }
 
     .qv-attempt-row__score {
         font-weight: 700;
-        color: #1e8e3e;
+        color: #149e61;
         white-space: nowrap;
     }
 
-    .qv-attempt-row__score--pending { color: #8a93a2; font-weight: 400; }
+    .qv-attempt-row__score--pending { color: #9497a9; font-weight: 400; }
 
     .qv-no-attempts {
         padding: 1.1rem;
-        color: #8a93a2;
+        color: #9497a9;
         font-size: 0.83rem;
         text-align: center;
     }
@@ -100,10 +102,10 @@
     }
 
     .qv-btn-start {
-        background: #1a73e8;
+        background: #7132f5;
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 0.55rem 1.5rem;
         font-size: 0.88rem;
         font-weight: 600;
@@ -114,14 +116,14 @@
         transition: background 0.15s;
     }
 
-    .qv-btn-start:hover { background: #1557b0; }
+    .qv-btn-start:hover { background: #5741d8; }
     .qv-btn-start:disabled { opacity: 0.55; cursor: not-allowed; }
 
     .qv-btn-done {
         background: transparent;
         color: #495057;
         border: 1.5px solid #ced4da;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 0.45rem 1.1rem;
         font-size: 0.82rem;
         font-weight: 500;
@@ -132,15 +134,15 @@
         transition: border-color 0.15s, color 0.15s;
     }
 
-    .qv-btn-done:hover { border-color: #1a73e8; color: #1a73e8; }
+    .qv-btn-done:hover { border-color: #7132f5; color: #7132f5; }
 
     /* ── Quiz form (taking quiz) ──────────────────────────────────────── */
     .qv-form { display: flex; flex-direction: column; gap: 1.1rem; }
 
     .qv-question {
         background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
         padding: 1.1rem 1.25rem;
     }
 
@@ -149,14 +151,14 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.07em;
-        color: #1a73e8;
+        color: #7132f5;
         margin-bottom: 0.35rem;
     }
 
     .qv-question__title {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #0d1117;
+        color: #101114;
         margin-bottom: 0.65rem;
         line-height: 1.5;
     }
@@ -174,8 +176,8 @@
         align-items: center;
         gap: 0.65rem;
         padding: 0.5rem 0.75rem;
-        border: 1.5px solid #e9ecef;
-        border-radius: 8px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         cursor: pointer;
         transition: border-color 0.15s, background 0.15s;
         font-size: 0.86rem;
@@ -183,21 +185,21 @@
         user-select: none;
     }
 
-    .qv-choice:hover { border-color: #1a73e8; background: #f0f6ff; }
+    .qv-choice:hover { border-color: #7132f5; background: rgba(133,91,251,0.06); }
 
     .qv-choice--selected {
-        border-color: #1a73e8;
-        background: #e8f0fe;
-        color: #1a73e8;
+        border-color: #7132f5;
+        background: rgba(133,91,251,0.16);
+        color: #7132f5;
         font-weight: 600;
     }
 
-    .qv-choice input[type=radio] { accent-color: #1a73e8; flex-shrink: 0; }
+    .qv-choice input[type=radio] { accent-color: #7132f5; flex-shrink: 0; }
 
     .qv-text-answer {
         width: 100%;
-        border: 1.5px solid #e9ecef;
-        border-radius: 8px;
+        border: 1.5px solid #dedee5;
+        border-radius: 12px;
         padding: 0.55rem 0.75rem;
         font-size: 0.86rem;
         color: #333;
@@ -207,21 +209,21 @@
         outline: none;
     }
 
-    .qv-text-answer:focus { border-color: #1a73e8; }
+    .qv-text-answer:focus { border-color: #7132f5; }
 
     .qv-submit-bar {
         display: flex;
         justify-content: flex-end;
         margin-top: 0.5rem;
         padding-top: 1rem;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid #dedee5;
     }
 
     .qv-btn-submit {
-        background: #1e8e3e;
+        background: #149e61;
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 0.55rem 1.75rem;
         font-size: 0.88rem;
         font-weight: 600;
@@ -232,7 +234,7 @@
         transition: background 0.15s;
     }
 
-    .qv-btn-submit:hover { background: #1a7a36; }
+    .qv-btn-submit:hover { background: #0e8a56; }
     .qv-btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
     /* Result chip after submit */
@@ -240,15 +242,206 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: #e6f4ea;
-        color: #1e8e3e;
-        border: 1px solid #ceead6;
-        border-radius: 10px;
+        background: rgba(20,158,97,0.16);
+        color: #149e61;
+        border: 1px solid rgba(20,158,97,0.3);
+        border-radius: 6px;
         padding: 0.55rem 1rem;
         font-size: 0.86rem;
         font-weight: 600;
         margin-bottom: 0.25rem;
     }
+
+    .qv-closed-banner {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 0.6rem 1rem;
+        font-size: 0.82rem;
+        color: #856404;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .qv-start-warning {
+        flex: 1;
+        background: #fce8e6;
+        border: 1px solid #f28b82;
+        border-radius: 12px;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        color: #c62828;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .qv-info-note {
+        background: #f8f9fa;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* ── Countdown Timer (fixed right-side sticky widget) ───────────── */
+    .qv-timer {
+        position: fixed;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 100;
+        background: #fff;
+        border: 1px solid #dedee5;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        min-width: 110px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    .qv-timer__bar-wrap {
+        width: 100%;
+        height: 6px;
+        background: #e9ecef;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .qv-timer__bar {
+        height: 100%;
+        background: #7132f5;
+        border-radius: 3px;
+        transition: width 0.9s linear;
+    }
+
+    .qv-timer__display {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #495057;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .qv-timer--warning .qv-timer__bar  { background: #fb8c00; }
+    .qv-timer--warning .qv-timer__display { color: #bf360c; }
+
+    .qv-timer--critical .qv-timer__bar { background: #d93025; }
+    .qv-timer--critical .qv-timer__display {
+        color: #d93025;
+        animation: qv-blink 1s step-start infinite;
+    }
+
+    @@keyframes qv-blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.35; }
+    }
+
+    /* ── Timeout banner ───────────────────────────────────────────────── */
+    .qv-timeout-banner {
+        background: #fce8e6;
+        border: 1px solid #f28b82;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        font-size: 0.88rem;
+        color: #c62828;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .qv-timeout-banner__title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* ── Leave confirmation overlay ───────────────────────────────────── */
+    .qv-leave-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(16,17,20,0.45);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .qv-leave-box {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.75rem 2rem;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .qv-leave-box__icon {
+        font-size: 2rem;
+        color: #fb8c00;
+        text-align: center;
+    }
+
+    .qv-leave-box__title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #101114;
+        text-align: center;
+    }
+
+    .qv-leave-box__body {
+        font-size: 0.84rem;
+        color: #6c757d;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .qv-leave-box__actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+
+    .qv-btn-leave-confirm {
+        background: #d93025;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.4rem;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .qv-btn-leave-confirm:hover { background: #b71c1c; }
+
+    .qv-btn-leave-stay {
+        background: #7132f5;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.4rem;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .qv-btn-leave-stay:hover { background: #5741d8; }
 </style>
 
 <div class="qv-root">
@@ -262,7 +455,20 @@
     }
     else if (_isTakingQuiz && _formSchema is not null)
     {
-        @* ── Quiz form (taking quiz) ── *@
+        @* ── Countdown timer (shown when quiz has a time limit) ── *@
+        @if (HasTimer)
+        {
+            <div class="qv-timer @TimerCssClass">
+                <div class="qv-timer__bar-wrap">
+                    <div class="qv-timer__bar" style="width:@TimerProgressPct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                </div>
+                <span class="qv-timer__display">
+                    <i class="fa fa-clock-o"></i> @FormatRemaining()
+                </span>
+            </div>
+        }
+
+        @* ── Quiz form ── *@
 
         <div class="qv-form">
             @foreach (var question in _formSchema.Questions.OrderBy(q => q.Index))
@@ -312,6 +518,11 @@
         </div>
 
         <div class="qv-submit-bar">
+            @* Leave while taking — show inline confirm instead of immediate back *@
+            <button class="qv-btn-done" @onclick="RequestLeave" disabled="@_isSubmitting">
+                <i class="fa fa-arrow-left"></i> Back
+            </button>
+
             <button class="qv-btn-submit"
                     @onclick="SubmitQuizAsync"
                     disabled="@_isSubmitting">
@@ -328,7 +539,20 @@
             </button>
         </div>
     }
-    else
+
+    @* ── Timeout banner ── *@
+    @if (_isTimedOut)
+    {
+        <div class="qv-timeout-banner">
+            <div class="qv-timeout-banner__title">
+                <i class="fa fa-clock-o"></i> Time's up!
+            </div>
+            <span>Your time has expired. Your answers have been automatically submitted.</span>
+        </div>
+    }
+
+    @* ── Overview (quiz info + attempts) — hidden while taking quiz ── *@
+    @if (!_isTakingQuiz && !_isTimedOut)
     {
         @* ── Overview (quiz info + attempts) ── *@
 
@@ -338,6 +562,14 @@
             <div class="qv-result-chip">
                 <i class="fa fa-check-circle"></i>
                 Submitted! Score: @_currentAttempt.Score.ToString("G") / @Quiz.MaxScore.ToString("G")
+            </div>
+        }
+
+        @* Closed banner *@
+        @if (_isLocked)
+        {
+            <div class="qv-closed-banner">
+                <i class="fa fa-lock"></i> This quiz is closed. No new attempts are accepted.
             </div>
         }
 
@@ -351,15 +583,34 @@
                         <i class="fa fa-clock-o"></i> @FormatDuration(Quiz.TimeLimitMinutes.Value)
                     </span>
                 }
+                else
+                {
+                    <span class="qv-header__meta-item">
+                        <i class="fa fa-clock-o"></i> No time limit
+                    </span>
+                }
                 <span class="qv-header__meta-item">
                     <i class="fa fa-trophy"></i> Max Score: @Quiz.MaxScore.ToString("G")
                 </span>
                 <span class="qv-header__meta-item">
-                    <i class="fa fa-list-ol"></i> Attempts: @_attempts.Count
+                    <i class="fa fa-repeat"></i>
+                    @(Quiz.AttemptPolicy == AttemptPolicy.Multiple ? "Multiple attempts allowed" : "One attempt only")
                 </span>
                 <span class="qv-header__meta-item">
-                    <i class="fa fa-info-circle"></i> @Quiz.Status.ToString()
+                    <i class="fa fa-list-ol"></i> Your attempts: @_attempts.Count
                 </span>
+                @if (Quiz.PublishedAt.HasValue)
+                {
+                    <span class="qv-header__meta-item">
+                        <i class="fa fa-calendar-check-o"></i> Available since: @ToLocalDisplay(Quiz.PublishedAt.Value, "MMM dd, yyyy")
+                    </span>
+                }
+                @if (Quiz.ClosedAt.HasValue)
+                {
+                    <span class="qv-header__meta-item" style="color:#856404;">
+                        <i class="fa fa-lock"></i> Closed: @ToLocalDisplay(Quiz.ClosedAt.Value, "MMM dd, yyyy HH:mm")
+                    </span>
+                }
             </div>
         </div>
 
@@ -375,7 +626,7 @@
                 @foreach (var attempt in _attempts.OrderBy(a => a.AttemptNumber))
                 {
                     var durationMins = attempt.CompletedAt.HasValue
-                        ? (int)(attempt.CompletedAt.Value - attempt.StartedAt).TotalMinutes
+                        ? (int)(EnsureUtc(attempt.CompletedAt.Value) - EnsureUtc(attempt.StartedAt)).TotalMinutes
                         : (int?)null;
 
                     <div class="qv-attempt-row">
@@ -383,11 +634,11 @@
                             Attempt @attempt.AttemptNumber
                             @if (durationMins.HasValue)
                             {
-                                <span style="color:#8a93a2; font-weight:400;"> (@durationMins min)</span>
+                                <span style="color:#9497a9; font-weight:400;"> (@durationMins min)</span>
                             }
                         </span>
                         <span class="qv-attempt-row__time">
-                            @attempt.StartedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                            @ToLocalDisplay(attempt.StartedAt)
                         </span>
                         @if (attempt.Status == QuizAttemptStatus.Completed)
                         {
@@ -417,7 +668,20 @@
                 <span></span>
             }
 
-            @if (Quiz.Status == QuizStatus.Published)
+            @if (!string.IsNullOrEmpty(_startWarning))
+            {
+                <div class="qv-start-warning">
+                    <i class="fa fa-exclamation-triangle"></i> @_startWarning
+                </div>
+            }
+            else if (!_isLocked && !_canStart && _attempts.Count > 0 && Quiz.AttemptPolicy == AttemptPolicy.OneTime)
+            {
+                <div class="qv-info-note">
+                    <i class="fa fa-info-circle"></i> You have already submitted this quiz.
+                </div>
+            }
+
+            @if (_canStart)
             {
                 <button class="qv-btn-start"
                         @onclick="StartQuizAsync"
@@ -430,7 +694,7 @@
                     else
                     {
                         <i class="fa fa-play"></i>
-                        <span>Start Quiz</span>
+                        <span>@(_attempts.Count > 0 ? "Retake Quiz" : "Start Quiz")</span>
                     }
                 </button>
             }
@@ -438,3 +702,33 @@
     }
 
 </div>
+
+@* ── Leave confirmation dialog (shown when Back is clicked mid-quiz) ── *@
+@if (_showLeaveConfirm)
+{
+    <div class="qv-leave-overlay">
+        <div class="qv-leave-box">
+            <div class="qv-leave-box__icon">
+                <i class="fa fa-exclamation-triangle"></i>
+            </div>
+            <div class="qv-leave-box__title">Leave quiz in progress?</div>
+            <div class="qv-leave-box__body">
+                You haven't submitted your answers yet. If you leave now, your current attempt will remain
+                open but your answers will <strong>not</strong> be saved.
+                @if (HasTimer)
+                {
+                    <br /><br />
+                    <span style="color:#bf360c;">The timer will continue running.</span>
+                }
+            </div>
+            <div class="qv-leave-box__actions">
+                <button class="qv-btn-leave-confirm" @onclick="ConfirmLeaveAsync">
+                    <i class="fa fa-sign-out me-1"></i> Leave Quiz
+                </button>
+                <button class="qv-btn-leave-stay" @onclick="CancelLeave">
+                    <i class="fa fa-arrow-left me-1"></i> Stay &amp; Continue
+                </button>
+            </div>
+        </div>
+    </div>
+}

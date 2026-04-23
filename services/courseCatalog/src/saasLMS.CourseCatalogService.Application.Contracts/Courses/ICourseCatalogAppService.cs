@@ -42,6 +42,7 @@ public interface ICourseCatalogAppService : IApplicationService
     Task<ChapterDto> CreateChapterAsync(CreateChapterInput input);
     Task<ChapterDto> RenameChapterAsync(RenameChapterInput input);
     Task RemoveChapterAsync(RemoveChapterInput input);
+    Task ReorderChaptersAsync(ReorderChaptersInput input);
     
     Task<ChapterDto> GetChapterAsync(Guid courseId, Guid chapterId);
     Task<List<ChapterDto>> GetChaptersByCourseAsync(Guid courseId);
