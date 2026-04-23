@@ -143,8 +143,10 @@ jobs:
                 continue
                 ;;
             esac
-            matrix="$(jq --argjson obj "$obj" '. + [$obj]' <<< "$matrix")"
+            matrix="$(jq -c --argjson obj "$obj" '. + [$obj]' <<< "$matrix")"
           done
+
+          matrix="$(jq -c '.' <<< "$matrix")"
 
           if [[ "$(jq 'length' <<< "$matrix")" -gt 0 ]]; then
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
