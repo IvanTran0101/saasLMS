@@ -326,10 +326,26 @@ jobs:
           python3 -m pip install ansible boto3 botocore
           ansible-galaxy collection install -r deploy/ansible/requirements.yml
 
+      - name: Write Ansible Vault password file
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ansible
+          chmod 700 ~/.ansible
+          printf '%s' "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.ansible/vault-pass.txt
+          chmod 600 ~/.ansible/vault-pass.txt
+
       - name: Deploy stack
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
           ansible-playbook \
             -i deploy/ansible/inventories/prod/hosts.ini \
-            deploy/ansible/playbooks/swarm-stack.yml
+            deploy/ansible/playbooks/swarm-stack.yml \
+            --vault-password-file ~/.ansible/vault-pass.txt
+
+      - name: Remove Ansible Vault password file
+        if: always()
+        shell: bash
+        run: |
+          rm -f ~/.ansible/vault-pass.txt

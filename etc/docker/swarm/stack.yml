@@ -1,27 +1,27 @@
 version: "3.9"
 
 x-env-common: &env_common
-  ASPNETCORE_ENVIRONMENT: Production
-  ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-  ASPNETCORE_URLS: http://+:80
-  AllowedHosts: "*"
-  App__CorsOrigins: https://app.trananhminh.uk,https://api.trananhminh.uk,https://auth.trananhminh.uk
-  App__RedirectAllowedUrls: https://app.trananhminh.uk,https://api.trananhminh.uk,https://auth.trananhminh.uk
-  AuthServer__Authority: https://auth.trananhminh.uk
-  AuthServer__MetadataAddress: https://auth.trananhminh.uk/.well-known/openid-configuration
-  AuthServer__RequireHttpsMetadata: "true"
-  AuthServer__SwaggerClientId: WebGateway_Swagger
-  Redis__Configuration: 10.0.1.118:6379
-  RabbitMQ__Connections__Default__HostName: 10.0.1.118
-  RabbitMQ__Connections__Default__Port: "5672"
-  RabbitMQ__EventBus__ExchangeName: saasLMS
-  ElasticSearch__Url: http://10.0.1.118:9200
+  ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED: ${ASPNETCORE_FORWARDEDHEADERS_ENABLED:-true}
+  ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:80}
+  AllowedHosts: ${AllowedHosts:-*}
+  App__CorsOrigins: ${App__CorsOrigins}
+  App__RedirectAllowedUrls: ${App__RedirectAllowedUrls}
+  AuthServer__Authority: ${AuthServer__Authority}
+  AuthServer__MetadataAddress: ${AuthServer__MetadataAddress}
+  AuthServer__RequireHttpsMetadata: ${AuthServer__RequireHttpsMetadata:-true}
+  AuthServer__SwaggerClientId: ${AuthServer__SwaggerClientId:-WebGateway_Swagger}
+  Redis__Configuration: ${Redis__Configuration}
+  RabbitMQ__Connections__Default__HostName: ${RabbitMQ__Connections__Default__HostName}
+  RabbitMQ__Connections__Default__Port: ${RabbitMQ__Connections__Default__Port:-5672}
+  RabbitMQ__EventBus__ExchangeName: ${RabbitMQ__EventBus__ExchangeName:-saasLMS}
+  ElasticSearch__Url: ${ElasticSearch__Url}
   # Internal service-to-service calls go via the gateway (no TLS).
   # In Swarm stacks, the in-network DNS name is the service key (e.g. "gateway"),
   # not the full service object name "saaslms_gateway".
-  RemoteServices__Default__BaseUrl: http://gateway:80
-  IdentityClients__Default__Authority: https://auth.trananhminh.uk
-  IdentityClients__Default__RequireHttps: "true"
+  RemoteServices__Default__BaseUrl: ${RemoteServices__Default__BaseUrl:-http://gateway:80}
+  IdentityClients__Default__Authority: ${IdentityClients__Default__Authority}
+  IdentityClients__Default__RequireHttps: ${IdentityClients__Default__RequireHttps:-true}
 
 x-deploy-worker: &deploy_worker
   replicas: 1
@@ -34,7 +34,7 @@ x-deploy-worker: &deploy_worker
     parallelism: 1
     delay: 10s
     order: stop-first
-    failure_action: rollback
+    failure_action: pause
     monitor: 30s
     max_failure_ratio: 0.2
   rollback_config:
@@ -60,7 +60,7 @@ x-deploy-manager: &deploy_manager
     parallelism: 1
     delay: 10s
     order: stop-first
-    failure_action: rollback
+    failure_action: pause
     monitor: 30s
     max_failure_ratio: 0.2
   rollback_config:
@@ -162,8 +162,8 @@ services:
       OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
       OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk
       OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk
-      DbMigrator__Redis__Configuration: 10.0.1.118:6379
-      DbMigrator__ElasticSearch__Url: http://10.0.1.118:9200
+      DbMigrator__Redis__Configuration: ${DbMigrator__Redis__Configuration:-${Redis__Configuration}}
+      DbMigrator__ElasticSearch__Url: ${DbMigrator__ElasticSearch__Url:-${ElasticSearch__Url}}
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
