@@ -1,4 +1,4 @@
-using saasLMS.LearningProgressService.Localization;
+using saasLMS.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -25,6 +25,6 @@ public class LearningProgressServicePermissionDefinitionProvider : PermissionDef
 
     private static LocalizableString L(string name)
     {
-        return LocalizableString.Create<LearningProgressServiceResource>(name);
+        return LocalizableString.Create<saasLMSResource>(name);
     }
 }

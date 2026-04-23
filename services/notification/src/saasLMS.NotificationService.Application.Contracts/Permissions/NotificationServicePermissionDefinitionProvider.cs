@@ -1,4 +1,4 @@
-using saasLMS.NotificationService.Localization;
+using saasLMS.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -25,6 +25,6 @@ public class NotificationServicePermissionDefinitionProvider : PermissionDefinit
 
     private static LocalizableString L(string name)
     {
-        return LocalizableString.Create<NotificationServiceResource>(name);
+        return LocalizableString.Create<saasLMSResource>(name);
     }
 }
