@@ -1,5 +1,9 @@
 {
   "culture": "en",
   "texts": {
+    "Permission:NotificationService": "Notification",
+    "Permission:Notifications": "Notifications",
+    "Permission:ViewOwn": "View Own",
+    "Permission:Manage": "Manage"
   }
 }

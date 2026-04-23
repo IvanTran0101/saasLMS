@@ -1,6 +1,10 @@
 {
   "culture": "en",
   "texts": {
+    "Permission:LearningProgressService": "Learning Progress",
+    "Permission:LessonProgresses": "Lesson Progresses",
+    "Permission:Record": "Record",
+    "Permission:ViewOwn": "View Own",
     "LearningProgressService:LessonNotFound": "Lesson is not available in this course."
   }
 }
