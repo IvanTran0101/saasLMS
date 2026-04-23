@@ -30,6 +30,19 @@ x-deploy-worker: &deploy_worker
     delay: 5s
     max_attempts: 10
     window: 60s
+  update_config:
+    parallelism: 1
+    delay: 10s
+    order: stop-first
+    failure_action: rollback
+    monitor: 30s
+    max_failure_ratio: 0.2
+  rollback_config:
+    parallelism: 1
+    delay: 5s
+    order: stop-first
+    monitor: 30s
+    max_failure_ratio: 0.2
   placement:
     constraints:
       # Require both Swarm role and explicit node label set by Ansible swarm-worker role.
@@ -43,6 +56,19 @@ x-deploy-manager: &deploy_manager
     delay: 5s
     max_attempts: 10
     window: 60s
+  update_config:
+    parallelism: 1
+    delay: 10s
+    order: stop-first
+    failure_action: rollback
+    monitor: 30s
+    max_failure_ratio: 0.2
+  rollback_config:
+    parallelism: 1
+    delay: 5s
+    order: stop-first
+    monitor: 30s
+    max_failure_ratio: 0.2
   placement:
     constraints:
       # Require both Swarm role and explicit node label set by Ansible swarm-manager role.
@@ -376,6 +402,7 @@ services:
       - saaslms-app
     deploy:
       <<: *deploy_worker
+      replicas: 2
 
   learningprogressservice:
     image: ${LEARNINGPROGRESS_IMAGE}
@@ -399,6 +426,7 @@ services:
       - saaslms-app
     deploy:
       <<: *deploy_worker
+      replicas: 2
 
   notificationservice:
     image: ${NOTIFICATION_IMAGE}

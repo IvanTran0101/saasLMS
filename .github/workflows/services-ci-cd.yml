@@ -28,7 +28,7 @@ on:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       has_changes: ${{ steps.detect.outputs.has_changes }}
       matrix: ${{ steps.detect.outputs.matrix }}
@@ -97,46 +97,46 @@ jobs:
           for svc in "${!touched[@]}"; do
             case "$svc" in
               blazor)
-                obj='{"service":"blazor","image_repo":"youngmizh/saaslms-blazor","image_var":"BLAZOR_IMAGE","dockerfile":"apps/blazor/src/saasLMS.Blazor/Dockerfile"}'
+                obj='{"service":"blazor","service_dir":"apps/blazor","csproj":"apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj","image_repo":"youngmizh/saaslms-blazor","image_var":"BLAZOR_IMAGE","dockerfile":"apps/blazor/src/saasLMS.Blazor/Dockerfile"}'
                 ;;
               dbmigrator)
-                obj='{"service":"dbmigrator","image_repo":"youngmizh/saaslms-dbmigrator","image_var":"DBMIGRATOR_IMAGE","dockerfile":"shared/saasLMS.DbMigrator/Dockerfile"}'
+                obj='{"service":"dbmigrator","service_dir":"shared/saasLMS.DbMigrator","csproj":"shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj","image_repo":"youngmizh/saaslms-dbmigrator","image_var":"DBMIGRATOR_IMAGE","dockerfile":"shared/saasLMS.DbMigrator/Dockerfile"}'
                 ;;
               authserver)
-                obj='{"service":"authserver","image_repo":"youngmizh/saaslms-authserver","image_var":"AUTHSERVER_IMAGE","dockerfile":"apps/auth-server/src/saasLMS.AuthServer/Dockerfile"}'
+                obj='{"service":"authserver","service_dir":"apps/auth-server","csproj":"apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj","image_repo":"youngmizh/saaslms-authserver","image_var":"AUTHSERVER_IMAGE","dockerfile":"apps/auth-server/src/saasLMS.AuthServer/Dockerfile"}'
                 ;;
               gateway)
-                obj='{"service":"gateway","image_repo":"youngmizh/saaslms-gateway-web","image_var":"GATEWAY_IMAGE","dockerfile":"gateways/web/src/saasLMS.WebGateway/Dockerfile"}'
+                obj='{"service":"gateway","service_dir":"gateways/web","csproj":"gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj","image_repo":"youngmizh/saaslms-gateway-web","image_var":"GATEWAY_IMAGE","dockerfile":"gateways/web/src/saasLMS.WebGateway/Dockerfile"}'
                 ;;
               saasservice)
-                obj='{"service":"saasservice","image_repo":"youngmizh/saaslms-saas","image_var":"SAAS_IMAGE","dockerfile":"services/saas/src/saasLMS.SaasService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"saasservice","service_dir":"services/saas","csproj":"services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-saas","image_var":"SAAS_IMAGE","dockerfile":"services/saas/src/saasLMS.SaasService.HttpApi.Host/Dockerfile"}'
                 ;;
               administrationservice)
-                obj='{"service":"administrationservice","image_repo":"youngmizh/saaslms-administration","image_var":"ADMINISTRATION_IMAGE","dockerfile":"services/administration/src/saasLMS.AdministrationService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"administrationservice","service_dir":"services/administration","csproj":"services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-administration","image_var":"ADMINISTRATION_IMAGE","dockerfile":"services/administration/src/saasLMS.AdministrationService.HttpApi.Host/Dockerfile"}'
                 ;;
               identityservice)
-                obj='{"service":"identityservice","image_repo":"youngmizh/saaslms-identity","image_var":"IDENTITY_IMAGE","dockerfile":"services/identity/src/saasLMS.IdentityService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"identityservice","service_dir":"services/identity","csproj":"services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-identity","image_var":"IDENTITY_IMAGE","dockerfile":"services/identity/src/saasLMS.IdentityService.HttpApi.Host/Dockerfile"}'
                 ;;
               productservice)
-                obj='{"service":"productservice","image_repo":"youngmizh/saaslms-product","image_var":"PRODUCT_IMAGE","dockerfile":"services/product/src/saasLMS.ProductService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"productservice","service_dir":"services/product","csproj":"services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-product","image_var":"PRODUCT_IMAGE","dockerfile":"services/product/src/saasLMS.ProductService.HttpApi.Host/Dockerfile"}'
                 ;;
               coursecatalogservice)
-                obj='{"service":"coursecatalogservice","image_repo":"youngmizh/saaslms-coursecatalog","image_var":"COURSECATALOG_IMAGE","dockerfile":"services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"coursecatalogservice","service_dir":"services/courseCatalog","csproj":"services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-coursecatalog","image_var":"COURSECATALOG_IMAGE","dockerfile":"services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/Dockerfile"}'
                 ;;
               enrollmentservice)
-                obj='{"service":"enrollmentservice","image_repo":"youngmizh/saaslms-enrollment","image_var":"ENROLLMENT_IMAGE","dockerfile":"services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"enrollmentservice","service_dir":"services/enrollment","csproj":"services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-enrollment","image_var":"ENROLLMENT_IMAGE","dockerfile":"services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/Dockerfile"}'
                 ;;
               assessmentservice)
-                obj='{"service":"assessmentservice","image_repo":"youngmizh/saaslms-assessment","image_var":"ASSESSMENT_IMAGE","dockerfile":"services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"assessmentservice","service_dir":"services/assessment","csproj":"services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-assessment","image_var":"ASSESSMENT_IMAGE","dockerfile":"services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/Dockerfile"}'
                 ;;
               learningprogressservice)
-                obj='{"service":"learningprogressservice","image_repo":"youngmizh/saaslms-learningprogress","image_var":"LEARNINGPROGRESS_IMAGE","dockerfile":"services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"learningprogressservice","service_dir":"services/learningProgress","csproj":"services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-learningprogress","image_var":"LEARNINGPROGRESS_IMAGE","dockerfile":"services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/Dockerfile"}'
                 ;;
               notificationservice)
-                obj='{"service":"notificationservice","image_repo":"youngmizh/saaslms-notification","image_var":"NOTIFICATION_IMAGE","dockerfile":"services/notification/src/saasLMS.NotificationService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"notificationservice","service_dir":"services/notification","csproj":"services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-notification","image_var":"NOTIFICATION_IMAGE","dockerfile":"services/notification/src/saasLMS.NotificationService.HttpApi.Host/Dockerfile"}'
                 ;;
               reportingservice)
-                obj='{"service":"reportingservice","image_repo":"youngmizh/saaslms-reporting","image_var":"REPORTING_IMAGE","dockerfile":"services/reporting/src/saasLMS.ReportingService.HttpApi.Host/Dockerfile"}'
+                obj='{"service":"reportingservice","service_dir":"services/reporting","csproj":"services/reporting/src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-reporting","image_var":"REPORTING_IMAGE","dockerfile":"services/reporting/src/saasLMS.ReportingService.HttpApi.Host/Dockerfile"}'
                 ;;
               *)
                 echo "Unknown service: $svc" >&2
@@ -154,10 +154,78 @@ jobs:
             echo 'matrix=[]' >> "$GITHUB_OUTPUT"
           fi
 
-  build-images:
+  ci-quality:
     needs: detect-changes
     if: needs.detect-changes.outputs.has_changes == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK with NuGet cache
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.props
+            **/*.targets
+            NuGet.Config
+
+      - name: Restore service project
+        run: dotnet restore "${{ matrix.csproj }}"
+
+      - name: Build service project (Release)
+        run: dotnet build "${{ matrix.csproj }}" -c Release --no-restore
+
+      - name: Code style gate (dotnet format verify)
+        run: dotnet format "${{ matrix.csproj }}" --verify-no-changes --no-restore --verbosity minimal
+
+      - name: Run service unit tests (Application/Domain when available)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_root="${{ matrix.service_dir }}/test"
+          if [[ ! -d "$test_root" ]]; then
+            echo "No test directory for ${{ matrix.service }}; skipping tests."
+            exit 0
+          fi
+
+          mapfile -t test_projects < <(find "$test_root" -type f \( -name "*.Application.Tests.csproj" -o -name "*.Domain.Tests.csproj" \) | sort)
+          if [[ "${#test_projects[@]}" -eq 0 ]]; then
+            echo "No Application/Domain test projects for ${{ matrix.service }}; skipping tests."
+            exit 0
+          fi
+
+          for proj in "${test_projects[@]}"; do
+            echo "Running tests: $proj"
+            dotnet test "$proj" -c Release --nologo --logger "trx;LogFileName=$(basename "$proj").trx"
+          done
+
+  security-scan:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy FS scan (fail on HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  build-images:
+    needs: [detect-changes, ci-quality, security-scan]
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -187,7 +255,7 @@ jobs:
   update-image-tags:
     needs: [detect-changes, build-images]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.detect-changes.outputs.has_changes == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -207,7 +275,8 @@ jobs:
       - name: Install Ansible
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install ansible
+          python3 -m pip install ansible boto3 botocore
+          ansible-galaxy collection install -r deploy/ansible/requirements.yml
 
       - name: Update service image tag on manager
         env:
@@ -222,7 +291,7 @@ jobs:
   deploy-stack:
     needs: update-image-tags
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -238,7 +307,8 @@ jobs:
       - name: Install Ansible
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install ansible
+          python3 -m pip install ansible boto3 botocore
+          ansible-galaxy collection install -r deploy/ansible/requirements.yml
 
       - name: Deploy stack
         env:
