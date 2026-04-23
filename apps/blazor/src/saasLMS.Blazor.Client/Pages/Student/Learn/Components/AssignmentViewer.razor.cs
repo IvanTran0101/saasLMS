@@ -253,8 +253,12 @@ public partial class AssignmentViewer : AbpComponentBase
             httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token.Value);
 
-            var response = await httpClient.GetAsync(
-                $"{baseUrl}/api/assessment/submission/{_submission.Id}/download-file");
+            using var body = new StringContent(
+                JsonSerializer.Serialize(new { submissionId = _submission.Id }),
+                Encoding.UTF8,
+                "application/json");
+            var response = await httpClient.PostAsync(
+                $"{baseUrl}/api/assessment/submission/download-my-submission-file", body);
 
             response.EnsureSuccessStatusCode();
 
