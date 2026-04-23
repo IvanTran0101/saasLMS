@@ -1,5 +1,8 @@
 {
   "culture": "en",
   "texts": {
+    "Permission:ReportingService": "Reporting",
+    "Permission:Reports.View": "View Reports",
+    "Permission:Reports.StudentView": "View Student Reports"
   }
 }

@@ -44,21 +44,46 @@
 :root .lpx-theme-dim, :root .lpx-theme-dark {
     --lpx-logo: url('/images/logo/leptonx/icon.svg');
     --lpx-logo-icon: url('/images/logo/leptonx/icon.svg');
-
-    /* ── Sidebar active-item color override (Design: purple #7132f5) ── */
-    --lpx-navbar-active-text-color: #a78bfa;
-    --lpx-navbar-active-text-color-rgb: 167, 139, 250;
-    --lpx-navbar-active-bg-color: rgba(113, 50, 245, 0.15);
 }
 
 :root .lpx-theme-light {
     --lpx-logo: url('/images/logo/leptonx/icon.svg');
     --lpx-logo-icon: url('/images/logo/leptonx/icon.svg');
+}
 
-    /* ── Sidebar active-item color override (Design: purple #7132f5) ── */
-    --lpx-navbar-active-text-color: #7132f5;
-    --lpx-navbar-active-text-color-rgb: 113, 50, 245;
-    --lpx-navbar-active-bg-color: rgba(113, 50, 245, 0.08);
+/* ─────────────────────────────────────────────────────────────────────────
+   Sidebar nav — active/selected/hover item: Design purple #7132f5
+   Targets LeptonX classes directly to override regardless of load order.
+   Icon uses --lpx-brand by LeptonX, text uses --lpx-navbar-active-text-color,
+   so we override both via direct selectors + !important.
+───────────────────────────────────────────────────────────────────────── */
+
+/* Active item: text + background */
+.lpx-nav-menu .lpx-menu-item-link.selected,
+.lpx-nav-menu .lpx-menu-item-link.expanded {
+    color: #7132f5 !important;
+    background-color: rgba(113, 50, 245, 0.08) !important;
+}
+
+/* Active item: icon (LeptonX uses --lpx-brand for this) */
+.lpx-nav-menu .lpx-menu-item-link.selected .lpx-menu-item-icon,
+.lpx-nav-menu .lpx-menu-item-link.selected .dd-icon,
+.lpx-nav-menu .lpx-menu-item-link.expanded .lpx-menu-item-icon,
+.lpx-nav-menu .lpx-menu-item-link.expanded .dd-icon {
+    color: #7132f5 !important;
+    opacity: 1 !important;
+}
+
+/* Hover: text */
+.lpx-nav-menu .lpx-menu-item-link:hover {
+    color: #7132f5 !important;
+}
+
+/* Hover: icon */
+.lpx-nav-menu .lpx-menu-item-link:hover .lpx-menu-item-icon,
+.lpx-nav-menu .lpx-menu-item-link:hover .dd-icon {
+    color: #7132f5 !important;
+    opacity: 1 !important;
 }
 
 /* Your Global Styles */

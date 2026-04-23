@@ -1,7 +1,7 @@
 {
   "culture": "en",
   "texts": {
-    "Permission:CourseCatalogService": "Course Catalog Service",
+    "Permission:CourseCatalogService": "Course Catalog",
     "Permission:Courses": "Courses",
     "Permission:Chapters": "Chapters",
     "Permission:Lessons": "Lessons",
