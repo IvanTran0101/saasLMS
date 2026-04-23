@@ -289,16 +289,20 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Install Ansible
+        shell: bash
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install ansible boto3 botocore
-          ansible-galaxy collection install -r deploy/ansible/requirements.yml
+          set -euo pipefail
+          python3 -m venv .venv-gha
+          . .venv-gha/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install ansible boto3 botocore
+          .venv-gha/bin/ansible-galaxy collection install -r deploy/ansible/requirements.yml
 
       - name: Update service image tag on manager
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          ansible-playbook \
+          .venv-gha/bin/ansible-playbook \
             -i deploy/ansible/inventories/prod/hosts.ini \
             deploy/ansible/playbooks/swarm-set-image-tag.yml \
             -e "service_image_var=${{ matrix.image_var }}" \
@@ -321,10 +325,14 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Install Ansible
+        shell: bash
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install ansible boto3 botocore
-          ansible-galaxy collection install -r deploy/ansible/requirements.yml
+          set -euo pipefail
+          python3 -m venv .venv-gha
+          . .venv-gha/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install ansible boto3 botocore
+          .venv-gha/bin/ansible-galaxy collection install -r deploy/ansible/requirements.yml
 
       - name: Write Ansible Vault password file
         shell: bash
@@ -339,7 +347,7 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          ansible-playbook \
+          .venv-gha/bin/ansible-playbook \
             -i deploy/ansible/inventories/prod/hosts.ini \
             deploy/ansible/playbooks/swarm-stack.yml \
             --vault-password-file ~/.ansible/vault-pass.txt
