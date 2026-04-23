@@ -1,4 +1,4 @@
-using saasLMS.EnrollmentService.Localization;
+using saasLMS.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -21,6 +21,6 @@ public class EnrollmentServicePermissionDefinitionProvider : PermissionDefinitio
 
     private static LocalizableString L(string name)
     {
-        return LocalizableString.Create<EnrollmentServiceResource>(name);
+        return LocalizableString.Create<saasLMSResource>(name);
     }
 }

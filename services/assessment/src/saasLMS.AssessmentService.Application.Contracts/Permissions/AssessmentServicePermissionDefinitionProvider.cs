@@ -1,4 +1,4 @@
-using saasLMS.AssessmentService.Localization;
+using saasLMS.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -41,6 +41,6 @@ public class AssessmentServicePermissionDefinitionProvider : PermissionDefinitio
 
     private static LocalizableString L(string name)
     {
-        return LocalizableString.Create<AssessmentServiceResource>(name);
+        return LocalizableString.Create<saasLMSResource>(name);
     }
 }
