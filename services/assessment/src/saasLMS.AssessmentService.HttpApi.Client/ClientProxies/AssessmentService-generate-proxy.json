@@ -843,6 +843,23 @@
               "allowAnonymous": null,
               "authorizeDatas": [],
               "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
+            },
+            "DownloadMySubmissionFileAsyncByInput": {
+              "uniqueName": "DownloadMySubmissionFileAsyncByInput",
+              "name": "DownloadMySubmissionFileAsync",
+              "httpMethod": "POST",
+              "url": "api/assessment/submission/download-my-submission-file",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                { "name": "input", "typeAsString": "saasLMS.AssessmentService.Submissions.DownloadSubmissionFileInput, saasLMS.AssessmentService.Application.Contracts", "type": "saasLMS.AssessmentService.Submissions.DownloadSubmissionFileInput", "typeSimple": "saasLMS.AssessmentService.Submissions.DownloadSubmissionFileInput", "isOptional": false, "defaultValue": null }
+              ],
+              "parameters": [
+                { "nameOnMethod": "input", "name": "input", "jsonName": null, "type": "saasLMS.AssessmentService.Submissions.DownloadSubmissionFileInput", "typeSimple": "saasLMS.AssessmentService.Submissions.DownloadSubmissionFileInput", "isOptional": false, "defaultValue": null, "constraintTypes": null, "bindingSourceId": "Body", "descriptorName": "" }
+              ],
+              "returnValue": { "type": "Volo.Abp.Content.IRemoteStreamContent", "typeSimple": "object" },
+              "allowAnonymous": null,
+              "authorizeDatas": [],
+              "implementFrom": "saasLMS.AssessmentService.Submissions.ISubmissionAppService"
             }
           }
         },

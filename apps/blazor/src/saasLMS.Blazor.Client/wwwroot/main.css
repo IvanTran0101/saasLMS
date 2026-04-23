@@ -44,11 +44,21 @@
 :root .lpx-theme-dim, :root .lpx-theme-dark {
     --lpx-logo: url('/images/logo/leptonx/icon.svg');
     --lpx-logo-icon: url('/images/logo/leptonx/icon.svg');
+
+    /* ── Sidebar active-item color override (Design: purple #7132f5) ── */
+    --lpx-navbar-active-text-color: #a78bfa;
+    --lpx-navbar-active-text-color-rgb: 167, 139, 250;
+    --lpx-navbar-active-bg-color: rgba(113, 50, 245, 0.15);
 }
 
 :root .lpx-theme-light {
     --lpx-logo: url('/images/logo/leptonx/icon.svg');
     --lpx-logo-icon: url('/images/logo/leptonx/icon.svg');
+
+    /* ── Sidebar active-item color override (Design: purple #7132f5) ── */
+    --lpx-navbar-active-text-color: #7132f5;
+    --lpx-navbar-active-text-color-rgb: 113, 50, 245;
+    --lpx-navbar-active-bg-color: rgba(113, 50, 245, 0.08);
 }
 
 /* Your Global Styles */
