@@ -23,6 +23,21 @@ namespace saasLMS.DbMigrator;
 
 public class OpenIddictDataSeeder : ITransientDependency
 {
+    private static readonly string[] ServiceScopes =
+    [
+        "AccountService",
+        "IdentityService",
+        "AdministrationService",
+        "SaasService",
+        "ProductService",
+        "AssessmentService",
+        "CourseCatalogService",
+        "EnrollmentService",
+        "LearningProgressService",
+        "NotificationService",
+        "ReportingService"
+    ];
+
     private readonly IConfiguration _configuration;
     private readonly ICurrentTenant _currentTenant;
     private readonly IOpenIddictApplicationRepository _openIddictApplicationRepository;
@@ -73,19 +88,15 @@ public class OpenIddictDataSeeder : ITransientDependency
 
     private async Task CreateApiScopesAsync()
     {
-        await CreateScopesAsync("AccountService");
-        await CreateScopesAsync("IdentityService");
-        await CreateScopesAsync("AdministrationService");
-        await CreateScopesAsync("SaasService");
-        await CreateScopesAsync("ProductService");
-        await CreateScopesAsync("CourseCatalogService");
-        await CreateScopesAsync("EnrollmentService");
+        foreach (var scope in ServiceScopes)
+        {
+            await CreateScopesAsync(scope);
+        }
     }
 
     private async Task CreateWebGatewaySwaggerClientsAsync()
     {
-        await CreateSwaggerClientAsync("WebGateway",
-            new[] { "AccountService", "IdentityService", "AdministrationService", "SaasService", "ProductService", "CourseCatalogService", "EnrollmentService" });
+        await CreateSwaggerClientAsync("WebGateway", ServiceScopes);
     }
 
     private async Task CreateSwaggerClientAsync(string name, string[]? scopes = null)
@@ -155,21 +166,6 @@ public class OpenIddictDataSeeder : ITransientDependency
 
         // Keep this list in sync with the scopes requested by the Blazor WASM client
         // (see the /connect/authorize "scope=" parameter in AuthServer logs).
-        var serviceScopes = new[]
-        {
-            "AccountService",
-            "IdentityService",
-            "AdministrationService",
-            "SaasService",
-            "ProductService",
-            "AssessmentService",
-            "CourseCatalogService",
-            "EnrollmentService",
-            "LearningProgressService",
-            "NotificationService",
-            "ReportingService"
-        };
-
         //Web Client
         var webClientRootUrl = _configuration["OpenIddict:Applications:Web:RootUrl"]!.EnsureEndsWith('/');
         await CreateApplicationAsync(
@@ -182,7 +178,7 @@ public class OpenIddictDataSeeder : ITransientDependency
             {
                 OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
             },
-            scopes: commonScopes.Union(serviceScopes).ToList(),
+            scopes: commonScopes.Union(ServiceScopes).ToList(),
             redirectUris: new List<string> { $"{webClientRootUrl}signin-oidc" },
             postLogoutRedirectUris: new List<string>() { $"{webClientRootUrl}signout-callback-oidc" },
             clientUri: webClientRootUrl,
@@ -198,7 +194,7 @@ public class OpenIddictDataSeeder : ITransientDependency
             displayName: "Blazor Client",
             secret: null,
             grantTypes: new List<string> { OpenIddictConstants.GrantTypes.AuthorizationCode },
-            scopes: commonScopes.Union(serviceScopes).ToList(),
+            scopes: commonScopes.Union(ServiceScopes).ToList(),
             redirectUris: new List<string> { $"{blazorClientRootUrl}authentication/login-callback" },
             postLogoutRedirectUris: new List<string> { $"{blazorClientRootUrl}authentication/logout-callback" },
             clientUri: blazorClientRootUrl,
@@ -217,7 +213,7 @@ public class OpenIddictDataSeeder : ITransientDependency
             {
                 OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
             },
-            scopes: commonScopes.Union(serviceScopes).ToList(),
+            scopes: commonScopes.Union(ServiceScopes).ToList(),
             redirectUris: new List<string> { $"{blazorServerClientRootUrl}signin-oidc" },
             postLogoutRedirectUris: new List<string> { $"{blazorServerClientRootUrl}signout-callback-oidc" },
             clientUri: blazorServerClientRootUrl,
@@ -236,7 +232,7 @@ public class OpenIddictDataSeeder : ITransientDependency
             {
                 OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
             },
-            scopes: commonScopes.Union(serviceScopes).ToList(),
+            scopes: commonScopes.Union(ServiceScopes).ToList(),
             redirectUris: new List<string> { $"{blazorWebAppClientRootUrl}signin-oidc" },
             postLogoutRedirectUris: new List<string> { $"{blazorWebAppClientRootUrl}signout-callback-oidc" },
             clientUri: blazorWebAppClientRootUrl,
@@ -277,7 +273,7 @@ public class OpenIddictDataSeeder : ITransientDependency
                 "LinkLogin",
                 "Impersonation"
             },
-            scopes: commonScopes.Union(serviceScopes).ToList(),
+            scopes: commonScopes.Union(ServiceScopes).ToList(),
             redirectUris: new List<string> { $"{angularClientRootUrl}" },
             postLogoutRedirectUris: new List<string> { $"{angularClientRootUrl}" },
             clientUri: angularClientRootUrl,
