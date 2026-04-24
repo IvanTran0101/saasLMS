@@ -117,6 +117,7 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     private string?   _assignmentDescription;
     private DateTime? _assignmentDeadline;
     private decimal   _assignmentMaxScore;
+    private string?   _assignmentDescriptionError;
     private string?   _assignmentDeadlineError;
     private string?   _assignmentMaxScoreError;
 
@@ -243,11 +244,12 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _textContent = string.Empty;
         _textError   = null;
 
-        _assignmentDescription   = null;
-        _assignmentDeadline      = null;
-        _assignmentMaxScore      = 100m;
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
+        _assignmentDescription      = null;
+        _assignmentDeadline         = null;
+        _assignmentMaxScore         = 100m;
+        _assignmentDescriptionError = null;
+        _assignmentDeadlineError    = null;
+        _assignmentMaxScoreError    = null;
 
         _quizCsvFile           = null;
         _quizCsvFileError      = null;
@@ -276,8 +278,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _videoUrlError = null;
         _textError     = null;
         
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
+        _assignmentDescriptionError = null;
+        _assignmentDeadlineError    = null;
+        _assignmentMaxScoreError    = null;
 
         _quizCsvFileError = null;
     }
@@ -479,8 +482,15 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task SaveEditAssignmentAsync()
     {
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
+        _assignmentDescriptionError = null;
+        _assignmentDeadlineError    = null;
+        _assignmentMaxScoreError    = null;
+
+        if (string.IsNullOrWhiteSpace(_assignmentDescription))
+        {
+            _assignmentDescriptionError = "Description is required.";
+            throw new InvalidOperationException(_assignmentDescriptionError);
+        }
 
         if (_assignmentMaxScore <= 0)
         {
@@ -491,7 +501,7 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         var input = new UpdateAssignmentDto
         {
             Title       = _resourceTitle.Trim(),
-            Description = string.IsNullOrWhiteSpace(_assignmentDescription) ? null : _assignmentDescription.Trim(),
+            Description = _assignmentDescription.Trim(),
             // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
             Deadline    = _assignmentDeadline.HasValue
                 ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
@@ -606,8 +616,15 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     
     private async Task<AssignmentDto> AddAssignmentAsync()
     {
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
+        _assignmentDescriptionError = null;
+        _assignmentDeadlineError    = null;
+        _assignmentMaxScoreError    = null;
+
+        if (string.IsNullOrWhiteSpace(_assignmentDescription))
+        {
+            _assignmentDescriptionError = "Description is required.";
+            throw new InvalidOperationException(_assignmentDescriptionError);
+        }
 
         if (_assignmentMaxScore <= 0)
         {
@@ -626,9 +643,7 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
             CourseId    = _courseId,
             LessonId    = _lessonId,
             Title       = _resourceTitle.Trim(),
-            Description = string.IsNullOrWhiteSpace(_assignmentDescription)
-                ? null
-                : _assignmentDescription.Trim(),
+            Description = _assignmentDescription!.Trim(),
             // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
             Deadline    = _assignmentDeadline.HasValue
                 ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
