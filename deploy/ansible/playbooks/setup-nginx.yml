@@ -1,0 +1,7 @@
+---
+- name: Setup Nginx on manager
+  hosts: manager
+  become: true
+
+  roles:
+    - nginx

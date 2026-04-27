@@ -1,0 +1,30 @@
+---
+- name: Update one service image in Swarm image tags env file
+  hosts: manager
+  become: true
+  vars:
+    image_tags_env_file: /opt/saaslms/swarm/env/image-tags.env
+  tasks:
+    - name: Validate required inputs
+      ansible.builtin.assert:
+        that:
+          - service_image_var is defined
+          - service_image_var | trim | length > 0
+          - service_image_value is defined
+          - service_image_value | trim | length > 0
+        fail_msg: >-
+          Missing required vars: service_image_var and/or service_image_value.
+
+    - name: Ensure image tags env parent directory exists
+      ansible.builtin.file:
+        path: "{{ image_tags_env_file | dirname }}"
+        state: directory
+        mode: '0755'
+
+    - name: Upsert service image tag entry
+      ansible.builtin.lineinfile:
+        path: "{{ image_tags_env_file }}"
+        regexp: "^{{ service_image_var | regex_escape() }}="
+        line: "{{ service_image_var }}={{ service_image_value }}"
+        create: true
+        mode: '0600'

@@ -1,0 +1,282 @@
+# saaslms.conf.j2
+# Reverse proxy for saasLMS public domains.
+# TLS is enabled per-domain when a Let's Encrypt cert exists at:
+#   /etc/letsencrypt/live/<domain>/{fullchain.pem,privkey.pem}
+# Otherwise the domain is served over plain HTTP (port 80).
+# Upstream targets are injected from Ansible variables to avoid hard-coded ports.
+
+{% macro proxy_common() -%}
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_connect_timeout {{ nginx_proxy_connect_timeout }};
+        proxy_send_timeout {{ nginx_proxy_send_timeout }};
+        proxy_read_timeout {{ nginx_proxy_read_timeout }};
+{%- endmacro %}
+
+{% macro security_headers() -%}
+{% if nginx_security_headers_enabled %}
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+{% endif %}
+{%- endmacro %}
+
+server {
+    listen 80;
+    server_name {{ nginx_public_app_domain }};
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_app_domain, false) %}
+    return 301 https://$host$request_uri;
+{% else %}
+    location = / {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "no-cache" always;
+{{ proxy_common() }}
+    }
+
+    location ^~ /_framework/ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+{{ proxy_common() }}
+    }
+
+    location ^~ /_content/ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+{{ proxy_common() }}
+    }
+
+    location / {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+{{ proxy_common() }}
+    }
+{% endif %}
+}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_app_domain, false) %}
+server {
+    listen 443 ssl;
+    server_name {{ nginx_public_app_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx_public_app_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx_public_app_domain }}/privkey.pem;
+    ssl_protocols {{ nginx_ssl_protocols }};
+    ssl_ciphers {{ nginx_ssl_ciphers }};
+    ssl_prefer_server_ciphers {{ nginx_ssl_prefer_server_ciphers }};
+    ssl_session_timeout {{ nginx_ssl_session_timeout }};
+    ssl_session_cache {{ nginx_ssl_session_cache }};
+    ssl_session_tickets {{ nginx_ssl_session_tickets }};
+    add_header Strict-Transport-Security "max-age={{ nginx_hsts_max_age }}; includeSubDomains; preload" always;
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+    location = / {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "no-cache" always;
+{{ proxy_common() }}
+    }
+
+    location ^~ /_framework/ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+{{ proxy_common() }}
+    }
+
+    location ^~ /_content/ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+{{ proxy_common() }}
+    }
+
+    location / {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+{{ proxy_common() }}
+    }
+}
+{% endif %}
+
+server {
+    listen 80;
+    server_name {{ nginx_public_api_domain }};
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_api_domain, false) %}
+    return 301 https://$host$request_uri;
+{% else %}
+    location / {
+        proxy_pass {{ nginx_api_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+{{ proxy_common() }}
+    }
+{% endif %}
+}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_api_domain, false) %}
+server {
+    listen 443 ssl;
+    server_name {{ nginx_public_api_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx_public_api_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx_public_api_domain }}/privkey.pem;
+    ssl_protocols {{ nginx_ssl_protocols }};
+    ssl_ciphers {{ nginx_ssl_ciphers }};
+    ssl_prefer_server_ciphers {{ nginx_ssl_prefer_server_ciphers }};
+    ssl_session_timeout {{ nginx_ssl_session_timeout }};
+    ssl_session_cache {{ nginx_ssl_session_cache }};
+    ssl_session_tickets {{ nginx_ssl_session_tickets }};
+    add_header Strict-Transport-Security "max-age={{ nginx_hsts_max_age }}; includeSubDomains; preload" always;
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+    location / {
+        proxy_pass {{ nginx_api_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+{{ proxy_common() }}
+    }
+}
+{% endif %}
+
+server {
+    listen 80;
+    server_name {{ nginx_public_auth_domain }};
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_auth_domain, false) %}
+    return 301 https://$host$request_uri;
+{% else %}
+    location / {
+        proxy_pass {{ nginx_auth_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+{{ proxy_common() }}
+    }
+{% endif %}
+}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_auth_domain, false) %}
+server {
+    listen 443 ssl;
+    server_name {{ nginx_public_auth_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx_public_auth_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx_public_auth_domain }}/privkey.pem;
+    ssl_protocols {{ nginx_ssl_protocols }};
+    ssl_ciphers {{ nginx_ssl_ciphers }};
+    ssl_prefer_server_ciphers {{ nginx_ssl_prefer_server_ciphers }};
+    ssl_session_timeout {{ nginx_ssl_session_timeout }};
+    ssl_session_cache {{ nginx_ssl_session_cache }};
+    ssl_session_tickets {{ nginx_ssl_session_tickets }};
+    add_header Strict-Transport-Security "max-age={{ nginx_hsts_max_age }}; includeSubDomains; preload" always;
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+    location / {
+        proxy_pass {{ nginx_auth_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+{{ proxy_common() }}
+    }
+}
+{% endif %}
+
+server {
+    listen 80;
+    server_name {{ nginx_public_grafana_domain }};
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_grafana_domain, false) %}
+    return 301 https://$host$request_uri;
+{% else %}
+    location / {
+        proxy_pass {{ nginx_grafana_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+{{ proxy_common() }}
+    }
+{% endif %}
+}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_grafana_domain, false) %}
+server {
+    listen 443 ssl;
+    server_name {{ nginx_public_grafana_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx_public_grafana_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx_public_grafana_domain }}/privkey.pem;
+    ssl_protocols {{ nginx_ssl_protocols }};
+    ssl_ciphers {{ nginx_ssl_ciphers }};
+    ssl_prefer_server_ciphers {{ nginx_ssl_prefer_server_ciphers }};
+    ssl_session_timeout {{ nginx_ssl_session_timeout }};
+    ssl_session_cache {{ nginx_ssl_session_cache }};
+    ssl_session_tickets {{ nginx_ssl_session_tickets }};
+    add_header Strict-Transport-Security "max-age={{ nginx_hsts_max_age }}; includeSubDomains; preload" always;
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+    location / {
+        proxy_pass {{ nginx_grafana_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+{{ proxy_common() }}
+    }
+}
+{% endif %}
+
+server {
+    listen 80;
+    server_name {{ nginx_public_prometheus_domain }};
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_prometheus_domain, false) %}
+    return 301 https://$host$request_uri;
+{% else %}
+    location / {
+        proxy_pass {{ nginx_prometheus_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+{{ proxy_common() }}
+    }
+{% endif %}
+}
+
+{% if nginx_tls_enabled_domains.get(nginx_public_prometheus_domain, false) %}
+server {
+    listen 443 ssl;
+    server_name {{ nginx_public_prometheus_domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ nginx_public_prometheus_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx_public_prometheus_domain }}/privkey.pem;
+    ssl_protocols {{ nginx_ssl_protocols }};
+    ssl_ciphers {{ nginx_ssl_ciphers }};
+    ssl_prefer_server_ciphers {{ nginx_ssl_prefer_server_ciphers }};
+    ssl_session_timeout {{ nginx_ssl_session_timeout }};
+    ssl_session_cache {{ nginx_ssl_session_cache }};
+    ssl_session_tickets {{ nginx_ssl_session_tickets }};
+    add_header Strict-Transport-Security "max-age={{ nginx_hsts_max_age }}; includeSubDomains; preload" always;
+    client_max_body_size {{ nginx_client_max_body_size }};
+{{ security_headers() }}
+
+    location / {
+        proxy_pass {{ nginx_prometheus_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+{{ proxy_common() }}
+    }
+}
+{% endif %}

@@ -1,0 +1,104 @@
+#!/bin/bash
+set -euxo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+cat >/usr/local/bin/saaslms-bootstrap-worker.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+AWS_REGION="${aws_region}"
+MANAGER_ADDR_PARAM="${swarm_manager_addr_ssm_parameter_name}"
+WORKER_TOKEN_PARAM="${swarm_worker_join_token_ssm_parameter_name}"
+
+retry() {
+  local attempts="$1"
+  shift
+  local n=1
+  until "$@"; do
+    if [ "$n" -ge "$attempts" ]; then
+      return 1
+    fi
+    n=$((n + 1))
+    sleep 10
+  done
+}
+
+install_docker() {
+  if command -v docker >/dev/null 2>&1 && systemctl list-unit-files docker.service >/dev/null 2>&1; then
+    return 0
+  fi
+
+  retry 12 apt-get update
+  retry 12 apt-get install -y ca-certificates curl gnupg lsb-release awscli
+
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
+
+  . /etc/os-release
+  cat >/etc/apt/sources.list.d/docker.list <<APT
+deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $${VERSION_CODENAME} stable
+APT
+
+  retry 12 apt-get update
+  retry 12 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+}
+
+ensure_docker_running() {
+  systemctl daemon-reload
+  systemctl enable --now containerd
+  systemctl enable --now docker
+}
+
+join_swarm_if_needed() {
+  local swarm_state
+  swarm_state="$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || true)"
+  if [ "$swarm_state" = "active" ]; then
+    return 0
+  fi
+
+  local manager_addr worker_token
+  manager_addr="$(retry 30 aws ssm get-parameter --region "$AWS_REGION" --name "$MANAGER_ADDR_PARAM" --query 'Parameter.Value' --output text)"
+  worker_token="$(retry 30 aws ssm get-parameter --region "$AWS_REGION" --name "$WORKER_TOKEN_PARAM" --query 'Parameter.Value' --output text)"
+
+  docker swarm leave --force >/dev/null 2>&1 || true
+  retry 30 docker swarm join --token "$worker_token" "$manager_addr"
+}
+
+install_docker
+ensure_docker_running
+join_swarm_if_needed
+EOF
+
+chmod 0755 /usr/local/bin/saaslms-bootstrap-worker.sh
+
+cat >/etc/systemd/system/saaslms-bootstrap-worker.service <<'EOF'
+[Unit]
+Description=Bootstrap saasLMS Docker Swarm worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/saaslms-bootstrap-worker.sh
+EOF
+
+cat >/etc/systemd/system/saaslms-bootstrap-worker.timer <<'EOF'
+[Unit]
+Description=Retry saasLMS Docker Swarm worker bootstrap
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=60s
+Unit=saaslms-bootstrap-worker.service
+
+[Install]
+WantedBy=timers.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now saaslms-bootstrap-worker.timer
+systemctl start saaslms-bootstrap-worker.service || true

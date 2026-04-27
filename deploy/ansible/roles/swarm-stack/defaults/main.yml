@@ -1,0 +1,25 @@
+---
+# Where the saasLMS repository is checked out on the Swarm manager.
+# This is used to generate ABP client-side libs on the host (persistent),
+# which are then bind-mounted into the Blazor container at runtime.
+saaslms_repo_dir: /opt/saaslms/src/saasLMS
+
+# ABP CLI version to use when generating libs. Keep this aligned with Volo.Abp.* package versions.
+abp_cli_version: "10.1.1"
+
+# Swarm stack deployment settings
+swarm_stack_name: saaslms
+swarm_stack_file: /opt/saaslms/swarm/stack.yml
+swarm_stack_network_name: saaslms-app
+swarm_stack_with_registry_auth: true
+swarm_stack_image_tags_env_file: /opt/saaslms/swarm/env/image-tags.env
+
+# Convergence checks after `docker stack deploy`
+swarm_stack_wait_retries: 30
+swarm_stack_wait_delay: 10
+swarm_stack_converge_ignore_services:
+  - "{{ swarm_stack_name }}_dbmigrator"
+
+# Optional HTTP smoke checks executed from manager after convergence.
+swarm_stack_smoke_checks_enabled: false
+swarm_stack_smoke_check_urls: []

@@ -1,0 +1,188 @@
+---
+- name: Check current Docker Swarm state on manager
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}"
+  register: swarm_local_state
+  changed_when: false
+  failed_when: false
+
+- name: Force-leave existing Docker Swarm on manager when requested
+  ansible.builtin.command:
+    cmd: docker swarm leave --force
+  when:
+    - (swarm_force_reinit | default(false)) | bool
+    - swarm_local_state.stdout | trim == 'active'
+  register: swarm_force_leave_result
+  changed_when: swarm_force_leave_result.rc == 0
+  failed_when: false
+
+- name: Derive effective Docker Swarm manager addresses
+  ansible.builtin.set_fact:
+    swarm_manager_private_addr: "{{ ansible_default_ipv4.address }}"
+    swarm_manager_advertise_addr_effective: "{{ swarm_advertise_addr | default(ansible_default_ipv4.address) }}"
+    swarm_manager_listen_addr_effective: "{{ swarm_listen_addr | default(ansible_default_ipv4.address) }}"
+    swarm_manager_data_path_addr_effective: "{{ swarm_data_path_addr | default(ansible_default_ipv4.address) }}"
+
+- name: Initialize Docker Swarm on manager when inactive
+  ansible.builtin.command:
+    cmd: >-
+      docker swarm init
+      --advertise-addr {{ swarm_manager_advertise_addr_effective }}
+      --listen-addr {{ swarm_manager_listen_addr_effective }}
+      --data-path-addr {{ swarm_manager_data_path_addr_effective }}
+  when: swarm_local_state.stdout | trim != 'active' or ((swarm_force_reinit | default(false)) | bool)
+  register: swarm_init_result
+  changed_when: swarm_init_result.rc == 0
+
+- name: Read Docker Swarm cluster ID from manager
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{.Swarm.Cluster.ID}}'{% endraw %}"
+  register: swarm_cluster_id_command
+  changed_when: false
+  failed_when: false
+
+- name: Store Docker Swarm cluster ID as manager host fact
+  ansible.builtin.set_fact:
+    swarm_cluster_id: "{{ swarm_cluster_id_command.stdout | trim }}"
+  when: swarm_cluster_id_command.rc == 0
+
+- name: Read Docker Swarm state details from manager
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{json .Swarm}}'{% endraw %}"
+  register: swarm_state_details_command
+  changed_when: false
+
+- name: Parse Docker Swarm state details
+  ansible.builtin.set_fact:
+    swarm_state_details: "{{ swarm_state_details_command.stdout | from_json }}"
+
+- name: Assert Docker Swarm manager is healthy
+  ansible.builtin.assert:
+    that:
+      - swarm_state_details.LocalNodeState | default('') == 'active'
+      - swarm_state_details.ControlAvailable | default(false) | bool
+      - swarm_state_details.NodeID | default('') | length > 0
+    fail_msg: >-
+      Docker Swarm manager is not healthy on this node.
+      state={{ swarm_state_details.LocalNodeState | default('unknown') }},
+      control_available={{ swarm_state_details.ControlAvailable | default(false) }},
+      node_id={{ swarm_state_details.NodeID | default('') }}
+
+- name: Store manager node ID as manager host fact
+  ansible.builtin.set_fact:
+    swarm_manager_node_id: "{{ swarm_state_details.NodeID }}"
+
+- name: Read current manager node labels
+  ansible.builtin.command:
+    cmd: "docker node inspect {{ swarm_manager_node_id }} --format {% raw %}'{{json .Spec.Labels}}'{% endraw %}"
+  register: swarm_manager_labels_command
+  changed_when: false
+
+- name: Parse current manager node labels
+  ansible.builtin.set_fact:
+    swarm_existing_manager_labels: >-
+      {{
+        {}
+        if (swarm_manager_labels_command.stdout | trim) in ['', 'null']
+        else (swarm_manager_labels_command.stdout | from_json)
+      }}
+
+- name: Apply Docker Swarm manager labels
+  ansible.builtin.command:
+    cmd: "docker node update --label-add {{ item.key }}={{ item.value }} {{ swarm_manager_node_id }}"
+  loop: "{{ (swarm_manager_labels | default({})) | dict2items }}"
+  when:
+    - swarm_manager_labels is defined
+    - (swarm_manager_labels | length) > 0
+    - (swarm_existing_manager_labels[item.key] | default('')) != (item.value | string)
+  register: swarm_manager_label_update_result
+  changed_when: true
+
+- name: Rotate Docker Swarm worker join token when requested
+  ansible.builtin.command:
+    cmd: docker swarm join-token --rotate worker
+  when: (swarm_rotate_tokens | default(false)) | bool
+  register: swarm_rotate_worker_token_result
+  changed_when: swarm_rotate_worker_token_result.rc == 0
+
+- name: Rotate Docker Swarm manager join token when requested
+  ansible.builtin.command:
+    cmd: docker swarm join-token --rotate manager
+  when: (swarm_rotate_tokens | default(false)) | bool
+  register: swarm_rotate_manager_token_result
+  changed_when: swarm_rotate_manager_token_result.rc == 0
+
+- name: Ensure Swarm environment directory exists on manager
+  ansible.builtin.file:
+    path: "{{ swarm_env_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Render shared non-secret environment template content
+  ansible.builtin.set_fact:
+    swarm_manager_nonsecret_env_content: >-
+      {{ lookup('ansible.builtin.template', playbook_dir ~ '/../templates/nonsecret.env.j2') }}
+
+- name: Write non-secret environment file for swarm deployment
+  ansible.builtin.copy:
+    content: "{{ swarm_manager_nonsecret_env_content }}"
+    dest: "{{ swarm_env_dir }}/nonsecret.env"
+    mode: '0644'
+
+- name: Get worker join token from manager
+  ansible.builtin.command:
+    cmd: docker swarm join-token -q worker
+  register: swarm_worker_join_token_command
+  changed_when: false
+
+- name: Get manager join token from manager
+  ansible.builtin.command:
+    cmd: docker swarm join-token -q manager
+  register: swarm_manager_join_token_command
+  changed_when: false
+
+- name: Store worker join token as manager host fact
+  ansible.builtin.set_fact:
+    swarm_worker_join_token: "{{ swarm_worker_join_token_command.stdout | trim }}"
+
+- name: Store manager join token as manager host fact
+  ansible.builtin.set_fact:
+    swarm_manager_join_token: "{{ swarm_manager_join_token_command.stdout | trim }}"
+
+- name: Store manager private join address as manager host fact
+  ansible.builtin.set_fact:
+    swarm_manager_join_addr: "{{ swarm_manager_private_addr }}:2377"
+
+- name: Publish Swarm bootstrap manager address to SSM Parameter Store
+  ansible.builtin.command:
+    cmd: >-
+      aws ssm put-parameter
+      --region {{ aws_region }}
+      --name {{ swarm_bootstrap_ssm_manager_addr_parameter_name }}
+      --type String
+      --value {{ swarm_manager_join_addr }}
+      --overwrite
+  when:
+    - swarm_bootstrap_ssm_publish_enabled | bool
+    - aws_region is defined
+  changed_when: true
+
+- name: Publish Swarm bootstrap worker join token to SSM Parameter Store
+  ansible.builtin.command:
+    cmd: >-
+      aws ssm put-parameter
+      --region {{ aws_region }}
+      --name {{ swarm_bootstrap_ssm_worker_token_parameter_name }}
+      --type String
+      --value {{ swarm_worker_join_token }}
+      --overwrite
+  when:
+    - swarm_bootstrap_ssm_publish_enabled | bool
+    - aws_region is defined
+  changed_when: true
+
+- name: Show Docker Swarm manager status
+  ansible.builtin.command:
+    cmd: docker node ls
+  register: swarm_manager_nodes
+  changed_when: false

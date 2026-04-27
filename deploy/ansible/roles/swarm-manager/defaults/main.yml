@@ -1,0 +1,12 @@
+---
+swarm_rotate_tokens: false
+
+# Labels applied to the manager node in Docker Swarm.
+swarm_manager_labels:
+  role: manager
+  environment: "{{ deployment_environment | default('prod') }}"
+
+swarm_bootstrap_ssm_publish_enabled: false
+swarm_bootstrap_ssm_parameter_prefix: "/{{ project_name | default('saaslms') }}/{{ deployment_environment | default('prod') }}/swarm"
+swarm_bootstrap_ssm_manager_addr_parameter_name: "{{ swarm_bootstrap_ssm_parameter_prefix }}/manager-join-addr"
+swarm_bootstrap_ssm_worker_token_parameter_name: "{{ swarm_bootstrap_ssm_parameter_prefix }}/worker-join-token"

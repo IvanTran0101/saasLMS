@@ -1,0 +1,332 @@
+---
+- name: Ensure swarm stack deployment directory exists on manager
+  ansible.builtin.file:
+    path: /opt/saaslms/swarm
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure swarm stack environment directory exists on manager
+  ansible.builtin.file:
+    path: /opt/saaslms/swarm/env
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Check whether image tags env file exists on manager
+  ansible.builtin.stat:
+    path: "{{ swarm_stack_image_tags_env_file }}"
+  register: swarm_stack_image_tags_env_file_stat
+
+- name: Seed image tags env file on manager when missing
+  ansible.builtin.template:
+    src: image-tags.env.j2
+    dest: "{{ swarm_stack_image_tags_env_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+  when: not swarm_stack_image_tags_env_file_stat.stat.exists
+
+- name: Ensure shared Docker overlay network exists for swarm application stack
+  ansible.builtin.command:
+    cmd: docker network create --driver overlay --attachable {{ swarm_stack_network_name }}
+  register: swarm_stack_network_create
+  changed_when: swarm_stack_network_create.rc == 0
+  failed_when:
+    - swarm_stack_network_create.rc != 0
+    - '''already exists'' not in (swarm_stack_network_create.stderr | lower)'
+
+- name: Copy swarm stack definition to manager
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../etc/docker/swarm/stack.yml"
+    dest: "{{ swarm_stack_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure swarm appsettings directory exists on manager
+  ansible.builtin.file:
+    path: /opt/saaslms/swarm/appsettings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy swarm appsettings config files to manager
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - src: "{{ playbook_dir }}/../../../etc/docker/swarm/appsettings/assessment.appsettings.Production.json"
+      dest: /opt/saaslms/swarm/appsettings/assessment.appsettings.Production.json
+    - src: "{{ playbook_dir }}/../../../etc/docker/swarm/appsettings/enrollment.appsettings.Production.json"
+      dest: /opt/saaslms/swarm/appsettings/enrollment.appsettings.Production.json
+
+- name: Compute versioned Swarm config names from appsettings content
+  ansible.builtin.set_fact:
+    swarm_stack_assessment_appsettings_config_name: >-
+      {{ swarm_stack_name }}_assessment_appsettings_production_{{ lookup('ansible.builtin.file', playbook_dir ~ '/../../../etc/docker/swarm/appsettings/assessment.appsettings.Production.json') | hash('sha256') | truncate(12, True, '') }}
+    swarm_stack_enrollment_appsettings_config_name: >-
+      {{ swarm_stack_name }}_enrollment_appsettings_production_{{ lookup('ansible.builtin.file', playbook_dir ~ '/../../../etc/docker/swarm/appsettings/enrollment.appsettings.Production.json') | hash('sha256') | truncate(12, True, '') }}
+
+- name: Set effective SQL Server endpoint for versioned Docker secrets
+  ansible.builtin.set_fact:
+    swarm_stack_sql_server_host_effective: >-
+      {{
+        docker_secret_sql_server_host
+        | default(
+            hostvars[groups['infra'][0]]['infra_private_ip']
+            | default(hostvars[groups['infra'][0]]['ansible_host'])
+          )
+      }}
+    swarm_stack_sql_server_port_effective: >-
+      {{
+        docker_secret_sql_server_port
+        | default(1434)
+      }}
+
+- name: Initialize stack Docker secret item list
+  ansible.builtin.set_fact:
+    swarm_stack_secret_items: []
+
+- name: Build stack Docker secret items from vaulted map
+  ansible.builtin.set_fact:
+    swarm_stack_secret_items: >-
+      {{
+        swarm_stack_secret_items
+        + [
+            {
+              'config_key': item.key,
+              'config_value': (item.value | string)
+            }
+          ]
+      }}
+  loop: "{{ (docker_secret_values | default({})) | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  no_log: true
+
+- name: Rewrite stack connection-string secrets to current infra host
+  ansible.builtin.set_fact:
+    swarm_stack_secret_items_rewritten: >-
+      {{
+        (swarm_stack_secret_items_rewritten | default([]))
+        + [
+            item
+            | combine(
+                {
+                  'config_value': (
+                    item.config_value
+                    | regex_replace(
+                        '(?i)(Server\\s*=\\s*)([^;]+)',
+                        '\\1'
+                        ~ swarm_stack_sql_server_host_effective
+                        ~ ','
+                        ~ (swarm_stack_sql_server_port_effective | string)
+                      )
+                  )
+                }
+              )
+          ]
+      }}
+  loop: "{{ swarm_stack_secret_items }}"
+  loop_control:
+    label: "{{ item.config_key }}"
+  when: >-
+    (
+      docker_secret_rewrite_connectionstrings_server
+      | default(true)
+      | bool
+    )
+    and
+    (item.config_key is match('(?i)^connectionstrings__'))
+  no_log: true
+
+- name: Preserve non-connection-string stack secrets as-is
+  ansible.builtin.set_fact:
+    swarm_stack_secret_items_rewritten: >-
+      {{
+        (swarm_stack_secret_items_rewritten | default([]))
+        + [ item ]
+      }}
+  loop: "{{ swarm_stack_secret_items }}"
+  loop_control:
+    label: "{{ item.config_key }}"
+  when: >-
+    not (
+      (
+        docker_secret_rewrite_connectionstrings_server
+        | default(true)
+        | bool
+      )
+      and
+      (item.config_key is match('(?i)^connectionstrings__'))
+    )
+  no_log: true
+
+- name: Initialize versioned stack Docker secret env-var list
+  ansible.builtin.set_fact:
+    swarm_stack_secret_name_env_vars: []
+
+- name: Compute versioned stack Docker secret names
+  ansible.builtin.set_fact:
+    swarm_stack_secret_name_env_vars: >-
+      {{
+        swarm_stack_secret_name_env_vars
+        + [
+            {
+              'config_key': item.config_key,
+              'env_name': (
+                item.config_key
+                | upper
+                | regex_replace('[^A-Z0-9]+', '_')
+                | regex_replace('^_+', '')
+                | regex_replace('_+$', '')
+                ~ '_SECRET_NAME'
+              ),
+              'secret_name': (
+                item.config_key
+                | lower
+                | regex_replace('[^a-z0-9]+', '_')
+                | regex_replace('^_+', '')
+                | regex_replace('_+$', '')
+                ~ '_'
+                ~ (item.config_value | hash('sha256') | truncate(12, True, ''))
+              )
+            }
+          ]
+      }}
+  loop: "{{ swarm_stack_secret_items_rewritten | default([]) }}"
+  loop_control:
+    label: "{{ item.config_key }}"
+  no_log: true
+
+- name: Verify rendered non-secret environment file exists on manager
+  ansible.builtin.stat:
+    path: /opt/saaslms/swarm/env/nonsecret.env
+  register: swarm_stack_nonsecret_env_file
+
+- name: Fail when rendered non-secret environment file is missing on manager
+  ansible.builtin.assert:
+    that:
+      - swarm_stack_nonsecret_env_file.stat.exists
+      - swarm_stack_nonsecret_env_file.stat.isreg
+    fail_msg: >-
+      Missing /opt/saaslms/swarm/env/nonsecret.env on manager.
+      Run playbooks/swarm-init.yml first.
+    success_msg: Rendered swarm non-secret environment file exists on manager.
+
+- name: Verify image tags environment file exists on manager
+  ansible.builtin.stat:
+    path: "{{ swarm_stack_image_tags_env_file }}"
+  register: swarm_stack_image_tags_env_file_after_seed
+
+- name: Fail when image tags environment file is missing on manager
+  ansible.builtin.assert:
+    that:
+      - swarm_stack_image_tags_env_file_after_seed.stat.exists
+      - swarm_stack_image_tags_env_file_after_seed.stat.isreg
+    fail_msg: >-
+      Missing {{ swarm_stack_image_tags_env_file }} on manager.
+      Create/update it before stack deploy.
+    success_msg: Image tags environment file exists on manager.
+
+- name: Deploy saaslms Docker stack on manager
+  ansible.builtin.shell: |
+    set -euo pipefail
+    env_args=()
+
+    add_env_file_to_args() {
+      local file="$1"
+      while IFS= read -r line || [ -n "$line" ]; do
+        # Skip comments/blank lines in dotenv-style files.
+        [[ -z "$line" || "${line#\#}" != "$line" ]] && continue
+        env_args+=("$line")
+      done < "$file"
+    }
+
+    add_env_file_to_args /opt/saaslms/swarm/env/nonsecret.env
+    add_env_file_to_args {{ swarm_stack_image_tags_env_file }}
+    env_args+=("ASSESSMENT_APPSETTINGS_CONFIG_NAME={{ swarm_stack_assessment_appsettings_config_name }}")
+    env_args+=("ENROLLMENT_APPSETTINGS_CONFIG_NAME={{ swarm_stack_enrollment_appsettings_config_name }}")
+    {% for item in swarm_stack_secret_name_env_vars %}
+    env_args+=("{{ item.env_name }}={{ item.secret_name }}")
+    {% endfor %}
+
+    env "${env_args[@]}" \
+      docker stack deploy -c {{ swarm_stack_file }}{% if swarm_stack_with_registry_auth | bool %} --with-registry-auth{% endif %} {{ swarm_stack_name }}
+  args:
+    executable: /bin/bash
+  register: swarm_stack_deploy_result
+  changed_when: >-
+    'creating service' in (swarm_stack_deploy_result.stdout | lower)
+    or 'updating service' in (swarm_stack_deploy_result.stdout | lower)
+    or 'creating network' in (swarm_stack_deploy_result.stdout | lower)
+    or 'creating secret' in (swarm_stack_deploy_result.stdout | lower)
+
+- name: Wait for stack services to converge to running replicas
+  ansible.builtin.shell: |
+    set -euo pipefail
+    output="$(docker stack services {{ swarm_stack_name }} --format '{{ "{{.Name}} {{.Replicas}}" }}')"
+    [ -n "$output" ] || { echo "No services found in stack {{ swarm_stack_name }}"; exit 1; }
+    output_for_check="$output"
+    {% if (swarm_stack_converge_ignore_services | default([]) | length) > 0 %}
+    output_for_check="$(echo "$output_for_check" | grep -Ev '^({{ swarm_stack_converge_ignore_services | map('regex_escape') | join('|') }}) ' || true)"
+    {% endif %}
+    [ -n "$output_for_check" ] || { echo "No services left after convergence ignore filter"; exit 1; }
+    echo "$output_for_check" | awk '
+      {
+        split($2, r, "/");
+        if (r[1] != r[2]) {
+          print "Not converged: " $0;
+          bad=1
+        }
+      }
+      END { exit bad }
+    '
+  args:
+    executable: /bin/bash
+  register: swarm_stack_converge_check
+  changed_when: false
+  retries: "{{ swarm_stack_wait_retries }}"
+  delay: "{{ swarm_stack_wait_delay }}"
+  until: swarm_stack_converge_check.rc == 0
+
+- name: Ensure no running tasks are in Failed/Rejected state
+  ansible.builtin.shell: |
+    set -euo pipefail
+    bad="$(docker stack ps {{ swarm_stack_name }} --no-trunc --filter desired-state=running --format '{{ "{{.Name}}|{{.CurrentState}}|{{.Error}}" }}' | awk -F'|' 'tolower($2) ~ /failed|rejected/ {print}')"
+    if [ -n "$bad" ]; then
+      echo "$bad"
+      exit 1
+    fi
+  args:
+    executable: /bin/bash
+  register: swarm_stack_failed_tasks_check
+  changed_when: false
+
+- name: Show deployed Docker stack services
+  ansible.builtin.command:
+    cmd: docker stack services {{ swarm_stack_name }}
+  register: swarm_stack_services
+  changed_when: false
+
+- name: Display deployed Docker stack services summary
+  ansible.builtin.debug:
+    var: swarm_stack_services.stdout_lines
+
+- name: Run optional smoke checks on public endpoints
+  ansible.builtin.uri:
+    url: "{{ item }}"
+    method: GET
+    status_code: [200, 204, 301, 302]
+    return_content: false
+    timeout: 15
+    validate_certs: true
+  loop: "{{ swarm_stack_smoke_check_urls }}"
+  when: swarm_stack_smoke_checks_enabled | bool

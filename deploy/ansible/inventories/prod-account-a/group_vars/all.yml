@@ -1,0 +1,35 @@
+ansible_user: ubuntu
+ansible_ssh_private_key_file: ~/.ssh/saaslms.pem
+ansible_python_interpreter: /usr/bin/python3
+
+project_name: saaslms
+deployment_environment: prod-account-a
+aws_profile: account-a
+aws_region: ap-southeast-1
+timezone: Asia/Ho_Chi_Minh
+
+# Set to true when you need to recreate the Swarm (e.g. wrong advertise/data-path addr broke overlay networking).
+swarm_force_reinit: false
+
+# By default, do not delete/recreate secrets (in-use secrets cannot be removed).
+docker_secrets_recreate: false
+
+# Rewrite "ConnectionStrings__*" secret values so SQL endpoint always tracks infra host.
+docker_secret_rewrite_connectionstrings_server: true
+docker_secret_sql_server_port: 1434
+
+docker_compose_plugin_package: docker-compose-plugin
+docker_package_name: docker-ce
+docker_service_name: docker
+
+deploy_root: /opt/saaslms
+infra_compose_dir: /opt/saaslms/infra
+swarm_stack_dir: /opt/saaslms/swarm
+
+infra_host: "{{ hostvars[groups['infra'][0]]['ansible_host'] }}"
+swarm_bootstrap_ssm_publish_enabled: true
+
+# Public domains (used by `deploy/ansible/templates/nonsecret.env.j2`)
+public_app_domain: app.trananhminh.uk
+public_api_domain: api.trananhminh.uk
+public_auth_domain: auth.trananhminh.uk

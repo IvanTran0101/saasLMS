@@ -1,0 +1,31 @@
+---
+- name: Deploy saaslms stack on swarm manager
+  hosts: manager
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/all.vault.yml"
+  pre_tasks:
+    - name: Remove existing stack before rotating Docker secrets (optional)
+      ansible.builtin.command:
+        cmd: "docker stack rm {{ project_name }}"
+      register: remove_stack_before_secret_rotation
+      changed_when: remove_stack_before_secret_rotation.rc == 0
+      failed_when: false
+      when:
+        - (docker_secrets_recreate | default(false)) | bool
+        - (swarm_stack_remove_before_secret_recreate | default(true)) | bool
+
+    - name: Wait until existing stack services are fully removed (optional)
+      ansible.builtin.shell: >-
+        docker stack services {{ project_name }} --format '{% raw %}{{.Name}}{% endraw %}' 2>/dev/null | wc -l
+      register: remaining_stack_services
+      changed_when: false
+      retries: 30
+      delay: 2
+      until: (remaining_stack_services.stdout | trim | int) == 0
+      when:
+        - (docker_secrets_recreate | default(false)) | bool
+        - (swarm_stack_remove_before_secret_recreate | default(true)) | bool
+  roles:
+    - docker-secrets
+    - swarm-stack

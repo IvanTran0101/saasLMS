@@ -1,0 +1,177 @@
+---
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Install Certbot packages for Nginx
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+  when: nginx_https_automation_enabled | bool
+
+- name: Ensure Nginx sites-available directory exists
+  ansible.builtin.file:
+    path: "{{ nginx_sites_available_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ensure Nginx sites-enabled directory exists
+  ansible.builtin.file:
+    path: "{{ nginx_sites_enabled_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ensure Nginx conf.d directory exists
+  ansible.builtin.file:
+    path: "{{ nginx_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Remove default Nginx site symlink when present
+  ansible.builtin.file:
+    path: "{{ nginx_sites_enabled_dir }}/default"
+    state: absent
+  notify: Reload Nginx
+
+- name: Remove default Nginx site file when present
+  ansible.builtin.file:
+    path: "{{ nginx_sites_available_dir }}/default"
+    state: absent
+  notify: Reload Nginx
+
+- name: Check existing Let's Encrypt certs (per-domain)
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ item }}/fullchain.pem"
+  loop:
+    - "{{ nginx_public_app_domain }}"
+    - "{{ nginx_public_api_domain }}"
+    - "{{ nginx_public_auth_domain }}"
+    - "{{ nginx_public_grafana_domain }}"
+    - "{{ nginx_public_prometheus_domain }}"
+  register: nginx_le_certs
+
+- name: Derive per-domain TLS enablement based on cert presence
+  ansible.builtin.set_fact:
+    nginx_tls_enabled_domains: >-
+      {{
+        dict(
+          nginx_le_certs.results
+          | map(attribute='item')
+          | zip(nginx_le_certs.results | map(attribute='stat.exists'))
+        )
+      }}
+
+- name: Render saasLMS Nginx site configuration
+  ansible.builtin.template:
+    src: saaslms.conf.j2
+    dest: "{{ nginx_sites_available_dir }}/saaslms.conf"
+    mode: '0644'
+  notify: Reload Nginx
+
+- name: Enable saasLMS Nginx site
+  ansible.builtin.file:
+    src: "{{ nginx_sites_available_dir }}/saaslms.conf"
+    dest: "{{ nginx_sites_enabled_dir }}/saaslms.conf"
+    state: link
+  notify: Reload Nginx
+
+- name: Ensure Nginx service is enabled and started
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Validate Let's Encrypt contact email
+  ansible.builtin.assert:
+    that:
+      - nginx_letsencrypt_email | length > 3
+      - "'@' in nginx_letsencrypt_email"
+    fail_msg: >-
+      Set a valid nginx_letsencrypt_email before enabling HTTPS automation.
+  when: nginx_https_automation_enabled | bool
+
+- name: Flush pending Nginx config reload before Certbot
+  ansible.builtin.meta: flush_handlers
+  when: nginx_https_automation_enabled | bool
+
+- name: Request Let's Encrypt certificates for missing domains
+  ansible.builtin.command:
+    cmd: >-
+      certbot certonly --nginx
+      --non-interactive
+      --agree-tos
+      --email {{ nginx_letsencrypt_email }}
+      --keep-until-expiring
+      {% if nginx_letsencrypt_staging | bool %}--staging{% endif %}
+      -d {{ item }}
+  loop:
+    - "{{ nginx_public_app_domain }}"
+    - "{{ nginx_public_api_domain }}"
+    - "{{ nginx_public_auth_domain }}"
+    - "{{ nginx_public_grafana_domain }}"
+    - "{{ nginx_public_prometheus_domain }}"
+  when:
+    - nginx_https_automation_enabled | bool
+    - not (nginx_tls_enabled_domains[item] | default(false))
+  register: nginx_certbot_issue
+  changed_when: nginx_certbot_issue.rc == 0
+
+- name: Ensure Certbot renewal deploy hook directory exists
+  ansible.builtin.file:
+    path: /etc/letsencrypt/renewal-hooks/deploy
+    state: directory
+    mode: '0755'
+  when: nginx_https_automation_enabled | bool
+
+- name: Install Certbot deploy hook to reload Nginx after renewals
+  ansible.builtin.copy:
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    mode: '0755'
+    content: |
+      #!/usr/bin/env sh
+      set -eu
+      systemctl reload nginx
+  when: nginx_https_automation_enabled | bool
+
+- name: Ensure Certbot renewal timer is enabled and running
+  ansible.builtin.systemd:
+    name: certbot.timer
+    enabled: true
+    state: started
+  when: nginx_https_automation_enabled | bool
+
+- name: Re-check existing Let's Encrypt certs after Certbot automation
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ item }}/fullchain.pem"
+  loop:
+    - "{{ nginx_public_app_domain }}"
+    - "{{ nginx_public_api_domain }}"
+    - "{{ nginx_public_auth_domain }}"
+    - "{{ nginx_public_grafana_domain }}"
+    - "{{ nginx_public_prometheus_domain }}"
+  register: nginx_le_certs_after
+  when: nginx_https_automation_enabled | bool
+
+- name: Refresh per-domain TLS enablement after Certbot automation
+  ansible.builtin.set_fact:
+    nginx_tls_enabled_domains: >-
+      {{
+        dict(
+          nginx_le_certs_after.results
+          | map(attribute='item')
+          | zip(nginx_le_certs_after.results | map(attribute='stat.exists'))
+        )
+      }}
+  when: nginx_https_automation_enabled | bool
+
+- name: Render saasLMS Nginx site configuration after Certbot automation
+  ansible.builtin.template:
+    src: saaslms.conf.j2
+    dest: "{{ nginx_sites_available_dir }}/saaslms.conf"
+    mode: '0644'
+  notify: Reload Nginx
+  when: nginx_https_automation_enabled | bool

@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+{% set manager_metrics_host = hostvars[groups['manager'][0]]['manager_private_ip'] | default(hostvars[groups['manager'][0]]['ansible_host']) %}
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  - job_name: saaslms-authserver
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - {{ manager_metrics_host }}:8082
+
+  - job_name: saaslms-blazor
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - {{ manager_metrics_host }}:8083
+
+  - job_name: saaslms-gateway
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - {{ manager_metrics_host }}:8080

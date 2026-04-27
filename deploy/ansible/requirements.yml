@@ -1,0 +1,5 @@
+---
+# Collections used by CI deploy jobs and local Ansible runs.
+collections:
+  - name: amazon.aws
+  - name: community.general

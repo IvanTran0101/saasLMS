@@ -1,4 +1,21 @@
-deploy
+# macOS junk
+deploy/.DS_Store
+deploy/**/.DS_Store
+
+  # Terraform local state/artifacts
+deploy/**/.terraform/
+deploy/**/*.tfstate
+deploy/**/*.tfstate.*
+deploy/**/tfplan
+
+  # Generated or ad-hoc inventory overrides
+deploy/ansible/inventories/**/worker-hotfix.ini
+
+  # Local encrypted/backup scratch files
+deploy/ansible/inventories/**/*.bak.enc
+deploy/ansible/inventories/**/*.broken
+deploy/ansible/inventories/*/hosts.ini
+
 bin\Debug/net10.0 
 ##**/appsettings.secrets.json
 obj/Debug/net10.0
@@ -408,6 +425,17 @@ appsettings.*.local.json
 *\\obj\\*
 .vs/
 .idea/
+
+# Deploy artifacts and local secrets/state
+deploy/.DS_Store
+deploy/**/.DS_Store
+deploy/**/.terraform/
+deploy/**/*.tfstate
+deploy/**/*.tfstate.*
+deploy/**/tfplan
+deploy/ansible/inventories/**/worker-hotfix.ini
+deploy/ansible/inventories/**/*.bak.enc
+deploy/ansible/inventories/**/*.broken
 # Test and coverage artifacts
 **/TestResults/
 coverage/

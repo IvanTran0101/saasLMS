@@ -1,0 +1,8 @@
+---
+- name: Prepare infrastructure node
+  hosts: infra
+  become: true
+  roles:
+    - common
+    - docker
+    - infra

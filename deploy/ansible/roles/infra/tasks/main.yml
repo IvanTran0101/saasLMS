@@ -1,0 +1,160 @@
+---
+- name: Ensure infra compose directory exists
+  ansible.builtin.file:
+    path: "{{ infra_compose_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Ensure Prometheus configuration directory exists on infrastructure host
+  ansible.builtin.file:
+    path: /opt/saaslms/prometheus
+    state: directory
+    mode: '0755'
+
+- name: Ensure Prometheus storage directory exists on infrastructure host
+  ansible.builtin.file:
+    path: /opt/saaslms/prometheus/storage
+    state: directory
+    mode: '0777'
+
+- name: Ensure Grafana provisioning directories exist on infrastructure host
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/saaslms/grafana
+    - /opt/saaslms/grafana/provisioning
+    - /opt/saaslms/grafana/provisioning/datasources
+    - /opt/saaslms/grafana/provisioning/dashboards
+    - /opt/saaslms/grafana/dashboards
+
+- name: Ensure Grafana storage directory exists on infrastructure host
+  ansible.builtin.file:
+    path: /opt/saaslms/grafana/storage
+    state: directory
+    mode: '0777'
+
+- name: Render Prometheus configuration for production Swarm services
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /opt/saaslms/prometheus/prometheus.yml
+    mode: '0644'
+
+- name: Render Grafana Prometheus datasource provisioning file
+  ansible.builtin.template:
+    src: grafana-datasource-prometheus.yml.j2
+    dest: /opt/saaslms/grafana/provisioning/datasources/prometheus.yml
+    mode: '0644'
+
+- name: Render Grafana dashboard provisioning file
+  ansible.builtin.template:
+    src: grafana-dashboard-provider.yml.j2
+    dest: /opt/saaslms/grafana/provisioning/dashboards/default.yml
+    mode: '0644'
+
+- name: Copy default Grafana dashboard
+  ansible.builtin.copy:
+    src: saaslms-overview-dashboard.json
+    dest: /opt/saaslms/grafana/dashboards/saaslms-overview.json
+    mode: '0644'
+
+- name: Copy infrastructure Docker Compose base file from repository etc/docker folder
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../etc/docker/docker-compose.infrastructure.yml"
+    dest: "{{ infra_compose_dir }}/docker-compose.infrastructure.yml"
+    mode: '0644'
+
+- name: Copy infrastructure Docker Compose override file from repository etc/docker folder
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../etc/docker/docker-compose.infrastructure.override.yml"
+    dest: "{{ infra_compose_dir }}/{{ infra_compose_file }}"
+    mode: '0644'
+
+- name: Check whether infrastructure env file exists locally in files directory
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/{{ infra_env_file }}"
+  delegate_to: localhost
+  become: false
+  register: infra_env_file_local
+
+
+- name: Copy infrastructure env file when provided
+  ansible.builtin.copy:
+    src: "{{ infra_env_file }}"
+    dest: "{{ infra_compose_dir }}/{{ infra_env_file }}"
+    mode: '0600'
+  when: infra_env_file_local.stat.exists
+
+- name: Ensure external Docker network for infrastructure exists
+  ansible.builtin.command:
+    cmd: docker network inspect saaslms-network
+  register: infra_external_network_check
+  changed_when: false
+  failed_when: false
+
+- name: Create external Docker network for infrastructure when missing
+  ansible.builtin.command:
+    cmd: docker network create saaslms-network
+  when: infra_external_network_check.rc != 0
+  changed_when: infra_external_network_check.rc != 0
+
+- name: Start infrastructure services with Docker Compose
+  ansible.builtin.command:
+    cmd: >-
+      docker compose
+      -f {{ infra_compose_dir }}/docker-compose.infrastructure.yml
+      -f {{ infra_compose_dir }}/{{ infra_compose_file }}
+      up -d
+  args:
+    chdir: "{{ infra_compose_dir }}"
+  register: infra_compose_up
+  changed_when: >-
+    'Creating' in infra_compose_up.stdout or
+    'Recreating' in infra_compose_up.stdout or
+    'Starting' in infra_compose_up.stdout
+
+- name: Wait for SQL Server port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ sqlserver_port }}"
+    timeout: 180
+    delay: 5
+
+- name: Wait for Redis port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ redis_port }}"
+    timeout: 120
+    delay: 3
+
+- name: Wait for RabbitMQ port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ rabbitmq_port }}"
+    timeout: 120
+    delay: 3
+
+- name: Wait for Elasticsearch port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ elasticsearch_port }}"
+    timeout: 180
+    delay: 5
+  when: observability_stack_enabled | bool
+
+- name: Wait for Grafana port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ grafana_port }}"
+    timeout: 120
+    delay: 5
+  when: monitoring_enabled | bool
+
+- name: Wait for Prometheus port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: "{{ prometheus_port }}"
+    timeout: 120
+    delay: 5
+  when: monitoring_enabled | bool
