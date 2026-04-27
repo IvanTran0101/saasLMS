@@ -1,0 +1,16 @@
+---
+- name: Initialize Docker Swarm manager
+  hosts: manager
+  become: true
+  roles:
+    - common
+    - docker
+    - swarm-manager
+
+- name: Join worker nodes to Docker Swarm
+  hosts: workers
+  become: true
+  roles:
+    - common
+    - docker
+    - swarm-worker

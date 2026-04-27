@@ -1,0 +1,5 @@
+---
+# Base labels applied to worker nodes in Docker Swarm.
+swarm_worker_labels:
+  role: worker
+  environment: "{{ deployment_environment | default('prod') }}"

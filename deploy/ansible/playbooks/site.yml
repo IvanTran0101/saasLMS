@@ -1,0 +1,26 @@
+---
+- name: Prepare all production nodes
+  hosts: all
+  become: true
+  roles:
+    - common
+    - docker
+
+- name: Prepare infrastructure node
+  hosts: infra
+  become: true
+  roles:
+    - infra
+
+- name: Initialize Docker Swarm manager
+  hosts: manager
+  become: true
+  roles:
+    - nginx
+    - swarm-manager
+
+- name: Join worker nodes to Docker Swarm
+  hosts: workers
+  become: true
+  roles:
+    - swarm-worker

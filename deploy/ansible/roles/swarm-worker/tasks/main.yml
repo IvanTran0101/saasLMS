@@ -1,0 +1,146 @@
+---
+- name: Check current Docker Swarm state on worker
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}"
+  register: swarm_local_state
+  changed_when: false
+  failed_when: false
+
+- name: Read Docker Swarm cluster ID from worker (when active)
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{.Swarm.Cluster.ID}}'{% endraw %}"
+  register: swarm_worker_cluster_id_command
+  changed_when: false
+  failed_when: false
+  when: swarm_local_state.stdout | trim == 'active'
+
+- name: Derive expected Docker Swarm cluster ID from manager
+  ansible.builtin.set_fact:
+    swarm_expected_cluster_id: "{{ hostvars[groups['manager'][0]]['swarm_cluster_id'] | default('') }}"
+
+- name: Decide whether worker must leave/re-join swarm
+  ansible.builtin.set_fact:
+    swarm_worker_needs_rejoin: >-
+      {{
+        (swarm_local_state.stdout | trim != 'active')
+        or (
+          (swarm_expected_cluster_id | trim | length > 0)
+          and (swarm_worker_cluster_id_command.stdout | default('') | trim | length > 0)
+          and (swarm_worker_cluster_id_command.stdout | trim != swarm_expected_cluster_id | trim)
+        )
+      }}
+
+- name: Force-leave existing Docker Swarm on worker when requested
+  ansible.builtin.command:
+    cmd: docker swarm leave --force
+  when:
+    - (swarm_force_reinit | default(false)) | bool
+    - swarm_local_state.stdout | trim == 'active'
+  register: swarm_force_leave_result
+  changed_when: swarm_force_leave_result.rc == 0
+  failed_when: false
+
+- name: Leave current Docker Swarm on worker when cluster ID differs from manager
+  ansible.builtin.command:
+    cmd: docker swarm leave --force
+  when:
+    - not ((swarm_force_reinit | default(false)) | bool)
+    - swarm_worker_needs_rejoin | bool
+    - swarm_local_state.stdout | trim == 'active'
+  register: swarm_leave_for_cluster_mismatch_result
+  changed_when: swarm_leave_for_cluster_mismatch_result.rc == 0
+  failed_when: false
+
+- name: Derive effective Docker Swarm join target for worker
+  ansible.builtin.set_fact:
+    swarm_worker_join_target_effective: >-
+      {{
+        hostvars[groups['manager'][0]]['swarm_manager_join_addr']
+        | default(swarm_join_target)
+      }}
+
+- name: Join worker to Docker Swarm when needed
+  ansible.builtin.command:
+    cmd: >-
+      docker swarm join
+      --token {{ hostvars[groups['manager'][0]]['swarm_worker_join_token'] }}
+      {{ swarm_worker_join_target_effective }}
+  when:
+    - swarm_worker_needs_rejoin | bool or ((swarm_force_reinit | default(false)) | bool)
+    - hostvars[groups['manager'][0]]['swarm_worker_join_token'] is defined
+    - hostvars[groups['manager'][0]]['swarm_worker_join_token'] | trim | length > 0
+  register: swarm_join_result
+  changed_when: swarm_join_result.rc == 0
+  failed_when: >-
+    swarm_join_result.rc != 0 and
+    'already part of a swarm' not in (swarm_join_result.stderr | lower)
+
+- name: Show worker Docker Swarm state after join attempt
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}"
+  register: swarm_worker_state_after_join
+  changed_when: false
+  failed_when: false
+
+- name: Assert worker joined Docker Swarm successfully when join was required
+  ansible.builtin.assert:
+    that:
+      - swarm_worker_state_after_join.stdout | trim == 'active'
+    fail_msg: "Worker failed to join Docker Swarm successfully."
+    success_msg: "Worker is active in Docker Swarm."
+  when: swarm_worker_needs_rejoin | bool
+
+- name: Read Docker Swarm worker details
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{json .Swarm}}'{% endraw %}"
+  register: swarm_worker_details_command
+  changed_when: false
+
+- name: Parse Docker Swarm worker details
+  ansible.builtin.set_fact:
+    swarm_worker_details: "{{ swarm_worker_details_command.stdout | from_json }}"
+
+- name: Assert worker node state is healthy
+  ansible.builtin.assert:
+    that:
+      - swarm_worker_details.LocalNodeState | default('') == 'active'
+      - swarm_worker_details.NodeID | default('') | length > 0
+    fail_msg: >-
+      Worker is not healthy in Swarm.
+      state={{ swarm_worker_details.LocalNodeState | default('unknown') }},
+      node_id={{ swarm_worker_details.NodeID | default('') }}
+
+- name: Store worker node ID as host fact
+  ansible.builtin.set_fact:
+    swarm_worker_node_id: "{{ swarm_worker_details.NodeID }}"
+
+- name: Build effective worker labels
+  ansible.builtin.set_fact:
+    swarm_worker_labels_effective: "{{ (swarm_worker_labels | default({})) | combine({'node': inventory_hostname}) }}"
+
+- name: Read current worker labels from manager
+  ansible.builtin.command:
+    cmd: "docker node inspect {{ swarm_worker_node_id }} --format {% raw %}'{{json .Spec.Labels}}'{% endraw %}"
+  register: swarm_worker_labels_current_command
+  changed_when: false
+  delegate_to: "{{ groups['manager'][0] }}"
+  run_once: false
+
+- name: Parse current worker labels
+  ansible.builtin.set_fact:
+    swarm_worker_labels_current: >-
+      {{
+        {}
+        if (swarm_worker_labels_current_command.stdout | trim) in ['', 'null']
+        else (swarm_worker_labels_current_command.stdout | from_json)
+      }}
+
+- name: Apply worker labels from manager
+  ansible.builtin.command:
+    cmd: "docker node update --label-add {{ item.key }}={{ item.value }} {{ swarm_worker_node_id }}"
+  loop: "{{ swarm_worker_labels_effective | dict2items }}"
+  when: (swarm_worker_labels_current[item.key] | default('')) != (item.value | string)
+  delegate_to: "{{ groups['manager'][0] }}"
+  run_once: false
+  register: swarm_worker_label_update_result
+  changed_when: true

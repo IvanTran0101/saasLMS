@@ -1,0 +1,7 @@
+---
+- name: Install and configure Docker on all production nodes
+  hosts: all
+  become: true
+  roles:
+    - common
+    - docker

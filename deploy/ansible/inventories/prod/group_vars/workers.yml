@@ -1,0 +1,13 @@
+swarm_role: worker
+swarm_manager_name: manager
+# Prefer manager private IP for Swarm join (facts are gathered at play start).
+swarm_manager_host: >-
+  {{
+    hostvars[groups['manager'][0]]['manager_private_ip']
+    | default(hostvars[groups['manager'][0]]['ansible_default_ipv4']['address'])
+    | default(hostvars[groups['manager'][0]]['ansible_host'])
+  }}
+swarm_join_target: "{{ swarm_manager_host }}:2377"
+
+swarm_stack_dir: /opt/saaslms/swarm
+swarm_env_dir: /opt/saaslms/swarm/env

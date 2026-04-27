@@ -1,0 +1,20 @@
+infra_role: infra
+infra_host_name: infra1
+# Keep infra address derived from the current inventory host entry rendered from Terraform outputs.
+infra_private_ip: "{{ hostvars[inventory_hostname]['infra_private_ip'] | default(ansible_host) }}"
+infra_host: "{{ hostvars[inventory_hostname]['ansible_host'] | default(infra_private_ip) }}"
+infra_compose_dir: /opt/saaslms/infra
+infra_compose_file: docker-compose.infrastructure.override.yml
+infra_env_file: .env.infrastructure
+
+sqlserver_port: 1434
+redis_port: 6379
+rabbitmq_port: 5672
+rabbitmq_management_port: 15672
+elasticsearch_port: 9200
+kibana_port: 5601
+grafana_port: 3000
+prometheus_port: 9090
+
+monitoring_enabled: true
+observability_stack_enabled: true

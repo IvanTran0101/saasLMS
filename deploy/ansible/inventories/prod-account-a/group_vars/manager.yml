@@ -1,0 +1,32 @@
+swarm_role: manager
+swarm_manager_name: manager
+# Use private IPs for Swarm advertise/data-path to keep overlay networking internal (AWS VPC).
+swarm_advertise_addr: "{{ manager_private_ip | default(ansible_default_ipv4.address) }}"
+swarm_listen_addr: 0.0.0.0:2377
+swarm_data_path_addr: "{{ manager_private_ip | default(ansible_default_ipv4.address) }}"
+
+reverse_proxy_type: nginx
+
+nginx_sites_available_dir: /etc/nginx/sites-available
+nginx_sites_enabled_dir: /etc/nginx/sites-enabled
+nginx_config_name: saaslms.conf
+
+nginx_public_app_domain: app.trananhminh.uk
+nginx_public_api_domain: api.trananhminh.uk
+nginx_public_auth_domain: auth.trananhminh.uk
+nginx_public_grafana_domain: grafana.trananhminh.uk
+nginx_public_prometheus_domain: prometheus.trananhminh.uk
+
+nginx_app_upstream_url: http://127.0.0.1:8083
+nginx_api_upstream_url: http://127.0.0.1:8080
+nginx_auth_upstream_url: http://127.0.0.1:8082
+nginx_grafana_upstream_url: >-
+  http://{{ hostvars[groups['infra'][0]]['infra_private_ip'] | default(hostvars[groups['infra'][0]]['ansible_host']) }}:3000
+nginx_prometheus_upstream_url: >-
+  http://{{ hostvars[groups['infra'][0]]['infra_private_ip'] | default(hostvars[groups['infra'][0]]['ansible_host']) }}:9090
+
+swarm_stack_dir: /opt/saaslms/swarm
+swarm_env_dir: /opt/saaslms/swarm/env
+# Legacy fallback source (used only when `docker_secret_values` is empty).
+# Prefer storing secrets in `group_vars/all.vault.yml` via ansible-vault.
+docker_secret_source_file: /Volumes/Kingsman/Projects/Schools/saasLMS/saasLMS/.env.secret

@@ -42,6 +42,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify deployment workspace
+        shell: /bin/bash
+        run: |
+          set -euo pipefail
+          pwd
+          ls -la
+          test -d "${GITHUB_WORKSPACE}/deploy/ansible"
+          ls -la "${GITHUB_WORKSPACE}/deploy/ansible"
+
       - name: Resolve image repo and env var for selected service
         id: resolve
         shell: bash
@@ -132,8 +141,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Update image tag env on swarm manager
-        working-directory: deploy/ansible
-        shell: bash
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: /bin/bash
         run: |
           set -euo pipefail
           ansible-playbook \
@@ -143,8 +152,8 @@ jobs:
             -e service_image_value="${{ steps.resolve.outputs.image_ref }}"
 
       - name: Deploy updated swarm stack
-        working-directory: deploy/ansible
-        shell: bash
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: /bin/bash
         run: |
           set -euo pipefail
           ansible-playbook \
@@ -153,15 +162,15 @@ jobs:
             playbooks/swarm-stack.yml
 
       - name: Show stack services after deploy
-        working-directory: deploy/ansible
-        shell: bash
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: /bin/bash
         run: |
           set -euo pipefail
           ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
             "docker stack services saaslms"
 
       - name: Run post-deploy smoke checks
-        shell: bash
+        shell: /bin/bash
         run: |
           set -euo pipefail
           curl -fsS https://auth.trananhminh.uk/.well-known/openid-configuration > /dev/null

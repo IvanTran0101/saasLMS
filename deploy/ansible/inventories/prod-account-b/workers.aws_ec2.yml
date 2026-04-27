@@ -1,0 +1,21 @@
+---
+plugin: amazon.aws.aws_ec2
+regions:
+  - ap-southeast-1
+
+# Worker nodes are discovered from EC2 tags set by Terraform ASG module.
+filters:
+  "tag:Project": saaslms
+  "tag:Environment": prod-account-b
+  "tag:Role": worker
+  instance-state-name: running
+
+hostnames:
+  - private-ip-address
+
+compose:
+  ansible_host: public_ip_address | default(private_ip_address)
+  worker_private_ip: private_ip_address
+
+groups:
+  workers: true

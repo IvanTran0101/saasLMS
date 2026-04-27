@@ -1,0 +1,341 @@
+---
+- name: Ensure Docker Swarm is active on manager before creating secrets
+  ansible.builtin.command:
+    cmd: "docker info --format {% raw %}'{{.Swarm.LocalNodeState}}'{% endraw %}"
+  register: swarm_local_state
+  changed_when: false
+
+- name: Fail when Docker Swarm is not active on manager
+  ansible.builtin.assert:
+    that:
+      - swarm_local_state.stdout | trim == 'active'
+    fail_msg: >-
+      Docker Swarm is not active on the manager node.
+      Run the swarm-manager role first.
+    success_msg: Docker Swarm is active on the manager node.
+
+- name: Ensure local secret source file exists
+  ansible.builtin.stat:
+    path: "{{ docker_secret_source_file }}"
+  delegate_to: localhost
+  become: false
+  register: docker_secret_source_file_stat
+  when: (docker_secret_values | default({}) | length) == 0
+
+- name: Fail when local secret source file is missing
+  ansible.builtin.assert:
+    that:
+      - docker_secret_source_file_stat.stat.exists
+    fail_msg: >-
+      Secret source file '{{ docker_secret_source_file }}' was not found on the
+      Ansible control machine.
+    success_msg: Secret source file exists on the Ansible control machine.
+  when: (docker_secret_values | default({}) | length) == 0
+
+- name: Load secret source file content from control machine
+  ansible.builtin.set_fact:
+    docker_secret_source_raw: >-
+      {{ lookup('ansible.builtin.file', docker_secret_source_file) }}
+  no_log: true
+  when: (docker_secret_values | default({}) | length) == 0
+
+- name: Initialize Docker secret items list
+  ansible.builtin.set_fact:
+    docker_secret_items: []
+
+- name: Build Docker secret items from vaulted map
+  ansible.builtin.set_fact:
+    docker_secret_items: >-
+      {{
+        docker_secret_items
+        + [
+            {
+              'config_key': item.key,
+              'config_value': (item.value | string)
+            }
+          ]
+      }}
+  loop: "{{ (docker_secret_values | default({})) | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  no_log: true
+  when: (docker_secret_values | default({}) | length) > 0
+
+- name: Build base Docker secret items from secret source file
+  ansible.builtin.set_fact:
+    docker_secret_items: >-
+      {{
+        docker_secret_items
+        + [
+            {
+              'config_key': (item.split('=', 1)[0] | trim),
+              'config_value': item.split('=', 1)[1]
+            }
+          ]
+      }}
+  loop: >-
+    {{
+      docker_secret_source_raw.splitlines()
+      | map('trim')
+      | reject('equalto', '')
+      | reject('match', '^#')
+      | select('match', '^[^=]+?=.*$')
+      | list
+    }}
+  loop_control:
+    label: "{{ item.split('=', 1)[0] | trim }}"
+  no_log: true
+  when: (docker_secret_values | default({}) | length) == 0
+
+- name: Fail when no secret entries were provided
+  ansible.builtin.assert:
+    that:
+      - docker_secret_items | length > 0
+    fail_msg: >-
+      No secrets were provided. Define `docker_secret_values` (recommended with ansible-vault)
+      or provide a valid `docker_secret_source_file`.
+    success_msg: Docker secret source contains entries.
+
+- name: Set effective SQL Server endpoint for connection-string secrets
+  ansible.builtin.set_fact:
+    docker_secret_sql_server_host_effective: >-
+      {{
+        docker_secret_sql_server_host
+        | default(
+            hostvars[groups['infra'][0]]['infra_private_ip']
+            | default(hostvars[groups['infra'][0]]['ansible_host'])
+          )
+      }}
+    docker_secret_sql_server_port_effective: >-
+      {{
+        docker_secret_sql_server_port
+        | default(1434)
+      }}
+
+- name: Initialize rewritten Docker secret list
+  ansible.builtin.set_fact:
+    rewritten_docker_secret_items: []
+
+- name: Rewrite ConnectionStrings server endpoint to current infra host
+  ansible.builtin.set_fact:
+    rewritten_docker_secret_items: >-
+      {{
+        rewritten_docker_secret_items
+        + [
+            item
+            | combine(
+                {
+                  'config_value': (
+                    item.config_value
+                    | regex_replace(
+                        '(?i)(Server\\s*=\\s*)([^;]+)',
+                        '\\1'
+                        ~ docker_secret_sql_server_host_effective
+                        ~ ','
+                        ~ (docker_secret_sql_server_port_effective | string)
+                      )
+                  )
+                }
+              )
+          ]
+      }}
+  loop: "{{ docker_secret_items }}"
+  loop_control:
+    label: "{{ item.config_key }}"
+  when: >-
+    (
+      docker_secret_rewrite_connectionstrings_server
+      | default(true)
+      | bool
+    )
+    and
+    (item.config_key is match('(?i)^connectionstrings__'))
+  no_log: true
+
+- name: Preserve non-connection-string secrets as-is
+  ansible.builtin.set_fact:
+    rewritten_docker_secret_items: >-
+      {{
+        rewritten_docker_secret_items
+        + [ item ]
+      }}
+  loop: "{{ docker_secret_items }}"
+  loop_control:
+    label: "{{ item.config_key }}"
+  when: >-
+    not (
+      (
+        docker_secret_rewrite_connectionstrings_server
+        | default(true)
+        | bool
+      )
+      and
+      (item.config_key is match('(?i)^connectionstrings__'))
+    )
+  no_log: true
+
+- name: Replace Docker secret items with rewritten values
+  ansible.builtin.set_fact:
+    docker_secret_items: "{{ rewritten_docker_secret_items }}"
+  no_log: true
+
+- name: Initialize normalized Docker secret list
+  ansible.builtin.set_fact:
+    normalized_docker_secret_items: []
+
+- name: Normalize Docker secret names from .NET config keys
+  ansible.builtin.set_fact:
+    normalized_docker_secret_items: >-
+      {{
+        normalized_docker_secret_items
+        + [
+            item
+            | combine(
+                {
+                  'secret_name': (
+                    item.config_key
+                    | lower
+                    | regex_replace('[^a-z0-9]+', '_')
+                    | regex_replace('^_+', '')
+                    | regex_replace('_+$', '')
+                  )
+                }
+              )
+          ]
+      }}
+  loop: "{{ docker_secret_items }}"
+  loop_control:
+    label: "{{ item.config_key }}"
+  no_log: true
+
+- name: Append content hash suffix to Docker secret names
+  ansible.builtin.set_fact:
+    versioned_docker_secret_items: []
+  when: docker_secret_version_names | default(true) | bool
+  no_log: true
+
+- name: Build versioned Docker secret names
+  ansible.builtin.set_fact:
+    versioned_docker_secret_items: >-
+      {{
+        versioned_docker_secret_items
+        + [
+            item
+            | combine(
+                {
+                  'secret_name': (
+                    item.secret_name
+                    ~ '_'
+                    ~ (item.config_value | hash('sha256') | truncate(12, True, ''))
+                  )
+                }
+              )
+          ]
+      }}
+  loop: "{{ normalized_docker_secret_items }}"
+  loop_control:
+    label: "{{ item.secret_name }}"
+  when: docker_secret_version_names | default(true) | bool
+  no_log: true
+
+- name: Replace normalized Docker secret list with versioned names
+  ansible.builtin.set_fact:
+    normalized_docker_secret_items: "{{ versioned_docker_secret_items }}"
+  when: docker_secret_version_names | default(true) | bool
+  no_log: true
+
+- name: Remove duplicate Docker secret definitions by secret name
+  ansible.builtin.set_fact:
+    docker_secret_items: >-
+      {{
+        normalized_docker_secret_items
+        | reverse
+        | unique(attribute='secret_name')
+        | reverse
+      }}
+  no_log: true
+
+- name: Create or update Docker secrets safely
+  block:
+    - name: Create unique temporary secret staging directory on manager
+      ansible.builtin.tempfile:
+        state: directory
+        path: /tmp
+        prefix: saaslms-docker-secrets-
+      register: docker_secret_tmpdir
+
+    - name: Restrict permissions on temporary secret staging directory
+      ansible.builtin.file:
+        path: "{{ docker_secret_tmpdir.path }}"
+        state: directory
+        mode: '0700'
+
+    - name: Check existing Docker secrets on manager
+      ansible.builtin.command:
+        cmd: "docker secret ls --format {% raw %}'{{.Name}}'{% endraw %}"
+      register: existing_docker_secrets
+      changed_when: false
+
+    - name: Stage secret files on manager
+      ansible.builtin.copy:
+        content: "{{ item.config_value }}"
+        dest: "{{ docker_secret_tmpdir.path }}/{{ item.secret_name }}"
+        mode: '0600'
+      loop: "{{ docker_secret_items }}"
+      loop_control:
+        label: "{{ item.secret_name }}"
+      no_log: true
+
+    - name: Remove existing Docker secrets before recreation (optional)
+      ansible.builtin.command:
+        cmd: "docker secret rm {{ item.secret_name }}"
+      loop: "{{ docker_secret_items }}"
+      loop_control:
+        label: "{{ item.secret_name }}"
+      when:
+        - (docker_secrets_recreate | default(false)) | bool
+        - item.secret_name in existing_docker_secrets.stdout_lines
+      register: docker_secret_remove_results
+      changed_when: docker_secret_remove_results.rc == 0
+      failed_when: docker_secret_remove_results.rc != 0
+
+    - name: Re-check existing Docker secrets on manager after optional removal
+      ansible.builtin.command:
+        cmd: "docker secret ls --format {% raw %}'{{.Name}}'{% endraw %}"
+      register: existing_docker_secrets_after
+      changed_when: false
+
+    - name: Create Docker secrets from staged files
+      ansible.builtin.command:
+        cmd: >-
+          docker secret create {{ item.secret_name }}
+          {{ docker_secret_tmpdir.path }}/{{ item.secret_name }}
+      loop: "{{ docker_secret_items }}"
+      loop_control:
+        label: "{{ item.secret_name }}"
+      when: item.secret_name not in existing_docker_secrets_after.stdout_lines
+      register: docker_secret_create_results
+      changed_when: docker_secret_create_results.rc == 0
+      # In some environments `docker secret ls` may temporarily return an incomplete list
+      # (permissions/race conditions right after swarm init). Treat "AlreadyExists" as idempotent.
+      failed_when: >-
+        docker_secret_create_results.rc != 0
+        and 'alreadyexists' not in (docker_secret_create_results.stderr | lower)
+
+  rescue:
+    - name: Report secret sync failure
+      ansible.builtin.debug:
+        msg: "Docker secret synchronization failed. Cleanup will still run."
+
+  always:
+    - name: Remove temporary secret staging directory from manager
+      ansible.builtin.file:
+        path: "{{ docker_secret_tmpdir.path | default('/tmp/saaslms-docker-secrets') }}"
+        state: absent
+
+- name: Show created Docker secret names
+  ansible.builtin.debug:
+    msg: "Docker secret '{{ item.secret_name }}' is ready."
+  loop: "{{ docker_secret_items }}"
+  loop_control:
+    label: "{{ item.secret_name }}"
