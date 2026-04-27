@@ -51,7 +51,7 @@ public partial class QuizViewer : AbpComponentBase, IAsyncDisposable
     private bool _canStart =>
         Quiz.Status == QuizStatus.Published &&
         (Quiz.AttemptPolicy == AttemptPolicy.Multiple || _attempts.Count == 0);
-
+ 
     private string? _startWarning;
 
     // ── Timer state ───────────────────────────────────────────────────────────
