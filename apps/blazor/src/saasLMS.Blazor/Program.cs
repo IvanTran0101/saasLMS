@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -29,6 +30,16 @@ public class Program
         {
             Log.Information("Starting web host.");
             var builder = WebApplication.CreateBuilder(args);
+
+            // Enable HTTP/2 (cleartext for Docker/proxy) + HTTP/1.1 on all endpoints.
+            // Dev HTTPS already defaults to HTTP/2; this ensures h2c works in production
+            // when Kestrel runs behind a reverse proxy on plain HTTP port 80.
+            builder.WebHost.ConfigureKestrel(kestrel =>
+            {
+                kestrel.ConfigureEndpointDefaults(ep =>
+                    ep.Protocols = HttpProtocols.Http1AndHttp2);
+            });
+
             builder.Host.AddAppSettingsSecretsJson()
                 .UseAutofac()
                 .UseSerilog();

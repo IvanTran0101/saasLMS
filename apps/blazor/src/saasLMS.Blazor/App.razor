@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -7,23 +7,129 @@
     <title>saasLMS</title>
     <base href="/" />
 
+    <!-- PWA manifest -->
+    <link rel="manifest" href="manifest.json" />
+
     <link href="global.css" rel="stylesheet"/>
     <link href="main.css" rel="stylesheet"/>
 
     <HeadOutlet @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
+
+    <!--
+        Inline styles for the loading screen.
+        Must be inline so they render immediately — before global.css / main.css finish loading.
+    -->
+    <style>
+        #blazor-loading {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            z-index: 9999;
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+        #blazor-loading.bl-hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .bl-logo {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 20px;
+        }
+        .bl-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: #7132f5;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .bl-subtitle {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 40px;
+        }
+        .bl-spinner {
+            width: 44px;
+            height: 44px;
+            position: relative;
+        }
+        .bl-bounce {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #7132f5;
+            opacity: 0.55;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: bl-pulse 2s infinite ease-in-out;
+        }
+        .bl-bounce2 {
+            animation-delay: -1s;
+        }
+        @@keyframes bl-pulse {
+            0%, 100% { transform: scale(0); }
+            50%       { transform: scale(1); }
+        }
+    </style>
 </head>
 
 <body class="abp-application-layout bg-light">
 
-    <!-- Published output ships `_framework/blazor.webassembly.js` (not `blazor.web.js`). -->
-    <script src="_framework/blazor.web.js"></script>
-    <script src="/_content/Volo.Abp.Account.Pro.Public.Blazor.Shared/IdleTracker.js"></script>
-    <div id="ApplicationContainer">
-        <div class="spinner">
-            <div class="double-bounce1"></div>
-            <div class="double-bounce2"></div>
+    <!-- Loading screen — visible while Blazor WASM assemblies download -->
+    <div id="blazor-loading" role="status" aria-label="Loading saasLMS">
+        <img class="bl-logo" src="/images/logo/leptonx/icon.svg" alt="saasLMS" />
+        <div class="bl-title">saasLMS</div>
+        <div class="bl-subtitle">Đang tải ứng dụng...</div>
+        <div class="bl-spinner">
+            <div class="bl-bounce"></div>
+            <div class="bl-bounce bl-bounce2"></div>
         </div>
+    </div>
 
+    <!--
+        autostart="false" lets us hook into Blazor.start() to know exactly when
+        the runtime is ready and components have rendered, then dismiss the loader.
+        Assembly download starts at the same time as before — no extra delay.
+    -->
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script src="/_content/Volo.Abp.Account.Pro.Public.Blazor.Shared/IdleTracker.js"></script>
+
+    <script>
+        (function () {
+            function hideLoader() {
+                var el = document.getElementById('blazor-loading');
+                if (!el) return;
+                el.classList.add('bl-hidden');
+                setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500);
+            }
+
+            var dismissed = false;
+            function safeHide() { if (!dismissed) { dismissed = true; hideLoader(); } }
+
+            // Start Blazor; hide loader when runtime is ready and first render is complete
+            var p = Blazor.start();
+            if (p && typeof p.then === 'function') {
+                p.then(safeHide, safeHide);
+            }
+            // Safety fallback: remove loader even if the promise never resolves
+            setTimeout(safeHide, 30000);
+
+            // Register PWA service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .catch(function (err) { console.warn('[SW] Registration failed:', err); });
+            }
+        })();
+    </script>
+
+    <div id="ApplicationContainer">
         <Routes @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)"/>
     </div>
 
