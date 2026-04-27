@@ -39,8 +39,24 @@ jobs:
       AWS_PROFILE: account-a
       ANSIBLE_LOCAL_TEMP: /tmp/ansible-local
       ANSIBLE_HOST_KEY_CHECKING: "False"
+      ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-prod-account-a
     steps:
       - uses: actions/checkout@v4
+
+      - name: Write Ansible vault password file
+        shell: bash
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANSIBLE_VAULT_PASSWORD:-}" ]]; then
+            echo "Missing required GitHub secret: ANSIBLE_VAULT_PASSWORD" >&2
+            exit 1
+          fi
+
+          umask 177
+          printf '%s' "$ANSIBLE_VAULT_PASSWORD" > "$ANSIBLE_VAULT_PASSWORD_FILE"
+          test -s "$ANSIBLE_VAULT_PASSWORD_FILE"
 
       - name: Verify deployment workspace
         shell: bash
@@ -50,6 +66,20 @@ jobs:
           ls -la
           test -d "${GITHUB_WORKSPACE}/deploy/ansible"
           ls -la "${GITHUB_WORKSPACE}/deploy/ansible"
+
+      - name: Preflight runner tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible --version
+          aws --version
+          docker --version
+
+      - name: Preflight AWS caller identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws sts get-caller-identity
 
       - name: Resolve image repo and env var for selected service
         id: resolve
@@ -140,6 +170,19 @@ jobs:
             echo "- Image: \`$image_ref\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Login to Docker Hub for deploy validation
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Validate image exists before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker manifest inspect "${{ steps.resolve.outputs.image_ref }}" > /dev/null
+
       - name: Update image tag env on swarm manager
         working-directory: ${{ github.workspace }}/deploy/ansible
         shell: bash
@@ -169,11 +212,64 @@ jobs:
           ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
             "docker stack services saaslms"
 
-      - name: Run post-deploy smoke checks
+      - name: Run origin smoke checks on swarm manager
+        working-directory: ${{ github.workspace }}/deploy/ansible
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsS https://auth.trananhminh.uk/.well-known/openid-configuration > /dev/null
-          curl -fsS -H "Origin: https://app.trananhminh.uk" \
-            "https://api.trananhminh.uk/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0" > /dev/null
-          curl -fsS https://app.trananhminh.uk/ > /dev/null
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS http://127.0.0.1:8083/ > /dev/null"
+
+      - name: Run external edge smoke checks with retries
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_url() {
+            local name="$1"
+            local url="$2"
+            shift 2
+
+            echo "Checking ${name}: ${url}"
+            for attempt in $(seq 1 12); do
+              if curl -fsS --connect-timeout 10 --max-time 30 "$@" "$url" > /dev/null; then
+                echo "OK: ${name} (attempt ${attempt})"
+                return 0
+              fi
+
+              echo "Retry ${attempt}/12 failed for ${name}"
+              sleep 10
+            done
+
+            echo "FAILED: ${name} -> ${url}" >&2
+            curl -sS -D - -o /dev/null "$@" "$url" || true
+            return 1
+          }
+
+          check_url "auth metadata" "https://auth.trananhminh.uk/.well-known/openid-configuration"
+          check_url "api app-config" "https://api.trananhminh.uk/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0" \
+            -H "Origin: https://app.trananhminh.uk"
+          check_url "app shell" "https://app.trananhminh.uk/"
+
+      - name: Dump stack diagnostics on failure
+        if: failure()
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "docker stack services saaslms && echo '---' && docker stack ps saaslms --no-trunc | tail -120"
+
+      - name: Remove Ansible vault password file
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$ANSIBLE_VAULT_PASSWORD_FILE"
