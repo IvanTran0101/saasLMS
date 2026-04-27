@@ -148,8 +148,11 @@ public class OpenIddictDataSeeder : ITransientDependency
     {
         if (await _openIddictScopeRepository.FindByNameAsync(name) == null)
         {
-            await _scopeManager.CreateAsync(new OpenIddictScopeDescriptor {
-                Name = name, DisplayName = name + " API", Resources = { name }
+            await _scopeManager.CreateAsync(new OpenIddictScopeDescriptor
+            {
+                Name = name,
+                DisplayName = name + " API",
+                Resources = { name }
             });
         }
     }
@@ -321,7 +324,8 @@ public class OpenIddictDataSeeder : ITransientDependency
 
         var client = await _openIddictApplicationRepository.FindByClientIdAsync(name);
 
-        var application = new AbpApplicationDescriptor {
+        var application = new AbpApplicationDescriptor
+        {
             ClientId = name,
             ClientType = type,
             ClientSecret = secret,
