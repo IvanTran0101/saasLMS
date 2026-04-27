@@ -1,7 +1,7 @@
 {
   "RemoteServices": {
     "course-catalog": {
-      "BaseUrl": "http://coursecatalogservice:80",
+      "BaseUrl": "http://saaslms_coursecatalogservice:80",
       "UseCurrentAccessToken": "true"
     }
   }

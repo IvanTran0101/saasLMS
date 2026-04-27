@@ -15,9 +15,15 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@LayoutOptions.Value.Layout">
                 <Authorizing>
-                    <div style="display:flex;justify-content:center;align-items:center;height:60vh;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Authorizing...</span>
+                    <div class="route-loading" role="status" aria-live="polite">
+                        <div class="route-loading__card">
+                            <div class="route-loading__spinner spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Authorizing...</span>
+                            </div>
+                            <div class="route-loading__copy">
+                                <div class="route-loading__title">Authorizing session</div>
+                                <div class="route-loading__text">Checking access, tenant context, and permissions.</div>
+                            </div>
                         </div>
                     </div>
                 </Authorizing>
