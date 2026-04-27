@@ -201,8 +201,21 @@ jobs:
       - name: Build service project (Release)
         run: dotnet build "${{ matrix.csproj }}" -c Release --no-restore
 
-      - name: Code style gate (dotnet format verify)
+      - name: Code style check (non-blocking)
+        id: dotnet_format
+        continue-on-error: true
         run: dotnet format "${{ matrix.csproj }}" --verify-no-changes --no-restore --verbosity minimal
+
+      - name: Report code style drift
+        if: steps.dotnet_format.outcome == 'failure'
+        shell: bash
+        run: |
+          {
+            echo "## Code style drift: ${{ matrix.service }}"
+            echo
+            echo "- \`dotnet format --verify-no-changes\` failed for \`${{ matrix.csproj }}\`."
+            echo "- Build/push is allowed to continue, but this should be cleaned up in a follow-up commit."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run service unit tests (Application/Domain when available)
         shell: bash

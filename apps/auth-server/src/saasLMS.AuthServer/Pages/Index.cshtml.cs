@@ -12,7 +12,7 @@ public class IndexModel : AbpPageModel
         {
             throw new DivideByZeroException("This is a test exception!");
         }
-    
+
         if (!CurrentUser.IsAuthenticated)
         {
             return Redirect("~/Account/Login");

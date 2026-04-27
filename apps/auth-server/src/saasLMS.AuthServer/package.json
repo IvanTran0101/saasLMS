@@ -2,6 +2,12 @@
   "version": "0.1.0",
   "name": "saasLMSAuthServer",
   "private": true,
+  "overrides": {
+    "lodash": "4.18.0"
+  },
+  "resolutions": {
+    "lodash": "4.18.0"
+  },
   "dependencies": {
     "@volo/abp.aspnetcore.mvc.ui.theme.leptonx": "~5.1.1",
     "@volo/account": "~10.1.1"
