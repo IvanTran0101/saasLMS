@@ -40,14 +40,23 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:
       - ../grafana/storage:/var/lib/grafana
+      - ../grafana/provisioning:/etc/grafana/provisioning
+      - ../grafana/dashboards:/etc/grafana/dashboards
     networks:
       - saaslms-network
       
   prometheus:
     container_name: prometheus
     image: prom/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
     volumes:
       - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ../prometheus/storage:/prometheus

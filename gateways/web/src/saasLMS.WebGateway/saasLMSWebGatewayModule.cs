@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Prometheus;
 using saasLMS.Shared.Hosting.AspNetCore;
 using saasLMS.Shared.Hosting.Gateways;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -83,12 +84,17 @@ public class saasLMSWebGatewayModule : AbpModule
         app.MapAbpStaticAssets();
         app.UseCors();
         app.UseRouting();
+        app.UseHttpMetrics();
         app.UseAuthorization();
         app.UseSwagger();
         app.UseAbpSwaggerUI(options => { ConfigureSwaggerUI(proxyConfig, options, configuration); });
         app.UseRewriter(CreateSwaggerRewriteOptions());
         app.UseAbpSerilogEnrichers();
-        app.UseEndpoints(endpoints => endpoints.MapReverseProxy());
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapMetrics();
+            endpoints.MapReverseProxy();
+        });
     }
     
     private static void ConfigureSwaggerUI(

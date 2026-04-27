@@ -1,6 +1,4 @@
-using System.IO.Compression;
 using saasLMS.Blazor.Client;
-using Microsoft.AspNetCore.ResponseCompression;
 using Volo.Abp;
 using Volo.Abp.Account.Pro.Public.Blazor.Shared.Pages.Account.Idle;
 using Volo.Abp.AspNetCore.Components.WebAssembly.LeptonXTheme.Bundling;
@@ -34,24 +32,6 @@ public class saasLMSBlazorModule : AbpModule
             options.SuppressCheckForUnhandledSecurityMetadata = true;
         });
 
-        // Brotli + Gzip compression for dynamic responses (HTML, JSON, etc.)
-        // Note: Blazor's pre-compressed _framework/*.br files are served by static file
-        // middleware with Content-Encoding already set, so they won't be double-compressed.
-        context.Services.AddResponseCompression(options =>
-        {
-            options.EnableForHttps = true;
-            options.Providers.Add<BrotliCompressionProvider>();
-            options.Providers.Add<GzipCompressionProvider>();
-            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat([
-                "application/wasm",
-                "image/svg+xml"
-            ]);
-        });
-        context.Services.Configure<BrotliCompressionProviderOptions>(o =>
-            o.Level = CompressionLevel.Fastest);
-        context.Services.Configure<GzipCompressionProviderOptions>(o =>
-            o.Level = CompressionLevel.Fastest);
-
         // Add services to the container.
         context.Services.AddRazorComponents()
             .AddInteractiveWebAssemblyComponents();
@@ -76,9 +56,6 @@ public class saasLMSBlazorModule : AbpModule
     {
         var env = context.GetEnvironment();
         var app = context.GetApplicationBuilder();
-
-        // Compression must come first so it wraps all subsequent middleware responses
-        app.UseResponseCompression();
 
         // Configure the HTTP request pipeline.
         if (env.IsDevelopment())
