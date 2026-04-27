@@ -18,9 +18,9 @@ public class Program
         {
             Log.Information($"Starting {assemblyName}.");
             var builder = WebApplication.CreateBuilder(args);
-            
+
             SerilogConfigurationHelper.Configure(assemblyName!, builder.Environment.EnvironmentName);
-            
+
             builder.Host
                 .AddAppSettingsSecretsJson()
                 .UseAutofac()

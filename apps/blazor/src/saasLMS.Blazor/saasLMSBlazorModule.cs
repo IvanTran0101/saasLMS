@@ -1,4 +1,3 @@
-using Prometheus;
 using saasLMS.Blazor.Client;
 using Volo.Abp;
 using Volo.Abp.Account.Pro.Public.Blazor.Shared.Pages.Account.Idle;
@@ -37,8 +36,8 @@ public class saasLMSBlazorModule : AbpModule
         context.Services.AddRazorComponents()
             .AddInteractiveWebAssemblyComponents();
 
-        // This app serves current frontend assets from `_content` and `_framework`.
-        // ABP's legacy `wwwroot/libs` check is not applicable to this deployment shape.
+        // In containerized deployments we may mount `/app/wwwroot/libs` from the host.
+        // Disable the startup-time libs check to avoid 500s when the folder is empty/missing.
         Configure<AbpMvcLibsOptions>(options =>
         {
             options.CheckLibs = false;
@@ -72,13 +71,11 @@ public class saasLMSBlazorModule : AbpModule
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
-        app.UseHttpMetrics();
         app.MapAbpStaticAssets();
         app.UseAntiforgery();
 
         app.UseConfiguredEndpoints(builder =>
         {
-            builder.MapMetrics();
             builder.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(

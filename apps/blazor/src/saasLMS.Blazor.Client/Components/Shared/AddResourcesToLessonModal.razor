@@ -228,9 +228,9 @@
             <div class="arm-section">
 
                 @* Description *@
-                <div class="arm-field mt-3">
+                <div class="arm-field mt-3 @(_assignmentDescriptionError != null ? "arm-field--error" : "")">
                     <label class="arm-field__label" for="arm-asgn-desc">
-                        Description <span class="arm-field__optional">(optional)</span>
+                        Description <span class="arm-field__required">*</span>
                     </label>
                     <textarea id="arm-asgn-desc"
                               class="arm-field__input arm-field__textarea"
@@ -239,6 +239,12 @@
                               @bind="_assignmentDescription"
                               @bind:event="oninput"
                               disabled="@_isSaving"></textarea>
+                    @if (_assignmentDescriptionError != null)
+                    {
+                        <span class="arm-field__error-msg">
+                            <i class="fa fa-exclamation-circle me-1"></i>@_assignmentDescriptionError
+                        </span>
+                    }
                 </div>
 
                 <div class="arm-field-row mt-3">

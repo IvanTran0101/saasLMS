@@ -96,7 +96,7 @@ public class saasLMSWebGatewayModule : AbpModule
             endpoints.MapReverseProxy();
         });
     }
-    
+
     private static void ConfigureSwaggerUI(
         IProxyConfig proxyConfig,
         SwaggerUIOptions options,

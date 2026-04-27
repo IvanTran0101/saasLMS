@@ -189,7 +189,7 @@ public class saasLMSAuthServerModule : AbpModule
         {
             options.IsDynamicClaimsEnabled = true;
         });
-        
+
         context.Services.Configure<AbpAccountOptions>(options =>
         {
             options.TenantAdminUserName = "admin";

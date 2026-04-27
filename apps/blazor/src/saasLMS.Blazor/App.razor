@@ -14,21 +14,76 @@
 </head>
 
 <body class="abp-application-layout bg-light">
-
-    <!-- Published output ships `_framework/blazor.webassembly.js` (not `blazor.web.js`). -->
-    <script src="_framework/blazor.web.js"></script>
-    <script src="/_content/Volo.Abp.Account.Pro.Public.Blazor.Shared/IdleTracker.js"></script>
     <div id="ApplicationContainer">
-        <div class="spinner">
-            <div class="double-bounce1"></div>
-            <div class="double-bounce2"></div>
+        <div id="app-shell" class="app-shell" aria-live="polite">
+            <div class="app-shell__panel">
+                <div class="app-shell__brand">
+                    <div class="app-shell__brand-mark">S</div>
+                    <div class="app-shell__brand-copy">
+                        <div class="app-shell__eyebrow">saasLMS</div>
+                        <h1 class="app-shell__title">Loading workspace</h1>
+                        <p class="app-shell__subtitle">Preparing courses, identity, and dashboard data.</p>
+                    </div>
+                </div>
+
+                <div class="app-shell__progress" role="status" aria-label="Application is loading">
+                    <div class="app-shell__progress-bar"></div>
+                </div>
+
+                <div class="app-shell__layout">
+                    <div class="app-shell__sidebar">
+                        <span class="app-shell__shimmer app-shell__shimmer--block app-shell__shimmer--logo"></span>
+                        <span class="app-shell__shimmer app-shell__shimmer--line"></span>
+                        <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--line-short"></span>
+                        <span class="app-shell__shimmer app-shell__shimmer--line"></span>
+                        <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--line-medium"></span>
+                    </div>
+
+                    <div class="app-shell__content">
+                        <div class="app-shell__topbar">
+                            <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--headline"></span>
+                            <span class="app-shell__shimmer app-shell__shimmer--pill"></span>
+                        </div>
+
+                        <div class="app-shell__cards">
+                            <div class="app-shell__card">
+                                <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--card-title"></span>
+                                <span class="app-shell__shimmer app-shell__shimmer--line"></span>
+                                <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--line-short"></span>
+                            </div>
+                            <div class="app-shell__card">
+                                <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--card-title"></span>
+                                <span class="app-shell__shimmer app-shell__shimmer--line"></span>
+                                <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--line-medium"></span>
+                            </div>
+                            <div class="app-shell__card">
+                                <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--card-title"></span>
+                                <span class="app-shell__shimmer app-shell__shimmer--line"></span>
+                                <span class="app-shell__shimmer app-shell__shimmer--line app-shell__shimmer--line-short"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <Routes @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)"/>
     </div>
 
+    <!-- Published output ships `_framework/blazor.webassembly.js` (not `blazor.web.js`). -->
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script src="/_content/Volo.Abp.Account.Pro.Public.Blazor.Shared/IdleTracker.js"></script>
     <script src="global.js"></script>
     <script>
+        Blazor.start()
+            .then(function () {
+                document.body.classList.add('app-ready');
+            })
+            .catch(function (error) {
+                document.body.classList.add('app-boot-failed');
+                throw error;
+            });
+
         window.downloadFileFromBytes = function (fileName, base64Data, mimeType) {
             var bytes = Uint8Array.from(atob(base64Data), function(c) { return c.charCodeAt(0); });
             var blob = new Blob([bytes], { type: mimeType || 'application/octet-stream' });

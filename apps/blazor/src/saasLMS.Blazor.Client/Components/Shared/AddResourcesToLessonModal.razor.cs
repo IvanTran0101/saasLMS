@@ -117,6 +117,7 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     private string?   _assignmentDescription;
     private DateTime? _assignmentDeadline;
     private decimal   _assignmentMaxScore;
+    private string?   _assignmentDescriptionError;
     private string?   _assignmentDeadlineError;
     private string?   _assignmentMaxScoreError;
 
@@ -243,11 +244,12 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _textContent = string.Empty;
         _textError   = null;
 
-        _assignmentDescription   = null;
-        _assignmentDeadline      = null;
-        _assignmentMaxScore      = 100m;
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
+        _assignmentDescription      = null;
+        _assignmentDeadline         = null;
+        _assignmentMaxScore         = 100m;
+        _assignmentDescriptionError = null;
+        _assignmentDeadlineError    = null;
+        _assignmentMaxScoreError    = null;
 
         _quizCsvFile           = null;
         _quizCsvFileError      = null;
@@ -276,8 +278,9 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         _videoUrlError = null;
         _textError     = null;
         
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
+        _assignmentDescriptionError = null;
+        _assignmentDeadlineError    = null;
+        _assignmentMaxScoreError    = null;
 
         _quizCsvFileError = null;
     }
@@ -320,9 +323,50 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         return true;
     }
 
+    /// <summary>
+    /// Validates Assignment-specific fields synchronously and sets inline error messages.
+    /// Must be called before _isSaving = true to avoid HandleErrorAsync being triggered
+    /// for user input errors (which causes ABP toast + JS interop lag).
+    /// </summary>
+    private bool ValidateAssignmentFields()
+    {
+        _assignmentDescriptionError = null;
+        _assignmentMaxScoreError    = null;
+        _assignmentDeadlineError    = null;
+
+        var isValid = true;
+
+        if (string.IsNullOrWhiteSpace(_assignmentDescription))
+        {
+            _assignmentDescriptionError = "Description is required.";
+            isValid = false;
+        }
+
+        if (_assignmentMaxScore <= 0)
+        {
+            _assignmentMaxScoreError = "Max score must be greater than 0.";
+            isValid = false;
+        }
+
+        if (_assignmentDeadline.HasValue && _assignmentDeadline.Value <= DateTime.Now)
+        {
+            _assignmentDeadlineError = "Deadline must be a future date and time.";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     private async Task AddResourceAsync()
     {
         if (!ValidateCommonFields()) return;
+
+        // Validate assignment fields up-front — before _isSaving = true — so invalid input
+        // shows inline errors immediately without going through HandleErrorAsync (ABP toast).
+        if ((_activeTab == MaterialTabType.Assignment && !_isEditMode) || _isEditAssignmentMode)
+        {
+            if (!ValidateAssignmentFields()) return;
+        }
 
         _isSaving = true;
         try
@@ -479,19 +523,11 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task SaveEditAssignmentAsync()
     {
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
-
-        if (_assignmentMaxScore <= 0)
-        {
-            _assignmentMaxScoreError = "Max score must be greater than 0.";
-            throw new InvalidOperationException(_assignmentMaxScoreError);
-        }
-
+        // Validation already ran in ValidateAssignmentFields() before _isSaving was set.
         var input = new UpdateAssignmentDto
         {
             Title       = _resourceTitle.Trim(),
-            Description = string.IsNullOrWhiteSpace(_assignmentDescription) ? null : _assignmentDescription.Trim(),
+            Description = _assignmentDescription!.Trim(),
             // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
             Deadline    = _assignmentDeadline.HasValue
                 ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()
@@ -606,29 +642,13 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     
     private async Task<AssignmentDto> AddAssignmentAsync()
     {
-        _assignmentDeadlineError = null;
-        _assignmentMaxScoreError = null;
-
-        if (_assignmentMaxScore <= 0)
-        {
-            _assignmentMaxScoreError = "Max score must be greater than 0.";
-            throw new InvalidOperationException(_assignmentMaxScoreError);
-        }
-
-        if (_assignmentDeadline.HasValue && _assignmentDeadline.Value <= DateTime.Now)
-        {
-            _assignmentDeadlineError = "Deadline must be a future date and time.";
-            throw new InvalidOperationException(_assignmentDeadlineError);
-        }
-
+        // Validation already ran in ValidateAssignmentFields() before _isSaving was set.
         var input = new CreateAssignmentDto
         {
             CourseId    = _courseId,
             LessonId    = _lessonId,
             Title       = _resourceTitle.Trim(),
-            Description = string.IsNullOrWhiteSpace(_assignmentDescription)
-                ? null
-                : _assignmentDescription.Trim(),
+            Description = _assignmentDescription!.Trim(),
             // datetime-local gives Kind=Unspecified (local time) → convert to UTC before sending to server
             Deadline    = _assignmentDeadline.HasValue
                 ? DateTime.SpecifyKind(_assignmentDeadline.Value, DateTimeKind.Local).ToUniversalTime()

@@ -1,0 +1,21 @@
+{
+    "name": "saasLMS",
+    "short_name": "saasLMS",
+    "description": "Learning Management System",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#7132f5",
+    "icons": [
+        {
+            "src": "/images/favicon/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/favicon/android-chrome-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        }
+    ]
+}
