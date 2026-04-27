@@ -1,14 +1,6 @@
 name: Services CI/CD
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/services-ci-cd.yml"
-      - "apps/**"
-      - "gateways/**"
-      - "services/**"
-      - "shared/**"
-      - "etc/docker/swarm/stack.yml"
   push:
     branches:
       - master
