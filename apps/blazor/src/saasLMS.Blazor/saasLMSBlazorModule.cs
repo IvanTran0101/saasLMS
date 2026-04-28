@@ -36,8 +36,8 @@ public class saasLMSBlazorModule : AbpModule
         context.Services.AddRazorComponents()
             .AddInteractiveWebAssemblyComponents();
 
-        // In containerized deployments we may mount `/app/wwwroot/libs` from the host.
-        // Disable the startup-time libs check to avoid 500s when the folder is empty/missing.
+        // Production images bake `/app/wwwroot/libs` during the Docker build.
+        // Keep the startup-time check disabled to avoid false negatives during cold start.
         Configure<AbpMvcLibsOptions>(options =>
         {
             options.CheckLibs = false;

@@ -8,6 +8,7 @@
     <base href="/" />
 
     <link href="global.css" rel="stylesheet"/>
+    <link href="app-shell.css" rel="stylesheet"/>
     <link href="main.css" rel="stylesheet"/>
 
     <HeadOutlet @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
@@ -78,6 +79,13 @@
         Blazor.start()
             .then(function () {
                 document.body.classList.add('app-ready');
+                var shell = document.getElementById('app-shell');
+                if (shell) {
+                    shell.setAttribute('aria-hidden', 'true');
+                    window.setTimeout(function () {
+                        shell.remove();
+                    }, 300);
+                }
             })
             .catch(function (error) {
                 document.body.classList.add('app-boot-failed');

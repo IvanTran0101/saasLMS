@@ -12,7 +12,7 @@ ami_id                = "ami-0c1d28734eb221b6d"
 key_pair_name         = "saaslms"
 infra_instance_type   = "t3.medium"
 manager_instance_type = "t3.medium"
-worker_instance_type  = "t3.small"
+worker_instance_type  = "t3.medium"
 worker_count          = 1
 
 my_ip_cidr = "42.115.43.69/32"
