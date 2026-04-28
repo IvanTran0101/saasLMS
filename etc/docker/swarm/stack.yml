@@ -105,7 +105,7 @@ configs:
 services:
   blazor:
     # NOTE: Pin this to a concrete tag when troubleshooting frontend boot issues
-    # (e.g. missing /_framework/blazor.boot.json).
+    # (e.g. missing /_framework/blazor.web.js or stale static assets).
     image: ${BLAZOR_IMAGE}
     ports:
       - target: 80

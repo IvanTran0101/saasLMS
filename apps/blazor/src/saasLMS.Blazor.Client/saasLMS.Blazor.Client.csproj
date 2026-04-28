@@ -15,6 +15,12 @@
                    PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <!-- Keep local secrets out of the published static web root. -->
+  <ItemGroup>
+    <Content Remove="wwwroot\appsettings.secrets.json" />
+    <None Include="wwwroot\appsettings.secrets.json" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Blazorise.Bootstrap5" Version="1.8.8" />
     <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.8.8" />

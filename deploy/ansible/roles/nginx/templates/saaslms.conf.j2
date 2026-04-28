@@ -34,10 +34,35 @@ server {
 {% if nginx_tls_enabled_domains.get(nginx_public_app_domain, false) %}
     return 301 https://$host$request_uri;
 {% else %}
+    location = /appsettings.secrets.json {
+        return 404;
+    }
+
+    location ~ ^/appsettings(\.[A-Za-z0-9_-]+)?\.json(\.(br|gz))?$ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "no-store" always;
+{{ proxy_common() }}
+    }
+
+    location = /service-worker.js {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "no-cache, must-revalidate" always;
+{{ proxy_common() }}
+    }
+
+    location = /service-worker.published.js {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "no-cache, must-revalidate" always;
+{{ proxy_common() }}
+    }
+
     location = / {
         proxy_pass {{ nginx_app_upstream_url }};
         proxy_set_header X-Forwarded-Proto $scheme;
-        add_header Cache-Control "no-cache" always;
+        add_header Cache-Control "no-cache, must-revalidate" always;
 {{ proxy_common() }}
     }
 
@@ -52,6 +77,13 @@ server {
         proxy_pass {{ nginx_app_upstream_url }};
         proxy_set_header X-Forwarded-Proto $scheme;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
+{{ proxy_common() }}
+    }
+
+    location ~* \.(css|js|woff2?|ttf|eot|png|svg|ico|gif|jpg|jpeg|webp)$ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "public, max-age=3600, must-revalidate" always;
 {{ proxy_common() }}
     }
 
@@ -80,10 +112,35 @@ server {
     client_max_body_size {{ nginx_client_max_body_size }};
 {{ security_headers() }}
 
+    location = /appsettings.secrets.json {
+        return 404;
+    }
+
+    location ~ ^/appsettings(\.[A-Za-z0-9_-]+)?\.json(\.(br|gz))?$ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "no-store" always;
+{{ proxy_common() }}
+    }
+
+    location = /service-worker.js {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "no-cache, must-revalidate" always;
+{{ proxy_common() }}
+    }
+
+    location = /service-worker.published.js {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "no-cache, must-revalidate" always;
+{{ proxy_common() }}
+    }
+
     location = / {
         proxy_pass {{ nginx_app_upstream_url }};
         proxy_set_header X-Forwarded-Proto https;
-        add_header Cache-Control "no-cache" always;
+        add_header Cache-Control "no-cache, must-revalidate" always;
 {{ proxy_common() }}
     }
 
@@ -98,6 +155,13 @@ server {
         proxy_pass {{ nginx_app_upstream_url }};
         proxy_set_header X-Forwarded-Proto https;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
+{{ proxy_common() }}
+    }
+
+    location ~* \.(css|js|woff2?|ttf|eot|png|svg|ico|gif|jpg|jpeg|webp)$ {
+        proxy_pass {{ nginx_app_upstream_url }};
+        proxy_set_header X-Forwarded-Proto https;
+        add_header Cache-Control "public, max-age=3600, must-revalidate" always;
 {{ proxy_common() }}
     }
 
