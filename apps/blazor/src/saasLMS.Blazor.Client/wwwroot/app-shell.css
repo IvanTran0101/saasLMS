@@ -318,3 +318,5 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Keep boot and auth shell styles isolated here so deploys can cache this asset independently. */
