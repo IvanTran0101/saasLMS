@@ -97,7 +97,7 @@ module "worker_asg" {
   associate_public_ip_address                = true
   desired_capacity                           = var.worker_count
   min_size                                   = var.worker_count
-  max_size                                   = max(var.worker_count, 2)
+  max_size                                   = var.worker_count
   root_volume_size                           = var.app_root_volume_size
   root_volume_type                           = var.root_volume_type
   common_tags                                = var.common_tags
