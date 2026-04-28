@@ -1,0 +1,804 @@
+name: CI/CD prod-account-a
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/ci-cd-prod-account-a.yml"
+      - "apps/**"
+      - "deploy/ansible/**"
+      - "gateways/**"
+      - "etc/docker/swarm/**"
+      - "services/**"
+      - "shared/**"
+  pull_request:
+    branches:
+      - master
+      - main
+    paths:
+      - ".github/workflows/ci-cd-prod-account-a.yml"
+      - "apps/**"
+      - "deploy/ansible/**"
+      - "gateways/**"
+      - "etc/docker/swarm/**"
+      - "services/**"
+      - "shared/**"
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operation to run"
+        required: true
+        type: choice
+        default: rollback
+        options:
+          - rollback
+      service:
+        description: "Service to roll back"
+        required: true
+        type: choice
+        options:
+          - blazor
+          - dbmigrator
+          - authserver
+          - gateway
+          - saasservice
+          - administrationservice
+          - identityservice
+          - productservice
+          - coursecatalogservice
+          - enrollmentservice
+          - assessmentservice
+          - learningprogressservice
+          - notificationservice
+          - reportingservice
+      image_tag:
+        description: "Rollback image tag (example: sha-<commit-sha>)"
+        required: true
+        type: string
+
+concurrency:
+  group: ci-cd-prod-account-a-${{ github.ref_name || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  detect-changes:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: self-hosted
+    outputs:
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+      matrix: ${{ steps.detect.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed services
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          declare -A touched=()
+
+          add_service() {
+            local svc="$1"
+            touched["$svc"]=1
+          }
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          else
+            base="${{ github.event.before }}"
+            head="${{ github.sha }}"
+            if [[ -z "$base" || "$base" == "0000000000000000000000000000000000000000" ]]; then
+              base="$(git rev-parse "${head}^" 2>/dev/null || true)"
+            fi
+          fi
+
+          if [[ -z "${base:-}" ]]; then
+            echo "Unable to determine diff base; defaulting to no changed services."
+            changed_files=""
+          else
+            changed_files="$(git diff --name-only "$base" "$head" || true)"
+          fi
+
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            case "$f" in
+              apps/blazor/*) add_service blazor ;;
+              shared/saasLMS.DbMigrator/*) add_service dbmigrator ;;
+              apps/auth-server/*) add_service authserver ;;
+              gateways/web/*) add_service gateway ;;
+              services/saas/*) add_service saasservice ;;
+              services/administration/*) add_service administrationservice ;;
+              services/identity/*) add_service identityservice ;;
+              services/product/*) add_service productservice ;;
+              services/courseCatalog/*) add_service coursecatalogservice ;;
+              services/enrollment/*) add_service enrollmentservice ;;
+              services/assessment/*) add_service assessmentservice ;;
+              services/learningProgress/*) add_service learningprogressservice ;;
+              services/notification/*) add_service notificationservice ;;
+              services/reporting/*) add_service reportingservice ;;
+            esac
+          done <<< "$changed_files"
+
+          matrix='[]'
+          for svc in "${!touched[@]}"; do
+            case "$svc" in
+              blazor)
+                obj='{"service":"blazor","service_dir":"apps/blazor","csproj":"apps/blazor/src/saasLMS.Blazor/saasLMS.Blazor.csproj","image_repo":"youngmizh/saaslms-blazor","image_var":"BLAZOR_IMAGE","dockerfile":"apps/blazor/src/saasLMS.Blazor/Dockerfile"}'
+                ;;
+              dbmigrator)
+                obj='{"service":"dbmigrator","service_dir":"shared/saasLMS.DbMigrator","csproj":"shared/saasLMS.DbMigrator/saasLMS.DbMigrator.csproj","image_repo":"youngmizh/saaslms-dbmigrator","image_var":"DBMIGRATOR_IMAGE","dockerfile":"shared/saasLMS.DbMigrator/Dockerfile"}'
+                ;;
+              authserver)
+                obj='{"service":"authserver","service_dir":"apps/auth-server","csproj":"apps/auth-server/src/saasLMS.AuthServer/saasLMS.AuthServer.csproj","image_repo":"youngmizh/saaslms-authserver","image_var":"AUTHSERVER_IMAGE","dockerfile":"apps/auth-server/src/saasLMS.AuthServer/Dockerfile"}'
+                ;;
+              gateway)
+                obj='{"service":"gateway","service_dir":"gateways/web","csproj":"gateways/web/src/saasLMS.WebGateway/saasLMS.WebGateway.csproj","image_repo":"youngmizh/saaslms-gateway-web","image_var":"GATEWAY_IMAGE","dockerfile":"gateways/web/src/saasLMS.WebGateway/Dockerfile"}'
+                ;;
+              saasservice)
+                obj='{"service":"saasservice","service_dir":"services/saas","csproj":"services/saas/src/saasLMS.SaasService.HttpApi.Host/saasLMS.SaasService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-saas","image_var":"SAAS_IMAGE","dockerfile":"services/saas/src/saasLMS.SaasService.HttpApi.Host/Dockerfile"}'
+                ;;
+              administrationservice)
+                obj='{"service":"administrationservice","service_dir":"services/administration","csproj":"services/administration/src/saasLMS.AdministrationService.HttpApi.Host/saasLMS.AdministrationService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-administration","image_var":"ADMINISTRATION_IMAGE","dockerfile":"services/administration/src/saasLMS.AdministrationService.HttpApi.Host/Dockerfile"}'
+                ;;
+              identityservice)
+                obj='{"service":"identityservice","service_dir":"services/identity","csproj":"services/identity/src/saasLMS.IdentityService.HttpApi.Host/saasLMS.IdentityService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-identity","image_var":"IDENTITY_IMAGE","dockerfile":"services/identity/src/saasLMS.IdentityService.HttpApi.Host/Dockerfile"}'
+                ;;
+              productservice)
+                obj='{"service":"productservice","service_dir":"services/product","csproj":"services/product/src/saasLMS.ProductService.HttpApi.Host/saasLMS.ProductService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-product","image_var":"PRODUCT_IMAGE","dockerfile":"services/product/src/saasLMS.ProductService.HttpApi.Host/Dockerfile"}'
+                ;;
+              coursecatalogservice)
+                obj='{"service":"coursecatalogservice","service_dir":"services/courseCatalog","csproj":"services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/saasLMS.CourseCatalogService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-coursecatalog","image_var":"COURSECATALOG_IMAGE","dockerfile":"services/courseCatalog/src/saasLMS.CourseCatalogService.HttpApi.Host/Dockerfile"}'
+                ;;
+              enrollmentservice)
+                obj='{"service":"enrollmentservice","service_dir":"services/enrollment","csproj":"services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/saasLMS.EnrollmentService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-enrollment","image_var":"ENROLLMENT_IMAGE","dockerfile":"services/enrollment/src/saasLMS.EnrollmentService.HttpApi.Host/Dockerfile"}'
+                ;;
+              assessmentservice)
+                obj='{"service":"assessmentservice","service_dir":"services/assessment","csproj":"services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/saasLMS.AssessmentService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-assessment","image_var":"ASSESSMENT_IMAGE","dockerfile":"services/assessment/src/saasLMS.AssessmentService.HttpApi.Host/Dockerfile"}'
+                ;;
+              learningprogressservice)
+                obj='{"service":"learningprogressservice","service_dir":"services/learningProgress","csproj":"services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/saasLMS.LearningProgressService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-learningprogress","image_var":"LEARNINGPROGRESS_IMAGE","dockerfile":"services/learningProgress/src/saasLMS.LearningProgressService.HttpApi.Host/Dockerfile"}'
+                ;;
+              notificationservice)
+                obj='{"service":"notificationservice","service_dir":"services/notification","csproj":"services/notification/src/saasLMS.NotificationService.HttpApi.Host/saasLMS.NotificationService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-notification","image_var":"NOTIFICATION_IMAGE","dockerfile":"services/notification/src/saasLMS.NotificationService.HttpApi.Host/Dockerfile"}'
+                ;;
+              reportingservice)
+                obj='{"service":"reportingservice","service_dir":"services/reporting","csproj":"services/reporting/src/saasLMS.ReportingService.HttpApi.Host/saasLMS.ReportingService.HttpApi.Host.csproj","image_repo":"youngmizh/saaslms-reporting","image_var":"REPORTING_IMAGE","dockerfile":"services/reporting/src/saasLMS.ReportingService.HttpApi.Host/Dockerfile"}'
+                ;;
+              *)
+                echo "Unknown service: $svc" >&2
+                continue
+                ;;
+            esac
+            matrix="$(jq -c --argjson obj "$obj" '. + [$obj]' <<< "$matrix")"
+          done
+
+          matrix="$(jq -c '.' <<< "$matrix")"
+
+          if [[ "$(jq 'length' <<< "$matrix")" -gt 0 ]]; then
+            {
+              echo "has_changes=true"
+              echo "matrix<<EOF"
+              echo "$matrix"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "has_changes=false"
+              echo "matrix=[]"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  validate-deploy-config:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: self-hosted
+    env:
+      ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-syntax-check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write Ansible vault password file
+        shell: bash
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANSIBLE_VAULT_PASSWORD:-}" ]]; then
+            echo "Missing required GitHub secret: ANSIBLE_VAULT_PASSWORD" >&2
+            exit 1
+          fi
+
+          umask 177
+          printf '%s' "$ANSIBLE_VAULT_PASSWORD" > "$ANSIBLE_VAULT_PASSWORD_FILE"
+          test -s "$ANSIBLE_VAULT_PASSWORD_FILE"
+
+      - name: Preflight deploy validation tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible --version
+          docker --version
+
+      - name: Create temporary inventory for syntax checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > deploy/ansible/.ci-syntax-check.ini <<'EOF'
+          [manager]
+          manager1 ansible_connection=local
+
+          [workers]
+          worker1 ansible_connection=local
+
+          [infra]
+          infra1 ansible_connection=local
+          EOF
+
+      - name: Validate Ansible playbook syntax
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          for playbook in \
+            playbooks/swarm-init.yml \
+            playbooks/swarm-stack.yml \
+            playbooks/setup-nginx.yml \
+            playbooks/docker-secrets.yml
+          do
+            echo "Syntax check: ${playbook}"
+            ansible-playbook \
+              --syntax-check \
+              --vault-password-file "$ANSIBLE_VAULT_PASSWORD_FILE" \
+              -i .ci-syntax-check.ini \
+              "$playbook"
+          done
+
+      - name: Validate Docker Swarm stack syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          export INFRA_INTERNAL_HOST=127.0.0.1
+          export BLAZOR_IMAGE=example/blazor:sha-test
+          export DBMIGRATOR_IMAGE=example/dbmigrator:sha-test
+          export AUTHSERVER_IMAGE=example/authserver:sha-test
+          export GATEWAY_IMAGE=example/gateway:sha-test
+          export SAAS_IMAGE=example/saas:sha-test
+          export ADMINISTRATION_IMAGE=example/administration:sha-test
+          export IDENTITY_IMAGE=example/identity:sha-test
+          export PRODUCT_IMAGE=example/product:sha-test
+          export COURSECATALOG_IMAGE=example/coursecatalog:sha-test
+          export ENROLLMENT_IMAGE=example/enrollment:sha-test
+          export ASSESSMENT_IMAGE=example/assessment:sha-test
+          export LEARNINGPROGRESS_IMAGE=example/learningprogress:sha-test
+          export NOTIFICATION_IMAGE=example/notification:sha-test
+          export REPORTING_IMAGE=example/reporting:sha-test
+          export ABPLICENSECODE_SECRET_NAME=abplicensecode_dummy
+          export STRINGENCRYPTION_DEFAULTPASSPHRASE_SECRET_NAME=stringencryption_defaultpassphrase_dummy
+          export IDENTITYCLIENTS_DEFAULT_CLIENTSECRET_SECRET_NAME=identityclients_default_clientsecret_dummy
+          export CONNECTIONSTRINGS_ADMINISTRATIONSERVICE_SECRET_NAME=connectionstrings_administrationservice_dummy
+          export CONNECTIONSTRINGS_ASSESSMENTSERVICE_SECRET_NAME=connectionstrings_assessmentservice_dummy
+          export CONNECTIONSTRINGS_COURSECATALOGSERVICE_SECRET_NAME=connectionstrings_coursecatalogservice_dummy
+          export CONNECTIONSTRINGS_ENROLLMENTSERVICE_SECRET_NAME=connectionstrings_enrollmentservice_dummy
+          export CONNECTIONSTRINGS_FORMS_SECRET_NAME=connectionstrings_forms_dummy
+          export CONNECTIONSTRINGS_IDENTITYSERVICE_SECRET_NAME=connectionstrings_identityservice_dummy
+          export CONNECTIONSTRINGS_LEARNINGPROGRESSSERVICE_SECRET_NAME=connectionstrings_learningprogressservice_dummy
+          export CONNECTIONSTRINGS_NOTIFICATIONSERVICE_SECRET_NAME=connectionstrings_notificationservice_dummy
+          export CONNECTIONSTRINGS_PRODUCTSERVICE_SECRET_NAME=connectionstrings_productservice_dummy
+          export CONNECTIONSTRINGS_REPORTINGSERVICE_SECRET_NAME=connectionstrings_reportingservice_dummy
+          export CONNECTIONSTRINGS_SAASSERVICE_SECRET_NAME=connectionstrings_saasservice_dummy
+          docker compose -f etc/docker/swarm/stack.yml config > /dev/null
+
+      - name: Remove temporary validation files
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$ANSIBLE_VAULT_PASSWORD_FILE"
+          rm -f deploy/ansible/.ci-syntax-check.ini
+
+  ci-quality:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK with NuGet cache
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          cache: true
+          cache-dependency-path: |
+            **/*.csproj
+            **/*.props
+            **/*.targets
+            NuGet.Config
+
+      - name: Restore service project
+        run: dotnet restore "${{ matrix.csproj }}"
+
+      - name: Build service project (Release)
+        run: dotnet build "${{ matrix.csproj }}" -c Release --no-restore
+
+      - name: Static analysis gate (analyzers only)
+        run: dotnet format "${{ matrix.csproj }}" analyzers --verify-no-changes --no-restore --verbosity minimal
+
+      - name: Code style gate (blocking)
+        run: dotnet format "${{ matrix.csproj }}" whitespace --verify-no-changes --no-restore --verbosity minimal
+
+      - name: Run service unit tests (Application/Domain when available)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_root="${{ matrix.service_dir }}/test"
+          if [[ ! -d "$test_root" ]]; then
+            echo "No test directory for ${{ matrix.service }}; skipping tests."
+            exit 0
+          fi
+
+          mapfile -t test_projects < <(find "$test_root" -type f \( -name "*.Application.Tests.csproj" -o -name "*.Domain.Tests.csproj" \) | sort)
+          if [[ "${#test_projects[@]}" -eq 0 ]]; then
+            echo "No Application/Domain test projects for ${{ matrix.service }}; skipping tests."
+            exit 0
+          fi
+
+          for proj in "${test_projects[@]}"; do
+            echo "Running tests: $proj"
+            dotnet test "$proj" -c Release --nologo --logger "trx;LogFileName=$(basename "$proj").trx"
+          done
+
+  security-scan:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy FS scan for changed service (fail on HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: ${{ matrix.service_dir }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  build-images:
+    needs: [detect-changes, ci-quality, security-scan]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ matrix.image_repo }}:sha-${{ github.sha }}
+
+      - name: Scan pushed image with Trivy (fail on HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.image_repo }}:sha-${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  deploy-prod:
+    needs: [detect-changes, build-images]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && needs.detect-changes.outputs.has_changes == 'true'
+    runs-on: self-hosted
+    environment: prod-account-a
+    env:
+      AWS_PROFILE: account-a
+      ANSIBLE_LOCAL_TEMP: /tmp/ansible-local
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+      ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-prod-account-a
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write Ansible vault password file
+        shell: bash
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANSIBLE_VAULT_PASSWORD:-}" ]]; then
+            echo "Missing required GitHub secret: ANSIBLE_VAULT_PASSWORD" >&2
+            exit 1
+          fi
+
+          umask 177
+          printf '%s' "$ANSIBLE_VAULT_PASSWORD" > "$ANSIBLE_VAULT_PASSWORD_FILE"
+          test -s "$ANSIBLE_VAULT_PASSWORD_FILE"
+
+      - name: Preflight runner tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible --version
+          aws --version
+          docker --version
+          jq --version
+
+      - name: Preflight AWS caller identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws sts get-caller-identity
+
+      - name: Login to Docker Hub for deploy validation
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Validate pushed images exist
+        shell: bash
+        env:
+          DEPLOY_MATRIX: ${{ needs.detect-changes.outputs.matrix }}
+        run: |
+          set -euo pipefail
+          jq -cr '.[]' <<< "$DEPLOY_MATRIX" | while read -r item; do
+            image_repo="$(jq -r '.image_repo' <<< "$item")"
+            image_ref="${image_repo}:sha-${GITHUB_SHA}"
+            echo "Validating ${image_ref}"
+            docker manifest inspect "$image_ref" > /dev/null
+          done
+
+      - name: Update image tags on swarm manager for changed services
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        env:
+          DEPLOY_MATRIX: ${{ needs.detect-changes.outputs.matrix }}
+        run: |
+          set -euo pipefail
+          jq -cr '.[]' <<< "$DEPLOY_MATRIX" | while read -r item; do
+            image_repo="$(jq -r '.image_repo' <<< "$item")"
+            image_var="$(jq -r '.image_var' <<< "$item")"
+            image_ref="${image_repo}:sha-${GITHUB_SHA}"
+
+            ansible-playbook \
+              -i inventories/prod-account-a/hosts.ini \
+              playbooks/swarm-set-image-tag.yml \
+              -e service_image_var="${image_var}" \
+              -e service_image_value="${image_ref}"
+          done
+
+      - name: Deploy updated swarm stack
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible-playbook \
+            -i inventories/prod-account-a/hosts.ini \
+            -i inventories/prod-account-a/workers.aws_ec2.yml \
+            playbooks/swarm-stack.yml
+
+      - name: Show stack services after deploy
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "docker stack services saaslms"
+
+      - name: Run origin smoke checks on swarm manager
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS http://127.0.0.1:8083/ > /dev/null"
+
+      - name: Run external edge smoke checks with retries
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_url() {
+            local name="$1"
+            local url="$2"
+            shift 2
+
+            echo "Checking ${name}: ${url}"
+            for attempt in $(seq 1 12); do
+              if curl -fsS --connect-timeout 10 --max-time 30 "$@" "$url" > /dev/null; then
+                echo "OK: ${name} (attempt ${attempt})"
+                return 0
+              fi
+
+              echo "Retry ${attempt}/12 failed for ${name}"
+              sleep 10
+            done
+
+            echo "FAILED: ${name} -> ${url}" >&2
+            curl -sS -D - -o /dev/null "$@" "$url" || true
+            return 1
+          }
+
+          check_url "auth metadata" "https://auth.trananhminh.uk/.well-known/openid-configuration"
+          check_url "api app-config" "https://api.trananhminh.uk/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0" \
+            -H "Origin: https://app.trananhminh.uk"
+          check_url "app shell" "https://app.trananhminh.uk/"
+
+      - name: Dump stack diagnostics on failure
+        if: failure()
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "docker stack services saaslms && echo '---' && docker stack ps saaslms --no-trunc | tail -120"
+
+      - name: Remove Ansible vault password file
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$ANSIBLE_VAULT_PASSWORD_FILE"
+
+  rollback-prod:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'rollback'
+    runs-on: self-hosted
+    environment: prod-account-a
+    env:
+      AWS_PROFILE: account-a
+      ANSIBLE_LOCAL_TEMP: /tmp/ansible-local
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+      ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-prod-account-a
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write Ansible vault password file
+        shell: bash
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANSIBLE_VAULT_PASSWORD:-}" ]]; then
+            echo "Missing required GitHub secret: ANSIBLE_VAULT_PASSWORD" >&2
+            exit 1
+          fi
+
+          umask 177
+          printf '%s' "$ANSIBLE_VAULT_PASSWORD" > "$ANSIBLE_VAULT_PASSWORD_FILE"
+          test -s "$ANSIBLE_VAULT_PASSWORD_FILE"
+
+      - name: Preflight runner tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible --version
+          aws --version
+          docker --version
+
+      - name: Preflight AWS caller identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws sts get-caller-identity
+
+      - name: Resolve image repo and env var for rollback service
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          service="${{ github.event.inputs.service }}"
+          rollback_tag="${{ github.event.inputs.image_tag }}"
+
+          case "$service" in
+            blazor)
+              image_repo="youngmizh/saaslms-blazor"
+              image_var="BLAZOR_IMAGE"
+              ;;
+            dbmigrator)
+              image_repo="youngmizh/saaslms-dbmigrator"
+              image_var="DBMIGRATOR_IMAGE"
+              ;;
+            authserver)
+              image_repo="youngmizh/saaslms-authserver"
+              image_var="AUTHSERVER_IMAGE"
+              ;;
+            gateway)
+              image_repo="youngmizh/saaslms-gateway-web"
+              image_var="GATEWAY_IMAGE"
+              ;;
+            saasservice)
+              image_repo="youngmizh/saaslms-saas"
+              image_var="SAAS_IMAGE"
+              ;;
+            administrationservice)
+              image_repo="youngmizh/saaslms-administration"
+              image_var="ADMINISTRATION_IMAGE"
+              ;;
+            identityservice)
+              image_repo="youngmizh/saaslms-identity"
+              image_var="IDENTITY_IMAGE"
+              ;;
+            productservice)
+              image_repo="youngmizh/saaslms-product"
+              image_var="PRODUCT_IMAGE"
+              ;;
+            coursecatalogservice)
+              image_repo="youngmizh/saaslms-coursecatalog"
+              image_var="COURSECATALOG_IMAGE"
+              ;;
+            enrollmentservice)
+              image_repo="youngmizh/saaslms-enrollment"
+              image_var="ENROLLMENT_IMAGE"
+              ;;
+            assessmentservice)
+              image_repo="youngmizh/saaslms-assessment"
+              image_var="ASSESSMENT_IMAGE"
+              ;;
+            learningprogressservice)
+              image_repo="youngmizh/saaslms-learningprogress"
+              image_var="LEARNINGPROGRESS_IMAGE"
+              ;;
+            notificationservice)
+              image_repo="youngmizh/saaslms-notification"
+              image_var="NOTIFICATION_IMAGE"
+              ;;
+            reportingservice)
+              image_repo="youngmizh/saaslms-reporting"
+              image_var="REPORTING_IMAGE"
+              ;;
+            *)
+              echo "Unsupported service: $service" >&2
+              exit 1
+              ;;
+          esac
+
+          image_ref="${image_repo}:${rollback_tag}"
+
+          {
+            echo "service=$service"
+            echo "image_repo=$image_repo"
+            echo "image_var=$image_var"
+            echo "image_ref=$image_ref"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Login to Docker Hub for rollback validation
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Validate rollback image exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker manifest inspect "${{ steps.resolve.outputs.image_ref }}" > /dev/null
+
+      - name: Update image tag env on swarm manager
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible-playbook \
+            -i inventories/prod-account-a/hosts.ini \
+            playbooks/swarm-set-image-tag.yml \
+            -e service_image_var="${{ steps.resolve.outputs.image_var }}" \
+            -e service_image_value="${{ steps.resolve.outputs.image_ref }}"
+
+      - name: Deploy rollback stack
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible-playbook \
+            -i inventories/prod-account-a/hosts.ini \
+            -i inventories/prod-account-a/workers.aws_ec2.yml \
+            playbooks/swarm-stack.yml
+
+      - name: Show stack services after rollback
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "docker stack services saaslms"
+
+      - name: Run origin smoke checks on swarm manager
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
+
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "curl -fsS http://127.0.0.1:8083/ > /dev/null"
+
+      - name: Run external edge smoke checks with retries
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_url() {
+            local name="$1"
+            local url="$2"
+            shift 2
+
+            echo "Checking ${name}: ${url}"
+            for attempt in $(seq 1 12); do
+              if curl -fsS --connect-timeout 10 --max-time 30 "$@" "$url" > /dev/null; then
+                echo "OK: ${name} (attempt ${attempt})"
+                return 0
+              fi
+
+              echo "Retry ${attempt}/12 failed for ${name}"
+              sleep 10
+            done
+
+            echo "FAILED: ${name} -> ${url}" >&2
+            curl -sS -D - -o /dev/null "$@" "$url" || true
+            return 1
+          }
+
+          check_url "auth metadata" "https://auth.trananhminh.uk/.well-known/openid-configuration"
+          check_url "api app-config" "https://api.trananhminh.uk/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0" \
+            -H "Origin: https://app.trananhminh.uk"
+          check_url "app shell" "https://app.trananhminh.uk/"
+
+      - name: Dump stack diagnostics on failure
+        if: failure()
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+            "docker stack services saaslms && echo '---' && docker stack ps saaslms --no-trunc | tail -120"
+
+      - name: Remove Ansible vault password file
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f "$ANSIBLE_VAULT_PASSWORD_FILE"

@@ -30,6 +30,16 @@ x-deploy-worker: &deploy_worker
     delay: 5s
     max_attempts: 10
     window: 60s
+  update_config:
+    parallelism: 1
+    delay: 10s
+    order: start-first
+    failure_action: rollback
+    monitor: 30s
+  rollback_config:
+    parallelism: 1
+    delay: 5s
+    order: stop-first
   placement:
     constraints:
       - node.role == worker
@@ -41,6 +51,16 @@ x-deploy-manager: &deploy_manager
     delay: 5s
     max_attempts: 10
     window: 60s
+  update_config:
+    parallelism: 1
+    delay: 10s
+    order: start-first
+    failure_action: rollback
+    monitor: 30s
+  rollback_config:
+    parallelism: 1
+    delay: 5s
+    order: stop-first
   placement:
     constraints:
       - node.role == manager
@@ -330,6 +350,7 @@ services:
       - saaslms-app
     deploy:
       <<: *deploy_worker
+      replicas: 2
 
   enrollmentservice:
     image: ${ENROLLMENT_IMAGE}
@@ -381,6 +402,7 @@ services:
       - saaslms-app
     deploy:
       <<: *deploy_worker
+      replicas: 2
 
   learningprogressservice:
     image: ${LEARNINGPROGRESS_IMAGE}

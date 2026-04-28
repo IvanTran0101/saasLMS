@@ -236,6 +236,20 @@
       Create/update it before stack deploy.
     success_msg: Image tags environment file exists on manager.
 
+- name: Fail when image tags file still contains placeholder values
+  ansible.builtin.shell: |
+    set -euo pipefail
+    bad_lines="$(grep -n 'sha-REQUIRED' {{ swarm_stack_image_tags_env_file }} || true)"
+    if [ -n "$bad_lines" ]; then
+      echo "$bad_lines"
+      exit 1
+    fi
+  args:
+    executable: /bin/bash
+  register: swarm_stack_image_tags_placeholder_check
+  changed_when: false
+  failed_when: swarm_stack_image_tags_placeholder_check.rc != 0
+
 - name: Deploy saaslms Docker stack on manager
   ansible.builtin.shell: |
     set -euo pipefail
