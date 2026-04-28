@@ -13,6 +13,10 @@
   </Target>
 
   <ItemGroup>
+    <PackageReference Include="Scriban" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="$(UserProfile)\.nuget\packages\*\*\contentFiles\any\*\*.abppkg*" />
   </ItemGroup>
 
