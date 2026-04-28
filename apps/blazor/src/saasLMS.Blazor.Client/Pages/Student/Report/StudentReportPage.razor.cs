@@ -50,6 +50,16 @@ public partial class StudentReportPage : AbpComponentBase
     // ── Report data ──────────────────────────────────────────────────────────
     private StudentCourseProgressViewDto? _studentProgress;
 
+    // ── Staleness tracking ───────────────────────────────────────────────────
+    /// <summary>
+    /// Refetch if data is older than this threshold — covers the case where the
+    /// student has been active elsewhere and returns to the report tab.
+    /// Server-side cache is 5 min but gets invalidated on every event, so this
+    /// 30-second window just prevents excessive calls during rapid tab switching.
+    /// </summary>
+    private static readonly TimeSpan _staleThreshold = TimeSpan.FromSeconds(30);
+    private DateTime _studentProgressLoadedAt = DateTime.MinValue;
+
     // ── Overview tab: progress bar shorthand ─────────────────────────────────
     private int OverallPct       => (int)Math.Round(_studentProgress?.OverallProgress            ?? 0);
     private int LessonPct        => (int)Math.Round(_studentProgress?.LessonCompletionPercent    ?? 0);
@@ -138,24 +148,34 @@ public partial class StudentReportPage : AbpComponentBase
 
     private async Task SelectCourse(CourseListItemDto course)
     {
-        _selectedCourse = course;
-        _activeTab      = StudentReportTab.Overview;
-        _studentProgress = null;
+        _selectedCourse          = course;
+        _activeTab               = StudentReportTab.Overview;
+        _studentProgress         = null;
+        _studentProgressLoadedAt = DateTime.MinValue;
 
         await LoadStudentProgressAsync();
     }
 
     private void ClearSelection()
     {
-        _selectedCourse  = null;
-        _studentProgress = null;
+        _selectedCourse          = null;
+        _studentProgress         = null;
+        _studentProgressLoadedAt = DateTime.MinValue;
     }
 
     private async Task SetTab(StudentReportTab tab)
     {
+        // Always update the visual tab immediately so the button appears active.
         _activeTab = tab;
 
-        if (_studentProgress == null)
+        // Don't start a second load if one is already in flight.
+        if (_isLoadingReport) return;
+
+        // All three tabs (Overview / Assignments / Quizzes) read from the same
+        // _studentProgress DTO, so we only need one fetch per staleness window.
+        // Rapid tab switching (< 30 s) uses the already-loaded data; coming back
+        // after 30+ seconds of activity elsewhere triggers a fresh fetch.
+        if (_studentProgress == null || DateTime.Now - _studentProgressLoadedAt > _staleThreshold)
             await LoadStudentProgressAsync();
     }
 
@@ -168,7 +188,8 @@ public partial class StudentReportPage : AbpComponentBase
             _isLoadingReport = true;
             StateHasChanged();
 
-            _studentProgress = await ReportingAppService.GetStudentCourseProgressAsync(_selectedCourse.CourseId);
+            _studentProgress         = await ReportingAppService.GetStudentCourseProgressAsync(_selectedCourse.CourseId);
+            _studentProgressLoadedAt = DateTime.Now;
         }
         catch (Exception ex)
         {
