@@ -312,7 +312,7 @@ services:
       CourseCatalogService__Aws__ProfileName: ""
       CourseCatalogService__Aws__ProfilesLocation: ""
       CourseCatalogService__Aws__Region: ap-southeast-1
-      CourseCatalogService__Aws__ContainerName: lms-course-mat-dev-213325653412-ap-southeast-1-an
+      CourseCatalogService__Aws__ContainerName: lms-course-mat-dev-864946423771-ap-southeast-1-an
       CourseCatalogService__Aws__CreateContainerIfNotExists: "false"
       # Service-to-service calls must point directly to the target service.
       # ABP's dynamic proxy needs `{BaseUrl}/api/abp/api-definition`, which the gateway doesn't expose per-service.
@@ -364,7 +364,7 @@ services:
       AssessmentService__Aws__ProfileName: ""
       AssessmentService__Aws__ProfilesLocation: ""
       AssessmentService__Aws__Region: ap-southeast-1
-      AssessmentService__Aws__ContainerName: lms-assess-sub-dev-213325653412-ap-southeast-1-an
+      AssessmentService__Aws__ContainerName: lms-assess-sub-dev-864946423771-ap-southeast-1-an
       AssessmentService__Aws__CreateContainerIfNotExists: "false"
     configs:
       - source: assessment_appsettings_production
