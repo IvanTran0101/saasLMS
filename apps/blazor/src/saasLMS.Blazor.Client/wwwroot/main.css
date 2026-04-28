@@ -1,3 +1,19 @@
+/* 
+    loader
+*/
+.loader {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    background-color: #f1f1f2;
+  }
+
+  
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
@@ -71,3 +87,10 @@
 }
 
 /* Your Global Styles */
+
+/* Hide the LeptonX/ABP page-level breadcrumb navigation bar (admin pages only) */
+ol.breadcrumb,
+.abp-breadcrumb,
+.lpx-breadcrumb {
+    display: none !important;
+}
