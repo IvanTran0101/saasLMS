@@ -1,0 +1,43 @@
+<div class="page-loading-state @(CenterContent ? "page-loading-state--centered" : string.Empty)"
+     style="@BuildStyle()"
+     role="status"
+     aria-live="polite">
+    <div class="page-loading-state__card">
+        <div class="page-loading-state__spinner spinner-border text-primary" role="status">
+            <span class="visually-hidden">@Title</span>
+        </div>
+
+        <div class="page-loading-state__copy">
+            <div class="page-loading-state__eyebrow">@Eyebrow</div>
+            <div class="page-loading-state__title">@Title</div>
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <div class="page-loading-state__text">@Message</div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Eyebrow { get; set; } = "Loading";
+
+    [Parameter]
+    public string Title { get; set; } = "Preparing workspace";
+
+    [Parameter]
+    public string Message { get; set; } = "Fetching the latest data for this page.";
+
+    [Parameter]
+    public string MinHeight { get; set; } = "240px";
+
+    [Parameter]
+    public bool CenterContent { get; set; } = true;
+
+    private string BuildStyle()
+    {
+        return string.IsNullOrWhiteSpace(MinHeight)
+            ? string.Empty
+            : $"min-height:{MinHeight};";
+    }
+}

@@ -4,7 +4,7 @@
 //   CSS / JS / fonts / images              -> stale-while-revalidate
 //   HTML navigation + API calls            -> network-only (never cached)
 //
-// Cache invalidation: on activate, fetches /_framework/blazor.boot.json with no-store
+// Cache invalidation: on activate, fetches /_framework/blazor.web.js with no-store
 // and compares a hash to the previously stored value. If it changed (new deploy),
 // both framework and static caches are cleared so fresh assets are downloaded.
 
@@ -32,7 +32,7 @@ async function handleActivate() {
 
 async function checkAndInvalidateOnUpdate() {
     try {
-        const response = await fetch('/_framework/blazor.boot.json', { cache: 'no-store' });
+        const response = await fetch('/_framework/blazor.web.js', { cache: 'no-store' });
         if (!response.ok) return;
 
         const text = await response.text();
@@ -53,7 +53,7 @@ async function checkAndInvalidateOnUpdate() {
 
         await versionCache.put('boot-hash', new Response(currentHash));
     } catch {
-        // Offline or boot.json absent — keep existing cache as-is
+        // Offline or boot entrypoint unavailable — keep existing cache as-is
     }
 }
 
