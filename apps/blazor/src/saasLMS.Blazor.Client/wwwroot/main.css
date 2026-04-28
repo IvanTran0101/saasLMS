@@ -87,3 +87,11 @@
 }
 
 /* Your Global Styles */
+
+/* Hide the LeptonX page-level breadcrumb navigation bar */
+nav[aria-label="breadcrumb"],
+.breadcrumb,
+.abp-breadcrumb,
+.lpx-breadcrumb {
+    display: none !important;
+}
