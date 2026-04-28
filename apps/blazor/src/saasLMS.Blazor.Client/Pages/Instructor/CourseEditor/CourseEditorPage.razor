@@ -22,12 +22,10 @@
 
 @if (_isLoading)
 {
-    <div class="cep-loading">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="cep-loading__text">Loading course editor...</p>
-    </div>
+    <PageLoadingState Eyebrow="Course builder"
+                      Title="Loading course editor"
+                      Message="Preparing chapters, lessons, and assessment tools for editing."
+                      MinHeight="320px" />
 }
 else if (_course is null)
 {
@@ -522,16 +520,6 @@ else
 }
 
 <style>
-    .cep-loading {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 320px;
-        gap: 1rem;
-    }
-    .cep-loading__text { color: #9497a9; font-size: 0.9rem; }
-
     .cep-empty { text-align: center; padding: 3rem 1rem; color: #9497a9; }
     .cep-empty__icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
 
