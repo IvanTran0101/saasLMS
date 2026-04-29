@@ -78,11 +78,11 @@ public class saasLMSBlazorModule : AbpModule
 
         app.UseConfiguredEndpoints(builder =>
         {
+            builder.MapMetrics();
             builder.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(
                     WebAppAdditionalAssembliesHelper.GetAssemblies<saasLMSBlazorClientModule>());
-            builder.MapMetrics();
         });
     }
 }
