@@ -53,11 +53,18 @@
     dest: /opt/saaslms/grafana/provisioning/dashboards/default.yml
     mode: '0644'
 
-- name: Copy default Grafana dashboard
+- name: Copy provisioned Grafana dashboards
   ansible.builtin.copy:
-    src: saaslms-overview-dashboard.json
-    dest: /opt/saaslms/grafana/dashboards/saaslms-overview.json
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     mode: '0644'
+  loop:
+    - src: saaslms-overview-dashboard.json
+      dest: /opt/saaslms/grafana/dashboards/saaslms-overview.json
+    - src: saaslms-node-overview-dashboard.json
+      dest: /opt/saaslms/grafana/dashboards/saaslms-node-overview.json
+    - src: saaslms-container-overview-dashboard.json
+      dest: /opt/saaslms/grafana/dashboards/saaslms-container-overview.json
 
 - name: Copy infrastructure Docker Compose base file from repository etc/docker folder
   ansible.builtin.copy:

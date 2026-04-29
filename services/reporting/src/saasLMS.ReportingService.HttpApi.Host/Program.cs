@@ -28,7 +28,7 @@ public class Program
             await builder.AddApplicationAsync<ReportingServiceHttpApiHostModule>();
             var app = builder.Build();
             await app.InitializeApplicationAsync();
-            await app.RunAsync();            
+            await app.RunAsync();
             return 0;
         }
         catch (Exception ex)

@@ -1,0 +1,53 @@
+networks:
+  saaslms-monitoring:
+    external: true
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - saaslms-monitoring
+    ports:
+      - target: 9100
+        published: 9100
+        protocol: tcp
+        mode: host
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 5s
+      placement:
+        constraints:
+          - node.platform.os == linux
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      - saaslms-monitoring
+    ports:
+      - target: 8080
+        published: 8088
+        protocol: tcp
+        mode: host
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+        delay: 5s
+      placement:
+        constraints:
+          - node.platform.os == linux

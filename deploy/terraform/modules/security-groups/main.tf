@@ -86,6 +86,18 @@ resource "aws_security_group_rule" "manager_metrics_from_infra" {
   security_group_id        = aws_security_group.manager.id
 }
 
+resource "aws_security_group_rule" "manager_monitoring_exporters_from_infra" {
+  for_each = toset([for port in var.monitoring_exporter_ports : tostring(port)])
+
+  type                     = "ingress"
+  description              = "Allow Prometheus scrapes from infra node to manager exporters"
+  from_port                = tonumber(each.value)
+  to_port                  = tonumber(each.value)
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.infra.id
+  security_group_id        = aws_security_group.manager.id
+}
+
 resource "aws_security_group_rule" "manager_ssh_ingress" {
   type              = "ingress"
   description       = "Allow SSH access to manager from operator IP"
@@ -133,6 +145,18 @@ resource "aws_security_group_rule" "worker_ssh_from_manager" {
   to_port                  = 22
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.manager.id
+  security_group_id        = aws_security_group.worker.id
+}
+
+resource "aws_security_group_rule" "worker_monitoring_exporters_from_infra" {
+  for_each = toset([for port in var.monitoring_exporter_ports : tostring(port)])
+
+  type                     = "ingress"
+  description              = "Allow Prometheus scrapes from infra node to worker exporters"
+  from_port                = tonumber(each.value)
+  to_port                  = tonumber(each.value)
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.infra.id
   security_group_id        = aws_security_group.worker.id
 }
 
