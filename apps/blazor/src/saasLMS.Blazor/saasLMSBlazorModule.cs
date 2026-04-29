@@ -73,12 +73,12 @@ public class saasLMSBlazorModule : AbpModule
         app.UseStaticFiles();
         app.UseRouting();
         app.UseHttpMetrics();
+        app.UseEndpoints(endpoints => endpoints.MapMetrics());
         app.MapAbpStaticAssets();
         app.UseAntiforgery();
 
         app.UseConfiguredEndpoints(builder =>
         {
-            builder.MapMetrics();
             builder.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(

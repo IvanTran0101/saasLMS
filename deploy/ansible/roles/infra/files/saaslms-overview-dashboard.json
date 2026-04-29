@@ -342,7 +342,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (job) (rate(http_server_request_duration_seconds_count{job=~\"saaslms-.*\"}[5m]))",
+          "expr": "sum by (job) (rate(http_requests_received_total{job=~\"saaslms-.*\"}[5m]))",
           "legendFormat": "{{job}}",
           "range": true,
           "refId": "A"
