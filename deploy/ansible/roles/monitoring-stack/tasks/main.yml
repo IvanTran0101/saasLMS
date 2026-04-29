@@ -1,0 +1,67 @@
+---
+- name: Ensure monitoring stack deployment directory exists on manager
+  ansible.builtin.file:
+    path: /opt/saaslms/swarm
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Ensure monitoring overlay network exists
+  ansible.builtin.command:
+    cmd: docker network create --driver overlay --attachable {{ monitoring_stack_network_name }}
+  register: monitoring_stack_network_create
+  changed_when: monitoring_stack_network_create.rc == 0
+  failed_when:
+    - monitoring_stack_network_create.rc != 0
+    - '''already exists'' not in (monitoring_stack_network_create.stderr | lower)'
+
+- name: Copy monitoring stack definition to manager
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../etc/docker/swarm/monitoring-stack.yml"
+    dest: "{{ monitoring_stack_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Deploy monitoring Docker stack on manager
+  ansible.builtin.command:
+    cmd: docker stack deploy -c {{ monitoring_stack_file }} {{ monitoring_stack_name }}
+  register: monitoring_stack_deploy_result
+  changed_when: >-
+    'creating service' in (monitoring_stack_deploy_result.stdout | lower)
+    or 'updating service' in (monitoring_stack_deploy_result.stdout | lower)
+    or 'creating network' in (monitoring_stack_deploy_result.stdout | lower)
+
+- name: Wait for monitoring stack services to converge
+  ansible.builtin.shell: |
+    set -euo pipefail
+    output="$(docker stack services {{ monitoring_stack_name }} --format '{{ "{{.Name}} {{.Replicas}}" }}')"
+    [ -n "$output" ] || { echo "No services found in stack {{ monitoring_stack_name }}"; exit 1; }
+    echo "$output" | awk '
+      {
+        split($2, r, "/");
+        if (r[1] != r[2]) {
+          print "Not converged: " $0;
+          bad=1
+        }
+      }
+      END { exit bad }
+    '
+  args:
+    executable: /bin/bash
+  register: monitoring_stack_converge_check
+  changed_when: false
+  retries: "{{ monitoring_stack_wait_retries }}"
+  delay: "{{ monitoring_stack_wait_delay }}"
+  until: monitoring_stack_converge_check.rc == 0
+
+- name: Show deployed monitoring Docker stack services
+  ansible.builtin.command:
+    cmd: docker stack services {{ monitoring_stack_name }}
+  register: monitoring_stack_services
+  changed_when: false
+
+- name: Display deployed monitoring stack services summary
+  ansible.builtin.debug:
+    var: monitoring_stack_services.stdout_lines

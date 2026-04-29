@@ -82,6 +82,7 @@ public class ProductServiceHttpApiHostModule : AbpModule
         app.UseRouting();
         app.UseAbpSecurityHeaders();
         app.UseCors();
+        app.UseHttpMetrics();
         app.UseAuthentication();
         app.UseMultiTenancy();
         app.UseUnitOfWork();

@@ -11,6 +11,7 @@ using Volo.Saas.Host.Blazor.WebAssembly.Bundling;
 using Volo.Abp.Account.Pro.Public.Blazor.WebAssembly.Bundling;
 using Volo.Abp.AspNetCore.Mvc.Libs;
 using Volo.Abp.Ui.LayoutHooks;
+using Prometheus;
 
 namespace saasLMS.Blazor;
 
@@ -71,6 +72,7 @@ public class saasLMSBlazorModule : AbpModule
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseHttpMetrics();
         app.MapAbpStaticAssets();
         app.UseAntiforgery();
 
@@ -80,6 +82,7 @@ public class saasLMSBlazorModule : AbpModule
                 .AddInteractiveWebAssemblyRenderMode()
                 .AddAdditionalAssemblies(
                     WebAppAdditionalAssembliesHelper.GetAssemblies<saasLMSBlazorClientModule>());
+            builder.MapMetrics();
         });
     }
 }

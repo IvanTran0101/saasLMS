@@ -3,12 +3,32 @@ global:
   evaluation_interval: 15s
 
 {% set manager_metrics_host = hostvars[groups['manager'][0]]['manager_private_ip'] | default(hostvars[groups['manager'][0]]['ansible_host']) %}
+{% set swarm_nodes = namespace(targets=[]) %}
+{% for node in (groups['manager'] | default([])) + (groups['workers'] | default([])) %}
+{% set node_metrics_host = hostvars[node]['manager_private_ip'] | default(hostvars[node]['worker_private_ip'] | default(hostvars[node]['ansible_host'])) %}
+{% set _ = swarm_nodes.targets.append(node_metrics_host) %}
+{% endfor %}
 
 scrape_configs:
   - job_name: prometheus
     static_configs:
       - targets:
           - localhost:9090
+
+
+  - job_name: saaslms-node-exporter
+    static_configs:
+      - targets:
+{% for node_metrics_host in swarm_nodes.targets %}
+          - {{ node_metrics_host }}:9100
+{% endfor %}
+
+  - job_name: saaslms-cadvisor
+    static_configs:
+      - targets:
+{% for node_metrics_host in swarm_nodes.targets %}
+          - {{ node_metrics_host }}:8088
+{% endfor %}
 
   - job_name: saaslms-authserver
     metrics_path: /metrics

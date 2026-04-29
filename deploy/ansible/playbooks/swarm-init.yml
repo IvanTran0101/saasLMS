@@ -14,3 +14,9 @@
     - common
     - docker
     - swarm-worker
+
+- name: Deploy monitoring exporters stack to Swarm manager
+  hosts: manager
+  become: true
+  roles:
+    - monitoring-stack

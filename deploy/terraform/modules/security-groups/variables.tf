@@ -29,3 +29,9 @@ variable "manager_metrics_ports" {
   type        = list(number)
   default     = [8080, 8082, 8083]
 }
+
+variable "monitoring_exporter_ports" {
+  description = "Published node/container exporter ports that the infra host may scrape from all Swarm nodes"
+  type        = list(number)
+  default     = [9100, 8088]
+}
