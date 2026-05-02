@@ -198,6 +198,7 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: self-hosted
     env:
+      ANSIBLE_CONFIG: ${{ github.workspace }}/deploy/ansible/ansible.cfg
       ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-syntax-check
     steps:
       - uses: actions/checkout@v4
@@ -430,6 +431,7 @@ jobs:
     environment: prod-account-a
     env:
       AWS_PROFILE: account-a
+      ANSIBLE_CONFIG: ${{ github.workspace }}/deploy/ansible/ansible.cfg
       ANSIBLE_LOCAL_TEMP: /tmp/ansible-local
       ANSIBLE_HOST_KEY_CHECKING: "False"
       ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-prod-account-a
@@ -492,8 +494,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ansible-inventory -i inventories/prod-account-a/hosts.ini --list > /dev/null
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m ping
+          ansible-inventory -i inventories/prod-account-a/hosts.yml --list > /dev/null
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m ping
 
       - name: Update image tags on swarm manager for changed services
         working-directory: ${{ github.workspace }}/deploy/ansible
@@ -508,7 +510,7 @@ jobs:
             image_ref="${image_repo}:sha-${GITHUB_SHA}"
 
             ansible-playbook \
-              -i inventories/prod-account-a/hosts.ini \
+              -i inventories/prod-account-a/hosts.yml \
               playbooks/swarm-set-image-tag.yml \
               -e service_image_var="${image_var}" \
               -e service_image_value="${image_ref}"
@@ -520,7 +522,7 @@ jobs:
         run: |
           set -euo pipefail
           ansible-playbook \
-            -i inventories/prod-account-a/hosts.ini \
+            -i inventories/prod-account-a/hosts.yml \
             -i inventories/prod-account-a/workers.aws_ec2.yml \
             playbooks/swarm-stack.yml
 
@@ -529,7 +531,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "docker stack services saaslms"
 
       - name: Run origin smoke checks on swarm manager
@@ -538,13 +540,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
 
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
 
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "curl -fsS http://127.0.0.1:8083/ > /dev/null"
 
       - name: Run external edge smoke checks with retries
@@ -584,7 +586,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "docker stack services saaslms && echo '---' && docker stack ps saaslms --no-trunc | tail -120"
 
       - name: Remove Ansible vault password file
@@ -600,6 +602,7 @@ jobs:
     environment: prod-account-a
     env:
       AWS_PROFILE: account-a
+      ANSIBLE_CONFIG: ${{ github.workspace }}/deploy/ansible/ansible.cfg
       ANSIBLE_LOCAL_TEMP: /tmp/ansible-local
       ANSIBLE_HOST_KEY_CHECKING: "False"
       ANSIBLE_VAULT_PASSWORD_FILE: /tmp/ansible-vault-password-prod-account-a
@@ -735,8 +738,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ansible-inventory -i inventories/prod-account-a/hosts.ini --list > /dev/null
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m ping
+          ansible-inventory -i inventories/prod-account-a/hosts.yml --list > /dev/null
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m ping
 
       - name: Update image tag env on swarm manager
         working-directory: ${{ github.workspace }}/deploy/ansible
@@ -744,7 +747,7 @@ jobs:
         run: |
           set -euo pipefail
           ansible-playbook \
-            -i inventories/prod-account-a/hosts.ini \
+            -i inventories/prod-account-a/hosts.yml \
             playbooks/swarm-set-image-tag.yml \
             -e service_image_var="${{ steps.resolve.outputs.image_var }}" \
             -e service_image_value="${{ steps.resolve.outputs.image_ref }}"
@@ -755,7 +758,7 @@ jobs:
         run: |
           set -euo pipefail
           ansible-playbook \
-            -i inventories/prod-account-a/hosts.ini \
+            -i inventories/prod-account-a/hosts.yml \
             -i inventories/prod-account-a/workers.aws_ec2.yml \
             playbooks/swarm-stack.yml
 
@@ -764,7 +767,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "docker stack services saaslms"
 
       - name: Run origin smoke checks on swarm manager
@@ -773,13 +776,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
 
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
 
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "curl -fsS http://127.0.0.1:8083/ > /dev/null"
 
       - name: Run external edge smoke checks with retries
@@ -819,7 +822,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ansible manager1 -i inventories/prod-account-a/hosts.ini -m shell -a \
+          ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
             "docker stack services saaslms && echo '---' && docker stack ps saaslms --no-trunc | tail -120"
 
       - name: Remove Ansible vault password file
