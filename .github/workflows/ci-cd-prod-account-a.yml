@@ -487,6 +487,14 @@ jobs:
             docker manifest inspect "$image_ref" > /dev/null
           done
 
+      - name: Validate Ansible inventory and manager reachability
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible-inventory -i inventories/prod-account-a/hosts.ini --list > /dev/null
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m ping
+
       - name: Update image tags on swarm manager for changed services
         working-directory: ${{ github.workspace }}/deploy/ansible
         shell: bash
@@ -721,6 +729,14 @@ jobs:
         run: |
           set -euo pipefail
           docker manifest inspect "${{ steps.resolve.outputs.image_ref }}" > /dev/null
+
+      - name: Validate Ansible inventory and manager reachability
+        working-directory: ${{ github.workspace }}/deploy/ansible
+        shell: bash
+        run: |
+          set -euo pipefail
+          ansible-inventory -i inventories/prod-account-a/hosts.ini --list > /dev/null
+          ansible manager1 -i inventories/prod-account-a/hosts.ini -m ping
 
       - name: Update image tag env on swarm manager
         working-directory: ${{ github.workspace }}/deploy/ansible
