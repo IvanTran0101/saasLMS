@@ -17,6 +17,30 @@
     state: directory
     mode: '0777'
 
+- name: Ensure Prometheus rules directory exists on infrastructure host
+  ansible.builtin.file:
+    path: /opt/saaslms/prometheus/rules
+    state: directory
+    mode: '0755'
+
+- name: Ensure Alertmanager directories exist on infrastructure host
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "{{ '0777' if item.endswith('/storage') else '0755' }}"
+  loop:
+    - /opt/saaslms/alertmanager
+    - /opt/saaslms/alertmanager/storage
+
+- name: Ensure Loki directories exist on infrastructure host
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "{{ '0777' if item.endswith('/storage') else '0755' }}"
+  loop:
+    - /opt/saaslms/loki
+    - /opt/saaslms/loki/storage
+
 - name: Ensure Grafana provisioning directories exist on infrastructure host
   ansible.builtin.file:
     path: "{{ item }}"
@@ -40,18 +64,49 @@
     src: prometheus.yml.j2
     dest: /opt/saaslms/prometheus/prometheus.yml
     mode: '0644'
+  notify: Recreate Prometheus container
+
+- name: Render Prometheus alert rules
+  ansible.builtin.template:
+    src: prometheus-alert-rules.yml.j2
+    dest: /opt/saaslms/prometheus/rules/saaslms-alert-rules.yml
+    mode: '0644'
+  notify: Recreate Prometheus container
+
+- name: Render Alertmanager configuration
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: /opt/saaslms/alertmanager/alertmanager.yml
+    mode: '0644'
+  notify: Recreate Alertmanager container
+
+- name: Render Loki configuration
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: /opt/saaslms/loki/config.yml
+    mode: '0644'
+  notify: Recreate Loki container
 
 - name: Render Grafana Prometheus datasource provisioning file
   ansible.builtin.template:
     src: grafana-datasource-prometheus.yml.j2
     dest: /opt/saaslms/grafana/provisioning/datasources/prometheus.yml
     mode: '0644'
+  notify: Recreate Grafana container
+
+- name: Render Grafana Loki datasource provisioning file
+  ansible.builtin.template:
+    src: grafana-datasource-loki.yml.j2
+    dest: /opt/saaslms/grafana/provisioning/datasources/loki.yml
+    mode: '0644'
+  notify: Recreate Grafana container
 
 - name: Render Grafana dashboard provisioning file
   ansible.builtin.template:
     src: grafana-dashboard-provider.yml.j2
     dest: /opt/saaslms/grafana/provisioning/dashboards/default.yml
     mode: '0644'
+  notify: Recreate Grafana container
 
 - name: Copy provisioned Grafana dashboards
   ansible.builtin.copy:
@@ -65,6 +120,9 @@
       dest: /opt/saaslms/grafana/dashboards/saaslms-node-overview.json
     - src: saaslms-container-overview-dashboard.json
       dest: /opt/saaslms/grafana/dashboards/saaslms-container-overview.json
+    - src: saaslms-service-observability-dashboard.json
+      dest: /opt/saaslms/grafana/dashboards/saaslms-service-observability.json
+  notify: Recreate Grafana container
 
 - name: Copy infrastructure Docker Compose base file from repository etc/docker folder
   ansible.builtin.copy:
@@ -165,3 +223,22 @@
     timeout: 120
     delay: 5
   when: monitoring_enabled | bool
+
+- name: Wait for Alertmanager port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9093
+    timeout: 120
+    delay: 5
+  when: monitoring_enabled | bool
+
+- name: Wait for Loki port to become available
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 3100
+    timeout: 120
+    delay: 5
+  when: monitoring_enabled | bool
+
+- name: Flush infra service restarts
+  ansible.builtin.meta: flush_handlers

@@ -17,18 +17,19 @@
   },
   "editable": true,
   "graphTooltip": 0,
+  "id": null,
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "loki",
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "none"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -53,31 +54,30 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "loki",
+            "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "count by(instance) (container_last_seen{job=\"saaslms-cadvisor\"})",
-          "legendFormat": "{{instance}}",
-          "range": true,
-          "instant": false,
+          "expr": "sum by (swarm_service) (count_over_time({swarm_stack=\"saaslms\", swarm_service=~\".+\"}[5m]))",
+          "legendFormat": "{{swarm_service}}",
+          "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "cAdvisor Series Count By Node",
+      "title": "Log Volume By Swarm Service (5m)",
       "type": "timeseries"
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "loki",
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "percentunit"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -102,18 +102,17 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "loki",
+            "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by(instance) (rate(container_cpu_usage_seconds_total{job=\"saaslms-cadvisor\",cpu=\"total\"}[5m]))",
-          "legendFormat": "{{instance}}",
-          "range": true,
-          "instant": false,
+          "expr": "sum by (swarm_service) (count_over_time({swarm_stack=\"saaslms\", swarm_service=~\".+\"} |= \"error\" [5m]))",
+          "legendFormat": "{{swarm_service}}",
+          "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "cAdvisor CPU By Node",
+      "title": "Error Log Volume By Swarm Service (5m)",
       "type": "timeseries"
     },
     {
@@ -126,13 +125,13 @@
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "bytes"
+          "unit": "none"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 8
       },
@@ -155,81 +154,72 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(instance) (container_memory_working_set_bytes{job=\"saaslms-cadvisor\"})",
-          "legendFormat": "{{instance}}",
+          "expr": "avg by (job) (up{job=~\"saaslms-.*\"})",
+          "legendFormat": "{{job}}",
           "range": true,
-          "instant": false,
           "refId": "A"
         }
       ],
-      "title": "cAdvisor Memory By Node",
+      "title": "Application Targets Up By Job",
       "type": "timeseries"
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "Bps"
-        },
-        "overrides": []
+        "type": "loki",
+        "uid": "loki"
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 16
       },
       "id": 4,
       "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
       },
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "loki",
+            "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum by(instance) (container_fs_usage_bytes{job=\"saaslms-cadvisor\"})",
-          "legendFormat": "{{instance}}",
-          "range": true,
-          "instant": false,
+          "expr": "{swarm_stack=\"saaslms\", swarm_service=~\".+\"} |= \"error\"",
+          "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "cAdvisor Filesystem Usage By Node",
-      "type": "timeseries"
+      "title": "Recent Error Logs By Swarm Service",
+      "type": "logs"
     }
   ],
+  "refresh": "30s",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
     "saaslms",
-    "cadvisor"
+    "loki",
+    "service"
   ],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
-  "timezone": "browser",
-  "title": "saasLMS Container Overview v2",
-  "uid": "saaslms-container-overview-v2",
-  "version": 2
+  "timepicker": {},
+  "timezone": "",
+  "title": "saasLMS Service Observability v1",
+  "uid": "saaslms-service-observability-v1",
+  "version": 1,
+  "weekStart": ""
 }

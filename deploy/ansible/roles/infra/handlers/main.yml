@@ -1,0 +1,40 @@
+---
+- name: Recreate Prometheus container
+  ansible.builtin.command:
+    cmd: >-
+      docker compose
+      -f {{ infra_compose_dir }}/docker-compose.infrastructure.yml
+      -f {{ infra_compose_dir }}/{{ infra_compose_file }}
+      up -d --force-recreate prometheus
+  args:
+    chdir: "{{ infra_compose_dir }}"
+
+- name: Recreate Grafana container
+  ansible.builtin.command:
+    cmd: >-
+      docker compose
+      -f {{ infra_compose_dir }}/docker-compose.infrastructure.yml
+      -f {{ infra_compose_dir }}/{{ infra_compose_file }}
+      up -d --force-recreate grafana
+  args:
+    chdir: "{{ infra_compose_dir }}"
+
+- name: Recreate Loki container
+  ansible.builtin.command:
+    cmd: >-
+      docker compose
+      -f {{ infra_compose_dir }}/docker-compose.infrastructure.yml
+      -f {{ infra_compose_dir }}/{{ infra_compose_file }}
+      up -d --force-recreate loki
+  args:
+    chdir: "{{ infra_compose_dir }}"
+
+- name: Recreate Alertmanager container
+  ansible.builtin.command:
+    cmd: >-
+      docker compose
+      -f {{ infra_compose_dir }}/docker-compose.infrastructure.yml
+      -f {{ infra_compose_dir }}/{{ infra_compose_file }}
+      up -d --force-recreate alertmanager
+  args:
+    chdir: "{{ infra_compose_dir }}"

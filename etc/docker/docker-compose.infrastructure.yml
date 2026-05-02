@@ -43,10 +43,36 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SERVER_DOMAIN=grafana.trananhminh.uk
+      - GF_SERVER_ROOT_URL=https://grafana.trananhminh.uk/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
     volumes:
       - ../grafana/storage:/var/lib/grafana
       - ../grafana/provisioning:/etc/grafana/provisioning
       - ../grafana/dashboards:/etc/grafana/dashboards
+    networks:
+      - saaslms-network
+
+  loki:
+    container_name: loki
+    image: grafana/loki:3.1.1
+    command:
+      - -config.file=/etc/loki/config.yml
+    volumes:
+      - ../loki/config.yml:/etc/loki/config.yml
+      - ../loki/storage:/loki
+    networks:
+      - saaslms-network
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:v0.28.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ../alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ../alertmanager/storage:/alertmanager
     networks:
       - saaslms-network
       
@@ -59,6 +85,7 @@ services:
       - --storage.tsdb.retention.time=15d
     volumes:
       - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../prometheus/rules:/etc/prometheus/rules
       - ../prometheus/storage:/prometheus
     networks:
       - saaslms-network

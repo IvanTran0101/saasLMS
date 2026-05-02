@@ -1,10 +1,10 @@
 networks:
-  saaslms-monitoring:
+  {{ monitoring_stack_network_name }}:
     external: true
 
 configs:
   promtail-config:
-    file: ./promtail-config.yml
+    file: {{ monitoring_promtail_config_file }}
 
 services:
   node-exporter:
@@ -15,7 +15,7 @@ services:
     volumes:
       - /:/host:ro,rslave
     networks:
-      - saaslms-monitoring
+      - {{ monitoring_stack_network_name }}
     ports:
       - target: 9100
         published: 9100
@@ -43,7 +43,7 @@ services:
       - /dev/disk:/dev/disk:ro
       - /var/lib/docker:/var/lib/docker:ro
     networks:
-      - saaslms-monitoring
+      - {{ monitoring_stack_network_name }}
     ports:
       - target: 8080
         published: 8088
@@ -68,8 +68,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /etc/hostname:/etc/host_hostname:ro
     networks:
-      - saaslms-monitoring
+      - {{ monitoring_stack_network_name }}
     deploy:
       mode: global
       restart_policy:

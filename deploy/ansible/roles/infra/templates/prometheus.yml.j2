@@ -2,6 +2,15 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
 {% set manager_metrics_host = hostvars[groups['manager'][0]]['manager_private_ip'] | default(hostvars[groups['manager'][0]]['ansible_host']) %}
 {% set swarm_nodes = namespace(targets=[]) %}
 {% for node in (groups['manager'] | default([])) + (groups['workers'] | default([])) %}
@@ -35,12 +44,6 @@ scrape_configs:
     static_configs:
       - targets:
           - {{ manager_metrics_host }}:8082
-
-  - job_name: saaslms-blazor
-    metrics_path: /metrics
-    static_configs:
-      - targets:
-          - {{ manager_metrics_host }}:8083
 
   - job_name: saaslms-gateway
     metrics_path: /metrics

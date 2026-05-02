@@ -2,5 +2,7 @@
 monitoring_stack_name: saaslms-monitoring
 monitoring_stack_file: /opt/saaslms/swarm/monitoring-stack.yml
 monitoring_stack_network_name: saaslms-monitoring
+monitoring_promtail_config_file: /opt/saaslms/swarm/promtail-config.yml
 monitoring_stack_wait_retries: 30
 monitoring_stack_wait_delay: 10
+monitoring_loki_host: "{{ hostvars[groups['infra'][0]]['infra_private_ip'] | default(hostvars[groups['infra'][0]]['ansible_host']) }}"

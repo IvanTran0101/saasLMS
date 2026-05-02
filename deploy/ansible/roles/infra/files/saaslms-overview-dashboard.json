@@ -367,8 +367,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "saasLMS Production Overview",
-  "uid": "saaslms-overview",
-  "version": 1,
+  "title": "saasLMS Production Overview v2",
+  "uid": "saaslms-overview-v2",
+  "version": 2,
   "weekStart": ""
 }

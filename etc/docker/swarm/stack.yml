@@ -54,7 +54,9 @@ x-deploy-manager: &deploy_manager
   update_config:
     parallelism: 1
     delay: 10s
-    order: start-first
+    # Manager-pinned services publish fixed host ports (8080/8082/8083),
+    # so stop-first avoids port-binding conflicts during rolling updates.
+    order: stop-first
     failure_action: rollback
     monitor: 30s
   rollback_config:
