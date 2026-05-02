@@ -17,9 +17,17 @@
     - '''already exists'' not in (monitoring_stack_network_create.stderr | lower)'
 
 - name: Copy monitoring stack definition to manager
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../../etc/docker/swarm/monitoring-stack.yml"
+  ansible.builtin.template:
+    src: monitoring-stack.yml.j2
     dest: "{{ monitoring_stack_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Render Promtail configuration for monitoring stack
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: "{{ monitoring_promtail_config_file }}"
     owner: root
     group: root
     mode: '0644'

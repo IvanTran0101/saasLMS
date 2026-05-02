@@ -15,7 +15,7 @@ manager_instance_type = "t3.medium"
 worker_instance_type  = "t3.medium"
 worker_count          = 1
 
-my_ip_cidr = "42.115.43.69/32"
+my_ip_cidr = "1.54.204.229/32"
 
 domain_name = "trananhminh.uk"
 app_domain  = "app.trananhminh.uk"

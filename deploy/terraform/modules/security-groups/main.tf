@@ -479,3 +479,23 @@ resource "aws_security_group_rule" "infra_prometheus_from_manager" {
   source_security_group_id = aws_security_group.manager.id
   security_group_id        = aws_security_group.infra.id
 }
+
+resource "aws_security_group_rule" "infra_loki_from_manager" {
+  type                     = "ingress"
+  description              = "Allow Loki log ingestion from manager nodes"
+  from_port                = 3100
+  to_port                  = 3100
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.manager.id
+  security_group_id        = aws_security_group.infra.id
+}
+
+resource "aws_security_group_rule" "infra_loki_from_worker" {
+  type                     = "ingress"
+  description              = "Allow Loki log ingestion from worker nodes"
+  from_port                = 3100
+  to_port                  = 3100
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.worker.id
+  security_group_id        = aws_security_group.infra.id
+}

@@ -229,7 +229,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "title": "saasLMS Node Overview",
-  "uid": "saaslms-node-overview",
-  "version": 1
+  "title": "saasLMS Node Overview v2",
+  "uid": "saaslms-node-overview-v2",
+  "version": 2
 }

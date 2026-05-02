@@ -1,0 +1,47 @@
+groups:
+  - name: saaslms-infra
+    rules:
+      - alert: InstanceDown
+        expr: up{job=~"saaslms-.*|prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Target down"
+          description: "{{ '{{ $labels.job }}' }} on {{ '{{ $labels.instance }}' }} is down."
+
+      - alert: HighNodeCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{job="saaslms-node-exporter",mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High node CPU usage"
+          description: "Node {{ '{{ $labels.instance }}' }} has CPU usage above 85% for 5 minutes."
+
+      - alert: HighNodeMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes{job="saaslms-node-exporter"} / node_memory_MemTotal_bytes{job="saaslms-node-exporter"})) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High node memory usage"
+          description: "Node {{ '{{ $labels.instance }}' }} has memory usage above 90% for 5 minutes."
+
+      - alert: LowDiskSpaceRoot
+        expr: (node_filesystem_avail_bytes{job="saaslms-node-exporter",mountpoint="/",fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{job="saaslms-node-exporter",mountpoint="/",fstype!~"tmpfs|overlay"}) * 100 < 15
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low root disk space"
+          description: "Node {{ '{{ $labels.instance }}' }} has less than 15% free space on /."
+
+      - alert: AppHighHttp5xxRate
+        expr: sum by(job) (rate(http_requests_received_total{job=~"saaslms-.*",code=~"5.."}[5m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP 5xx detected"
+          description: "Job {{ '{{ $labels.job }}' }} is returning 5xx responses."
