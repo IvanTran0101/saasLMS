@@ -5,10 +5,10 @@ x-env-common: &env_common
   ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
   ASPNETCORE_URLS: http://+:80
   AllowedHosts: "*"
-  App__CorsOrigins: https://app.trananhminh.uk,https://api.trananhminh.uk,https://auth.trananhminh.uk
-  App__RedirectAllowedUrls: https://app.trananhminh.uk,https://api.trananhminh.uk,https://auth.trananhminh.uk
-  AuthServer__Authority: https://auth.trananhminh.uk
-  AuthServer__MetadataAddress: https://auth.trananhminh.uk/.well-known/openid-configuration
+  App__CorsOrigins: ${APP__CORSORIGINS}
+  App__RedirectAllowedUrls: ${APP__REDIRECTALLOWEDURLS}
+  AuthServer__Authority: ${AUTHSERVER__AUTHORITY}
+  AuthServer__MetadataAddress: ${AUTHSERVER__METADATAADDRESS}
   AuthServer__RequireHttpsMetadata: "true"
   AuthServer__SwaggerClientId: WebGateway_Swagger
   Redis__Configuration: ${INFRA_INTERNAL_HOST}:6379
@@ -20,7 +20,7 @@ x-env-common: &env_common
   # In Swarm stacks, the in-network DNS name is the service key (e.g. "gateway"),
   # not the full service object name "saaslms_gateway".
   RemoteServices__Default__BaseUrl: http://gateway:80
-  IdentityClients__Default__Authority: https://auth.trananhminh.uk
+  IdentityClients__Default__Authority: ${IDENTITYCLIENTS__DEFAULT__AUTHORITY}
   IdentityClients__Default__RequireHttps: "true"
 
 x-deploy-worker: &deploy_worker
@@ -136,7 +136,7 @@ services:
         mode: host
     environment:
       <<: *env_common
-      App__SelfUrl: https://app.trananhminh.uk
+      App__SelfUrl: ${APP__SELFURL}
       RabbitMQ__EventBus__ClientName: saasLMS_Blazor
       # Keep the ABP startup-time libs check disabled; the image bakes libs in at build time,
       # and disabling the check avoids false negatives during cold start.
@@ -157,12 +157,12 @@ services:
       # IMPORTANT: keep RootUrl without a trailing slash to avoid seeding redirect URIs like
       # "https://app.trananhminh.uk//authentication/login-callback" (double slash), which then
       # fails OpenIddict redirect_uri validation and results in /Error?httpStatusCode=400.
-      OpenIddict__Applications__AuthServer__RootUrl: https://auth.trananhminh.uk
-      OpenIddict__Applications__Web__RootUrl: https://api.trananhminh.uk
-      OpenIddict__Applications__WebGateway__RootUrl: https://api.trananhminh.uk
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
-      OpenIddict__Applications__BlazorWebApp__RootUrl: https://app.trananhminh.uk
-      OpenIddict__Applications__BlazorServer__RootUrl: https://api.trananhminh.uk
+      OpenIddict__Applications__AuthServer__RootUrl: ${OPENIDDICT__APPLICATIONS__AUTHSERVER__ROOTURL}
+      OpenIddict__Applications__Web__RootUrl: ${OPENIDDICT__APPLICATIONS__WEB__ROOTURL}
+      OpenIddict__Applications__WebGateway__RootUrl: ${OPENIDDICT__APPLICATIONS__WEBGATEWAY__ROOTURL}
+      OpenIddict__Applications__Blazor__RootUrl: ${OPENIDDICT__APPLICATIONS__BLAZOR__ROOTURL}
+      OpenIddict__Applications__BlazorWebApp__RootUrl: ${OPENIDDICT__APPLICATIONS__BLAZORWEBAPP__ROOTURL}
+      OpenIddict__Applications__BlazorServer__RootUrl: ${OPENIDDICT__APPLICATIONS__BLAZORSERVER__ROOTURL}
       DbMigrator__Redis__Configuration: ${INFRA_INTERNAL_HOST}:6379
       DbMigrator__ElasticSearch__Url: http://${INFRA_INTERNAL_HOST}:9200
     secrets:
@@ -194,9 +194,9 @@ services:
         mode: host
     environment:
       <<: *env_common
-      App__SelfUrl: https://auth.trananhminh.uk
+      App__SelfUrl: ${APP__SELFURL}
       RabbitMQ__EventBus__ClientName: saasLMS_AuthServer
-      OpenIddict__Applications__Blazor__RootUrl: https://app.trananhminh.uk
+      OpenIddict__Applications__Blazor__RootUrl: ${OPENIDDICT__APPLICATIONS__BLAZOR__ROOTURL}
     secrets:
       - abplicensecode
       - stringencryption_defaultpassphrase
