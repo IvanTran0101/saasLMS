@@ -8,9 +8,9 @@
 // and compares a hash to the previously stored value. If it changed (new deploy),
 // both framework and static caches are cleared so fresh assets are downloaded.
 
-const FRAMEWORK_CACHE = 'saasLMS-framework-v2';
-const STATIC_CACHE    = 'saasLMS-static-v2';
-const VERSION_CACHE   = 'saasLMS-version-v2';
+const FRAMEWORK_CACHE = 'saasLMS-framework';
+const STATIC_CACHE    = 'saasLMS-static';
+const VERSION_CACHE   = 'saasLMS-version';
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ async function handleActivate() {
 
 async function checkAndInvalidateOnUpdate() {
     try {
-        const response = await fetchBootSignature();
+        const response = await fetch('/_framework/blazor.web.js', { cache: 'no-store' });
         if (!response.ok) return;
 
         const text = await response.text();
@@ -57,21 +57,6 @@ async function checkAndInvalidateOnUpdate() {
     }
 }
 
-async function fetchBootSignature() {
-    const candidates = [
-        '/_framework/blazor.boot.json',
-        '/_framework/resource-collection.js',
-        '/_framework/blazor.web.js',
-    ];
-
-    for (const path of candidates) {
-        const response = await fetch(path, { cache: 'no-store' });
-        if (response.ok) return response;
-    }
-
-    return new Response(null, { status: 404 });
-}
-
 async function cleanupStaleCaches() {
     const valid = new Set([FRAMEWORK_CACHE, STATIC_CACHE, VERSION_CACHE]);
     const keys  = await caches.keys();
@@ -87,20 +72,8 @@ self.addEventListener('fetch', event => {
     // Only handle same-origin GET requests
     if (req.method !== 'GET' || url.origin !== self.location.origin) return;
 
-    // Always revalidate the boot manifest / resource manifest entrypoints.
-    // If these stay stale while assemblies are content-hashed per deploy,
-    // the browser can request deleted `_framework/*.wasm` files and hit 404s.
-    if (
-        url.pathname === '/_framework/blazor.boot.json' ||
-        url.pathname === '/_framework/resource-collection.js' ||
-        url.pathname === '/_framework/blazor.web.js'
-    ) {
-        event.respondWith(networkFirst(req, FRAMEWORK_CACHE));
-        return;
-    }
-
     // Blazor framework assemblies and ABP content assets — cache first
-    // (large files; boot manifest revalidation above handles deploy churn)
+    // (large files; version check above handles invalidation on redeploy)
     if (url.pathname.startsWith('/_framework/') || url.pathname.startsWith('/_content/')) {
         event.respondWith(cacheFirst(req, FRAMEWORK_CACHE));
         return;
@@ -141,20 +114,6 @@ async function staleWhileRevalidate(request, cacheName) {
         .catch(() => cached);
 
     return cached ?? networkFetch;
-}
-
-async function networkFirst(request, cacheName) {
-    const cache = await caches.open(cacheName);
-
-    try {
-        const response = await fetch(request, { cache: 'no-store' });
-        if (response.ok) await cache.put(request, response.clone());
-        return response;
-    } catch {
-        const cached = await cache.match(request);
-        if (cached) return cached;
-        throw new Error(`Network request failed for ${request.url}`);
-    }
 }
 
 // ─── Utility ─────────────────────────────────────────────────────────────────
