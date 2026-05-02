@@ -541,13 +541,13 @@ jobs:
           set -euo pipefail
 
           ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
-            "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
+            "curl -fsS --resolve auth.trananhminh.uk:443:127.0.0.1 https://auth.trananhminh.uk/.well-known/openid-configuration > /dev/null"
 
           ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
-            "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
+            \"curl -fsS --resolve api.trananhminh.uk:443:127.0.0.1 'https://api.trananhminh.uk/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' -H 'Origin: https://app.trananhminh.uk' > /dev/null\"
 
           ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
-            "curl -fsS http://127.0.0.1:8083/ > /dev/null"
+            "curl -fsS --resolve app.trananhminh.uk:443:127.0.0.1 https://app.trananhminh.uk/ > /dev/null"
 
       - name: Run external edge smoke checks with retries
         shell: bash
@@ -777,13 +777,13 @@ jobs:
           set -euo pipefail
 
           ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
-            "curl -fsS http://127.0.0.1:8082/.well-known/openid-configuration > /dev/null"
+            "curl -fsS --resolve auth.trananhminh.uk:443:127.0.0.1 https://auth.trananhminh.uk/.well-known/openid-configuration > /dev/null"
 
           ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
-            "curl -fsS 'http://127.0.0.1:8080/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' > /dev/null"
+            \"curl -fsS --resolve api.trananhminh.uk:443:127.0.0.1 'https://api.trananhminh.uk/api/abp/application-configuration?IncludeLocalizationResources=False&api-version=1.0' -H 'Origin: https://app.trananhminh.uk' > /dev/null\"
 
           ansible manager1 -i inventories/prod-account-a/hosts.yml -m shell -a \
-            "curl -fsS http://127.0.0.1:8083/ > /dev/null"
+            "curl -fsS --resolve app.trananhminh.uk:443:127.0.0.1 https://app.trananhminh.uk/ > /dev/null"
 
       - name: Run external edge smoke checks with retries
         shell: bash
