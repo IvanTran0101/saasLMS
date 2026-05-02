@@ -357,15 +357,96 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         return isValid;
     }
 
+    /// <summary>
+    /// Validates VideoLink-specific fields synchronously and sets inline error messages.
+    /// Must be called before _isSaving = true to avoid HandleErrorAsync / ABP toast.
+    /// </summary>
+    private bool ValidateVideoLinkFields()
+    {
+        _videoUrlError = null;
+
+        if (string.IsNullOrWhiteSpace(_videoUrl))
+        {
+            _videoUrlError = "Video URL is required.";
+            return false;
+        }
+
+        if (!Uri.TryCreate(_videoUrl.Trim(), UriKind.Absolute, out _))
+        {
+            _videoUrlError = "Please enter a valid URL.";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Validates Text-specific fields synchronously and sets inline error messages.
+    /// Must be called before _isSaving = true to avoid HandleErrorAsync / ABP toast.
+    /// </summary>
+    private bool ValidateTextFields()
+    {
+        _textError = null;
+
+        if (string.IsNullOrWhiteSpace(_textContent))
+        {
+            _textError = "Content cannot be empty.";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Validates FileUpload-specific fields synchronously and sets inline error messages.
+    /// Must be called before _isSaving = true to avoid HandleErrorAsync / ABP toast.
+    /// </summary>
+    private bool ValidateFileUploadFields()
+    {
+        _fileError = null;
+
+        if (_selectedFile is null)
+        {
+            _fileError = "Please select a file.";
+            return false;
+        }
+
+        return true;
+    }
+
     private async Task AddResourceAsync()
     {
         if (!ValidateCommonFields()) return;
 
-        // Validate assignment fields up-front — before _isSaving = true — so invalid input
+        // Validate tab-specific fields up-front — before _isSaving = true — so invalid input
         // shows inline errors immediately without going through HandleErrorAsync (ABP toast).
-        if ((_activeTab == MaterialTabType.Assignment && !_isEditMode) || _isEditAssignmentMode)
+        if (_isEditAssignmentMode)
         {
             if (!ValidateAssignmentFields()) return;
+        }
+        else if (_isEditMode)
+        {
+            // Edit mode: validate content fields for the material type being edited
+            var editValid = _editingMaterialType switch
+            {
+                MaterialType.VideoLink => ValidateVideoLinkFields(),
+                MaterialType.Text      => ValidateTextFields(),
+                _                      => true // File: file is optional (rename-only allowed)
+            };
+            if (!editValid) return;
+        }
+        else
+        {
+            // Add mode: validate by active tab
+            var addValid = _activeTab switch
+            {
+                MaterialTabType.Assignment => ValidateAssignmentFields(),
+                MaterialTabType.VideoLink  => ValidateVideoLinkFields(),
+                MaterialTabType.Text       => ValidateTextFields(),
+                MaterialTabType.FileUpload => ValidateFileUploadFields(),
+                _                          => true // Quiz: validated inside UploadQuizCsvAsync
+            };
+            if (!addValid) return;
         }
 
         _isSaving = true;
@@ -436,12 +517,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         switch (_editingMaterialType)
         {
             case MaterialType.VideoLink:
-                _videoUrlError = null;
-                if (string.IsNullOrWhiteSpace(_videoUrl))
-                {
-                    _videoUrlError = "Video URL is required.";
-                    throw new InvalidOperationException(_videoUrlError);
-                }
                 result = await CourseCatalogAppService.UpdateVideoLinkMaterialAsync(
                     new UpdateVideoLinkMaterialInput
                     {
@@ -454,12 +529,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
                 break;
 
             case MaterialType.Text:
-                _textError = null;
-                if (string.IsNullOrWhiteSpace(_textContent))
-                {
-                    _textError = "Content cannot be empty.";
-                    throw new InvalidOperationException(_textError);
-                }
                 result = await CourseCatalogAppService.UpdateTextMaterialAsync(
                     new UpdateTextMaterialInput
                     {
@@ -542,12 +611,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task<MaterialDto> AddFileMaterialAsync()
     {
-        if (_selectedFile is null)
-        {
-            _fileError = "Please select a file.";
-            throw new InvalidOperationException(_fileError);
-        }
-
         // Single-step: truyền MaterialId = Guid.Empty để backend tạo mới Material
         // + upload blob trong một transaction — tránh domain check NotNullOrWhiteSpace(StorageKey).
         var tokenResult = await AccessTokenProvider.RequestAccessToken();
@@ -590,21 +653,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task<MaterialDto> AddVideoLinkMaterialAsync()
     {
-        _videoUrlError = null;
-
-        if (string.IsNullOrWhiteSpace(_videoUrl))
-        {
-            _videoUrlError = "Video URL is required.";
-            throw new InvalidOperationException(_videoUrlError);
-        }
-
-        if (!Uri.TryCreate(_videoUrl.Trim(), UriKind.Absolute, out _))
-        {
-            _videoUrlError = "Please enter a valid URL.";
-            throw new InvalidOperationException(_videoUrlError);
-        }
-
-        // FIX: field đúng là ExternalUrl, không phải VideoUrl
         var input = new CreateVideoLinkMaterialInput
         {
             CourseId    = _courseId,
@@ -619,14 +667,6 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
 
     private async Task<MaterialDto> AddTextMaterialAsync()
     {
-        _textError = null;
-
-        if (string.IsNullOrWhiteSpace(_textContent))
-        {
-            _textError = "Content cannot be empty.";
-            throw new InvalidOperationException(_textError);
-        }
-
         var input = new CreateTextMaterialInput
         {
             CourseId  = _courseId,
@@ -737,7 +777,7 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            _quizCsvFileError = ExtractAbpErrorMessage(errorBody)
+            _quizCsvFileError = MapQuizCsvError(errorBody)
                 ?? "Failed to upload quiz CSV. Please verify the file format and try again.";
             return;
         }
@@ -778,22 +818,56 @@ public partial class AddResourcesToLessonModal : AbpComponentBase
     }
 
     /// <summary>
-    /// Parse ABP HTTP error response body and extract the error code.
-    /// ABP format: { "error": { "code": "...", "message": "...", "details": "..." } }
+    /// Parses an ABP HTTP error response and maps the error code to a user-friendly message.
+    /// ABP format: { "error": { "code": "...", "message": "...", "data": { "Row": N, "Reason": "..." } } }
     /// </summary>
-    private static string? ExtractAbpErrorMessage(string responseBody)
+    private static string? MapQuizCsvError(string responseBody)
     {
         try
         {
-            var node = JsonNode.Parse(responseBody);
+            var node  = JsonNode.Parse(responseBody);
             var error = node?["error"];
             if (error is null) return null;
 
             var code = error["code"]?.GetValue<string>();
-            if (!string.IsNullOrWhiteSpace(code))
-                return code;
+            if (string.IsNullOrWhiteSpace(code)) return null;
+
+            return code switch
+            {
+                "AssessmentService:FileEmpty" =>
+                    "The uploaded file appears to be empty. Please select a valid CSV file and try again.",
+
+                "AssessmentService:QuizCsvInvalidFormat" =>
+                    BuildCsvFormatError(error),
+
+                _ => null   // unknown code → fall back to generic message
+            };
         }
         catch { /* ignore parse errors */ }
         return null;
+    }
+
+    private static string BuildCsvFormatError(JsonNode error)
+    {
+        // Try to extract Row and Reason from the error data object
+        var data = error["data"];
+
+        int? row = null;
+        try { row = data?["Row"]?.GetValue<int>(); } catch { /* field absent or not an int */ }
+
+        var reason = data?["Reason"]?.GetValue<string>();
+
+        const string hint = "Each row must contain: a question, at least 2 answer options, and a CorrectIndex (1-based).";
+
+        if (row.HasValue && !string.IsNullOrWhiteSpace(reason))
+            return $"CSV error on row {row.Value}: {reason} {hint}";
+
+        if (row.HasValue)
+            return $"CSV error on row {row.Value}. {hint}";
+
+        if (!string.IsNullOrWhiteSpace(reason))
+            return $"CSV error: {reason} {hint}";
+
+        return $"Invalid CSV format. {hint} Please check the file and try again.";
     }
 }

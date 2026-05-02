@@ -48,6 +48,16 @@ public partial class InstructorReportPage : AbpComponentBase
     private CourseOutcomeReportViewDto? _courseOutcome;
     private ScoreDistributionData? _scoreDist;
 
+    // ── Staleness tracking ───────────────────────────────────────────────────
+    /// <summary>
+    /// Refetch Reporting-backed tabs (ClassProgress / CourseOutcome) if data is
+    /// older than this threshold. EnrolledStudents does a live parallel user-info
+    /// lookup so it keeps the null guard instead (re-select course to refresh it).
+    /// </summary>
+    private static readonly TimeSpan _staleThreshold = TimeSpan.FromSeconds(30);
+    private DateTime _classProgressLoadedAt  = DateTime.MinValue;
+    private DateTime _courseOutcomeLoadedAt  = DateTime.MinValue;
+
     // ── Enrolled Students tab ────────────────────────────────────────────────
     private bool _isLoadingStudents;
     private List<EnrolledStudentRow> _enrolledStudents = new();
@@ -143,35 +153,53 @@ public partial class InstructorReportPage : AbpComponentBase
 
     private async Task SelectCourse(CourseListItemDto course)
     {
-        _selectedCourse = course;
-        _activeTab = ReportTab.ClassProgress;
-        _classProgress = null;
-        _courseOutcome = null;
-        _scoreDist = null;
-        _enrolledStudents = new();
+        _selectedCourse          = course;
+        _activeTab               = ReportTab.ClassProgress;
+        _classProgress           = null;
+        _courseOutcome           = null;
+        _scoreDist               = null;
+        _enrolledStudents        = new();
+        _classProgressLoadedAt   = DateTime.MinValue;
+        _courseOutcomeLoadedAt   = DateTime.MinValue;
 
         await LoadClassProgressAsync();
     }
 
     private void ClearSelection()
     {
-        _selectedCourse = null;
-        _classProgress = null;
-        _courseOutcome = null;
-        _scoreDist = null;
-        _enrolledStudents = new();
+        _selectedCourse         = null;
+        _classProgress          = null;
+        _courseOutcome          = null;
+        _scoreDist              = null;
+        _enrolledStudents       = new();
+        _classProgressLoadedAt  = DateTime.MinValue;
+        _courseOutcomeLoadedAt  = DateTime.MinValue;
     }
 
     private async Task SetTab(ReportTab tab)
     {
+        // Always update the visual tab immediately so the button appears active.
         _activeTab = tab;
 
-        if (tab == ReportTab.ClassProgress && _classProgress == null)
+        // Don't start a second load if one is already in flight.
+        if (_isLoadingReport || _isLoadingStudents) return;
+
+        if (tab == ReportTab.ClassProgress &&
+            (_classProgress == null || DateTime.Now - _classProgressLoadedAt > _staleThreshold))
+        {
             await LoadClassProgressAsync();
-        else if (tab == ReportTab.CourseOutcome && _courseOutcome == null)
+        }
+        else if (tab == ReportTab.CourseOutcome &&
+                 (_courseOutcome == null || DateTime.Now - _courseOutcomeLoadedAt > _staleThreshold))
+        {
             await LoadCourseOutcomeAsync();
+        }
         else if (tab == ReportTab.EnrolledStudents && _enrolledStudents.Count == 0)
+        {
+            // EnrolledStudents does a live parallel user-info lookup — keep the
+            // null guard. Re-select the course to force a refresh.
             await LoadEnrolledStudentsAsync();
+        }
     }
 
     private async Task LoadClassProgressAsync()
@@ -183,7 +211,8 @@ public partial class InstructorReportPage : AbpComponentBase
             _isLoadingReport = true;
             StateHasChanged();
 
-            _classProgress = await ReportingAppService.GetClassProgressAsync(_selectedCourse.CourseId);
+            _classProgress        = await ReportingAppService.GetClassProgressAsync(_selectedCourse.CourseId);
+            _classProgressLoadedAt = DateTime.Now;
         }
         catch (Exception ex)
         {
@@ -205,6 +234,7 @@ public partial class InstructorReportPage : AbpComponentBase
             StateHasChanged();
 
             _courseOutcome = await ReportingAppService.GetCourseOutcomeReportAsync(_selectedCourse.CourseId);
+            _courseOutcomeLoadedAt = DateTime.Now;
 
             _scoreDist = string.IsNullOrEmpty(_courseOutcome?.ScoreDistributionJson)
                 ? null
